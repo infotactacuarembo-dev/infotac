@@ -43,14 +43,18 @@ module.exports = async function handler(req, res) {
     }
 
     const hash = bcrypt.hashSync(newPassword.trim(), 10);
-    const { error: upsertError } = await supabase
-      .from('configuracion')
-      .upsert({ clave: 'password_taller', valor: hash }, { onConflict: 'clave' });
+    const { error: updateError } = await supabase
+  .from('configuracion')
+  .update({
+    valor: hash,
+    password: null
+  })
+  .eq('clave', 'password_taller');
 
-    if (upsertError) {
-      console.error('set-password upsert error', upsertError);
-      return res.status(500).json({ ok: false, error: 'No se pudo guardar la nueva clave.' });
-    }
+if (updateError) {
+  console.error('set-password update error', updateError);
+  return res.status(500).json({ ok: false, error: 'No se pudo guardar la nueva clave.' });
+}
 
     return res.status(200).json({ ok: true });
   } catch (e) {
