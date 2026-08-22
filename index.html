@@ -824,6 +824,26 @@
       </div>
     </div>
 
+      <div id="modal-cambiar-clave" class="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h3>Cambiar Clave</h3>
+            <button class="modal-close" id="btn-clave-cancelar-x">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group full">
+              <label>Nueva contraseña</label>
+              <input type="password" id="input-nueva-clave" placeholder="Ingresá la nueva contraseña" autocomplete="new-password">
+            </div>
+            <div id="clave-msg" style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-primary" id="btn-clave-guardar">Guardar</button>
+            <button class="btn-sm" id="btn-clave-cancelar">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
     <!-- ====== SUPABASE JS SDK (CDN oficial v2) ====== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -875,7 +895,59 @@ if (btnCambiarClave) {
         console.error('Error al cambiar clave', err);
         alert('No se pudo guardar en la base de datos. La clave local seguirá siendo la actual.');
       });
-  });
+  });// Botón cambiar clave
+    var btnCambiarClave = document.getElementById('btn-cambiar-clave');
+    var modalClave = document.getElementById('modal-cambiar-clave');
+    var inputNuevaClave = document.getElementById('input-nueva-clave');
+    var btnClaveGuardar = document.getElementById('btn-clave-guardar');
+    var btnClaveCancelar = document.getElementById('btn-clave-cancelar');
+    var claveMsg = document.getElementById('clave-msg');
+    if (btnCambiarClave && modalClave) {
+      btnCambiarClave.addEventListener('click', function() {
+        if (inputNuevaClave) inputNuevaClave.value = '';
+        if (claveMsg) { claveMsg.textContent = ''; }
+        modalClave.classList.add('visible');
+        if (inputNuevaClave) inputNuevaClave.focus();
+      });
+    }
+    if (btnClaveCancelar && modalClave) {
+      btnClaveCancelar.addEventListener('click', function() {
+        modalClave.classList.remove('visible');
+      });
+    }
+    var btnClaveCancelarX = document.getElementById('btn-clave-cancelar-x');
+    if (btnClaveCancelarX && modalClave) {
+      btnClaveCancelarX.addEventListener('click', function() {
+        modalClave.classList.remove('visible');
+      });
+    }
+      if (  modalClave) {
+      modalClave.addEventListener('click', function(e) {
+        if (e.target === modalClave) modalClave.classList.remove('visible');
+      });
+    }
+    if (btnClaveGuardar) {
+      btnClaveGuardar.addEventListener('click', function() {
+        var nueva = inputNuevaClave ? inputNuevaClave.value : '';
+        if (!nueva || !nueva.trim()) {
+          if (claveMsg) claveMsg.textContent = 'Ingresá una contraseña válida.';
+          return;
+        }
+        supabase
+          .from('configuracion')
+          .upsert({ clave: 'password_taller', valor: nueva }, { onConflict: 'clave' })
+          .then(function(res) {
+            if (res.error) throw res.error;
+            CLAVE_CORRECTA = nueva;
+            if (modalClave) modalClave.classList.remove('visible');
+            alert('Contraseña actualizada correctamente.');
+          })
+          .catch(function(err) {
+            console.error('Error al cambiar clave', err);
+            if (claveMsg) claveMsg.textContent = 'No se pudo guardar en la base de datos.';
+          });
+      });
+    }
 }
 
 
@@ -1618,4 +1690,4 @@ if (btnCambiarClave) {
       })();
     </script>
   </body>
-</html>
+</html>
