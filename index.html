@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infotac - Gestión de Taller</title>
+    <style>
+      :root {
+        --primary: #0f766e;
+        --primary-dark: #115e59;
+        --primary-light: #14b8a6;
+        --bg: #f1f5f9;
+        --surface: #ffffff;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --warning: #f59e0b;
+        --error: #dc2626;
+        --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.06);
+        --radius: 12px;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* ====== LOGIN SCREEN ====== */
+      #login-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        padding: 1rem;
+      }
+
+      .login-card {
+        background: var(--surface);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        width: 100%;
+        max-width: 420px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+      }
+
+      .login-card h1 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.3rem;
+      }
+
+      .login-card .subtitle {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .login-card input {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        margin-bottom: 1rem;
+      }
+
+      .login-card input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(15,118,110,0.15);
+      }
+
+      .login-card input.shake-error {
+        border-color: var(--error);
+        animation: shake 0.4s;
+      }
+
+      @keyframes shake {
+        0%,100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        75% { transform: translateX(8px); }
+      }
+
+      .btn-primary {
+        width: 100%;
+        padding: 0.85rem;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      .btn-primary:hover { background: var(--primary-dark); }
+      .btn-primary:active { transform: scale(0.98); }
+
+      .login-msg {
+        margin-top: 0.75rem;
+        font-size: 0.88rem;
+        min-height: 1.2rem;
+        color: var(--error);
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .login-msg.visible { opacity: 1; }
+
+      /* ====== MAIN APP ====== */
+      .admin-bloqueado { display: none !important; }
+
+      #app-screen { min-height: 100vh; }
+
+      .app-header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .app-header .logo {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .app-header .logo .dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: var(--primary-light);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .btn-sm {
+        padding: 0.5rem 0.9rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+
+      .btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+
+      .btn-sm.danger { color: var(--error); border-color: var(--border); }
+      .btn-sm.danger:hover { border-color: var(--error); background: #fef2f2; }
+
+      .btn-sm.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+      .btn-sm.primary:hover { background: var(--primary-dark); }
+
+      .app-body {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      @media (max-width: 960px) {
+        .app-body { grid-template-columns: 1fr; }
+      }
+
+      /* ====== PANEL CARDS ====== */
+      .panel {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .panel-header h2 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .panel-body { padding: 1.25rem; }
+
+      /* ====== FORM ====== */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+      .form-group.full { grid-column: 1 / -1; }
+
+      .form-group label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        padding: 0.6rem 0.75rem;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+
+      .form-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .form-actions .btn-primary { flex: 1; }
+
+      .btn-secondary {
+        padding: 0.85rem 1.2rem;
+        background: var(--bg);
+        color: var(--text-muted);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .btn-secondary:hover { border-color: var(--text-muted); }
+
+      /* ====== SEARCH BAR ====== */
+      .search-bar {
+        position: relative;
+        margin-bottom: 0.75rem;
+      }
+
+      .search-bar input {
+        width: 100%;
+        padding: 0.65rem 0.75rem 0.65rem 2.5rem;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      .search-bar input:focus { border-color: var(--primary); }
+
+      .search-bar svg {
+        position: absolute;
+        left: 0.7rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px; height: 18px;
+        color: var(--text-muted);
+      }
+
+      /* ====== TABLE ====== */
+      .table-wrap {
+        overflow-x: auto;
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      th {
+        background: var(--bg);
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      tbody tr {
+        transition: background 0.1s;
+        cursor: pointer;
+      }
+
+      tbody tr:hover { background: #f0fdfa; }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .status-ingresado { background: #dbeafe; color: #1d4ed8; }
+      .status-reparando { background: #fef3c7; color: #b45309; }
+      .status-terminado { background: #dcfce7; color: #15803d; }
+      .status-entregado { background: #e0e7ff; color: #4338ca; }
+      .status-sinreparar { background: #fee2e2; color: #b91c1c; }
+
+      .icon-btn.wa { color: #16a34a; border-color: #bbf7d0; }
+      .icon-btn.wa:hover { background: #f0fdf4; border-color: #16a34a; }
+      .icon-btn.tk { color: #475569; border-color: #cbd5e1; }
+      .icon-btn.tk:hover { background: #f8fafc; border-color: #475569; }
+
+      .row-actions {
+        display: flex;
+        gap: 0.3rem;
+        white-space: nowrap;
+      }
+
+      .icon-btn {
+        width: 30px; height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface);
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+
+      .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+      .icon-btn.del:hover { border-color: var(--error); color: var(--error); background: #fef2f2; }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+      }
+
+      .empty-state svg {
+        width: 48px; height: 48px;
+        margin-bottom: 0.75rem;
+        opacity: 0.4;
+      }
+
+      .stats-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .stat-chip {
+        background: var(--bg);
+        border-radius: 8px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .stat-chip strong { color: var(--primary); font-size: 1rem; }
+
+      /* ====== MODAL ====== */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+        padding: 1rem;
+      }
+
+      .modal-overlay.visible { display: flex; }
+
+      .modal {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+
+      .modal-close {
+        background: none; border: none;
+        font-size: 1.5rem; cursor: pointer;
+        color: var(--text-muted);
+        line-height: 1;
+      }
+
+      .modal-body { padding: 1.25rem; }
+
+      .detail-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+        gap: 1rem;
+      }
+
+      .detail-row:last-child { border-bottom: none; }
+
+      .detail-label {
+        font-weight: 600;
+        color: var(--text-muted);
+        min-width: 100px;
+        font-size: 0.82rem;
+      }
+
+      .detail-value { flex: 1; font-size: 0.88rem; }
+
+      .status-select-wrap {
+        margin-top: 1rem;
+      }
+
+      .status-select-wrap select {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .modal-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+
+      .hidden { display: none !important; }
+
+      /* ====== TICKET DE INGRESO ====== */
+      #ticket-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 300;
+        padding: 1rem;
+      }
+      #ticket-overlay.visible { display: flex; }
+
+      .ticket-toolbar {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .ticket-paper {
+        width: 320px;
+        max-width: 100%;
+        background: #fff;
+        padding: 1.5rem 1.25rem;
+        font-family: 'Courier New', 'Consolas', monospace;
+        color: #111;
+        font-size: 12px;
+        line-height: 1.5;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      }
+
+      .ticket-paper .tk-center { text-align: center; }
+      .ticket-paper .tk-header {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+      }
+      .ticket-paper .tk-sub {
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 0.5rem;
+      }
+      .ticket-paper .tk-divider {
+        border-top: 1px dashed #999;
+        margin: 0.5rem 0;
+      }
+      .ticket-paper .tk-orden {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-align: center;
+        margin: 0.25rem 0 0.15rem;
+      }
+      .ticket-paper .tk-estado {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        display: inline-block;
+        border: 1px solid #333;
+        border-radius: 3px;
+      }
+      .ticket-paper .tk-estado-wrap { text-align: center; margin-bottom: 0.25rem; }
+      .ticket-paper .tk-section-title {
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 2px;
+        margin: 0.5rem 0 0.25rem;
+      }
+      .ticket-paper .tk-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 1px 0;
+      }
+      .ticket-paper .tk-label { font-weight: 700; color: #444; white-space: nowrap; }
+      .ticket-paper .tk-val { text-align: right; word-break: break-word; }
+      .ticket-paper .tk-val-block { margin-bottom: 0.25rem; }
+      .ticket-paper .tk-val-block .tk-label { display: block; margin-bottom: 1px; }
+      .ticket-paper .tk-val-block .tk-val { display: block; text-align: left; }
+      .ticket-paper .tk-saldo { font-size: 14px; font-weight: 700; }
+      .ticket-paper .tk-footer {
+        font-size: 9px;
+        color: #666;
+        text-align: center;
+        margin-top: 0.5rem;
+        line-height: 1.4;
+      }
+      .ticket-paper .tk-thanks {
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+        margin-top: 0.5rem;
+      }
+
+      /* ====== PRINT ====== */
+      @media print {
+        body * { visibility: hidden; }
+        #ticket-overlay { display: block !important; background: none !important; padding: 0 !important; }
+        #ticket-overlay * { visibility: visible; }
+        .ticket-toolbar { display: none !important; }
+        .ticket-paper {
+          width: 80mm;
+          box-shadow: none;
+          padding: 4mm;
+          margin: 0;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        @page { margin: 0; size: 80mm auto; }
+      }
+
+      /* ====== AUTOCOMPLETE CLIENTE ====== */
+      .cliente-input-wrap { position: relative; display: flex; gap: 0.4rem; }
+      .cliente-input-wrap input { flex: 1; }
+      .btn-add-cliente {
+        width: 40px; height: 40px; flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: var(--primary); color: #fff; border: none;
+        border-radius: 8px; font-size: 1.4rem; line-height: 1; cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-add-cliente:hover { background: var(--primary-dark); }
+      .autocomplete-dropdown {
+        position: absolute; top: 100%; left: 0; right: 46px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        max-height: 200px; overflow-y: auto; z-index: 50;
+        display: none;
+      }
+      .autocomplete-dropdown.visible { display: block; }
+      .autocomplete-item {
+        padding: 0.55rem 0.75rem; cursor: pointer; font-size: 0.88rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .autocomplete-item:last-child { border-bottom: none; }
+      .autocomplete-item:hover { background: #f0fdfa; }
+      .autocomplete-item .ac-wa { color: var(--text-muted); font-size: 0.78rem; }
+      .autocomplete-empty { padding: 0.55rem 0.75rem; color: var(--text-muted); font-size: 0.82rem; }
+
+      /* ====== HISTORIAL EN MODAL ====== */
+      .historial-section { margin-top: 1.25rem; }
+      .historial-title {
+        font-size: 0.82rem; font-weight: 700; color: var(--text);
+        text-transform: uppercase; letter-spacing: 0.03em;
+        padding-bottom: 0.4rem; border-bottom: 2px solid var(--primary);
+        margin-bottom: 0.5rem;
+      }
+      .historial-list { list-style: none; }
+      .historial-item {
+        display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;
+        padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+        font-size: 0.82rem;
+      }
+      .historial-item:last-child { border-bottom: none; }
+      .historial-item .h-fecha { color: var(--text-muted); white-space: nowrap; min-width: 90px; }
+      .historial-item .h-equipo { font-weight: 600; }
+      .historial-item .h-falla { color: var(--text-muted); font-size: 0.78rem; flex: 1; min-width: 120px; }
+      .historial-loading { color: var(--text-muted); font-size: 0.82rem; padding: 0.5rem 0; }
+    </style>
+    <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+  <body>
+
+    <!-- ====== LOGIN SCREEN ====== -->
+    <div id="login-screen">
+      <div class="login-card">
+        <h1>Infotac</h1>
+        <p class="subtitle">Gestión de Taller — Introduce la contraseña</p>
+        <input type="password" id="input-clave-taller" placeholder="Contraseña" autocomplete="current-password" autofocus />
+        <button type="button" class="btn-primary" id="btn-entrar">Entrar</button>
+        <div class="login-msg" id="mensaje-error"></div>
+      </div>
+    </div>
+
+    <!-- ====== APP SCREEN ====== -->
+    <div id="app-screen" class="admin-bloqueado">
+      <header class="app-header">
+        <div class="logo"><span class="dot"></span> Infotac</div>
+        <div class="header-actions">
+          <button class="btn-sm" id="btn-exportar">Exportar backup</button>
+          <button class="btn-sm" id="btn-importar">Importar backup</button>
+          <input type="file" id="file-importar" accept=".json" class="hidden" />
+	<button class="btn-sm" id="btn-cambiar-clave">🔑 Cambiar Clave</button>
+          <button class="btn-sm danger" id="btn-salir">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <div class="app-body">
+        <!-- ====== LEFT: REGISTRAR INGRESO ====== -->
+        <section class="panel" id="seccion-formulario">
+          <div class="panel-header">
+            <h2>Registrar Ingreso</h2>
+          </div>
+          <div class="panel-body">
+            <form id="form-ingreso" autocomplete="off">
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label for="f-nombre">Nombre del cliente</label>
+                  <div class="cliente-input-wrap">
+                    <input type="text" id="f-nombre" required placeholder="Buscar o crear cliente..." autocomplete="off" />
+                    <button type="button" class="btn-add-cliente" id="btn-add-cliente" title="Crear cliente nuevo">+</button>
+                    <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-whatsapp">WhatsApp</label>
+                  <input type="tel" id="f-whatsapp" placeholder="Ej: 351 555 1234" />
+                </div>
+                <div class="form-group">
+                  <label for="f-equipo">Equipo</label>
+                  <input type="text" id="f-equipo" placeholder="Marca / modelo" />
+                </div>
+                <div class="form-group">
+                  <label for="f-serie">Nro de Serie</label>
+                  <input type="text" id="f-serie" />
+                </div>
+                <div class="form-group">
+                  <label for="f-pin">PIN</label>
+                  <input type="text" id="f-pin" placeholder="PIN de seguridad" />
+                </div>
+                <div class="form-group">
+                  <label for="f-sena">Seña</label>
+                  <input type="number" id="f-sena" min="0" step="0.01" placeholder="0.00" />
+                </div>
+                <div class="form-group">
+                  <label for="f-presupuesto">Presupuesto</label>
+                  <input type="number" id="f-presupuesto" min="0" step="0.01" placeholder="0.00" />
+                </div>
+                <div class="form-group full">
+                  <label for="f-falla">Falla declarada</label>
+                  <textarea id="f-falla" placeholder="Describe la falla reportada por el cliente"></textarea>
+                </div>
+                <div class="form-group full">
+                  <label for="f-estetico">Estado Estético / Accesorios</label>
+                  <textarea id="f-estetico" placeholder="Rayones, golpes, cargador, funda, etc."></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Registrar ingreso</button>
+                <button type="reset" class="btn-secondary">Limpiar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ====== RIGHT: PANEL DE ÓRDENES ====== -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Panel de Órdenes</h2>
+            <span id="contador-ordenes" style="font-size:0.82rem;color:var(--text-muted);font-weight:600;"></span>
+          </div>
+          <div class="panel-body">
+            <div class="stats-row" id="stats-row"></div>
+            <div class="search-bar">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" id="buscador" placeholder="Buscar por nombre, equipo, serie o falla..." />
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Equipo</th>
+                    <th>Serie</th>
+                    <th>Seña</th>
+                    <th>Presup.</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-ordenes"></tbody>
+              </table>
+              <div id="empty-state" class="empty-state hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M20.25 7.5l-.625 10.632A2.25 2.25 0 0117.378 20.4H6.622a2.25 2.25 0 01-2.247-2.268L3.75 7.5M10 11.25h4M3.75 7.5h16.5"/></svg>
+                <p>No hay órdenes registradas. Usa el formulario para registrar el primer ingreso.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ====== TICKET OVERLAY ====== -->
+    <div id="ticket-overlay">
+      <div class="ticket-toolbar">
+        <button class="btn-sm primary" id="ticket-imprimir">Imprimir</button>
+        <button class="btn-sm" id="ticket-cerrar">Cerrar</button>
+      </div>
+      <div class="ticket-paper" id="ticket-contenido"></div>
+    </div>
+
+    <!-- ====== DETAIL MODAL ====== -->
+    <div class="modal-overlay" id="modal-detalle">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Detalle de Orden</h3>
+          <button class="modal-close" id="modal-cerrar">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-contenido"></div>
+        <div class="modal-footer">
+          <button class="btn-sm" id="modal-guardar">Guardar cambios</button>
+          <button class="btn-sm danger" id="modal-eliminar">Eliminar orden</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== SUPABASE JS SDK (CDN oficial v2) ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var CLAVE_CORRECTA = "infotac2026";
+
+
+        /* ===== SUPABASE CLIENT ===== */
+        var SUPABASE_URL = "https://xfrglaprjvlrverimntm.supabase.co"
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmcmdsYXByanZscnZlcmltbnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4NzEzNDksImV4cCI6MjEwMjQ0NzM0OX0.q5s9WxmHhe_j19eKARBRUvrB7Ur8ZLS_7T_KeR8qVUA"
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Trae la clave actual desde Supabase (tabla configuracion) al cargar
+function cargarClaveDesdeDB() {
+  return supabase
+    .from('configuracion')
+    .select('valor')
+    .eq('clave', 'password_taller')
+    .single()
+    .then(function(res) {
+      if (!res.error && res.data && res.data.valor) {
+        CLAVE_CORRECTA = res.data.valor;
+      }
+    })
+    .catch(function(e) {
+      console.warn('Sin conexión a la BD, se mantiene la clave local por defecto.', e);
+    });
+}
+cargarClaveDesdeDB();
+
+// Botón cambiar clave
+var btnCambiarClave = document.getElementById('btn-cambiar-clave');
+if (btnCambiarClave) {
+  btnCambiarClave.addEventListener('click', function() {
+    var nueva = prompt('Ingresá la nueva contraseña:');
+    if (!nueva || !nueva.trim()) return;
+    supabase
+      .from('configuracion')
+      .upsert({ clave: 'password_taller', valor: nueva }, { onConflict: 'clave' })
+      .then(function(res) {
+        if (res.error) throw res.error;
+        CLAVE_CORRECTA = nueva;
+        alert('Contraseña actualizada correctamente.');
+      })
+      .catch(function(err) {
+        console.error('Error al cambiar clave', err);
+        alert('No se pudo guardar en la base de datos. La clave local seguirá siendo la actual.');
+      });
+  });
+}
+
+
+        /* ===== ELEMENTS ===== */
+        var loginScreen = document.getElementById("login-screen");
+        var appScreen = document.getElementById("app-screen");
+        var inputClave = document.getElementById("input-clave-taller");
+        var btnEntrar = document.getElementById("btn-entrar");
+        var btnSalir = document.getElementById("btn-salir");
+        var mensajeError = document.getElementById("mensaje-error");
+
+        var formIngreso = document.getElementById("form-ingreso");
+        var buscador = document.getElementById("buscador");
+        var tablaOrdenes = document.getElementById("tabla-ordenes");
+        var emptyState = document.getElementById("empty-state");
+        var contadorOrdenes = document.getElementById("contador-ordenes");
+        var statsRow = document.getElementById("stats-row");
+
+        var btnExportar = document.getElementById("btn-exportar");
+        var btnImportar = document.getElementById("btn-importar");
+        var fileImportar = document.getElementById("file-importar");
+
+        var modalDetalle = document.getElementById("modal-detalle");
+        var modalContenido = document.getElementById("modal-contenido");
+        var modalCerrar = document.getElementById("modal-cerrar");
+        var modalGuardar = document.getElementById("modal-guardar");
+        var modalEliminar = document.getElementById("modal-eliminar");
+
+        var ordenes = [];
+        var ordenActivaId = null;
+        var estadoEditTemporal = "ingresado";
+        var clientes = [];
+        var clienteSeleccionadoId = null;
+
+        var ESTADOS = {
+          ingresado: { label: "Ingresado", cls: "status-ingresado" },
+          reparando: { label: "En Revisión", cls: "status-reparando" },
+          terminado: { label: "Listo para Retirar", cls: "status-terminado" },
+          entregado: { label: "Entregado", cls: "status-entregado" },
+          sinreparar: { label: "Sin Reparar / Devuelto", cls: "status-sinreparar" }
+        };
+
+        /* ===== SESSION PERSISTENCE ===== */
+        var SESSION_KEY = "infotac_sesion_activa";
+
+        function restaurarSesion() {
+          try {
+            if (sessionStorage.getItem(SESSION_KEY) === "true") {
+              loginScreen.classList.add("admin-bloqueado");
+              appScreen.classList.remove("admin-bloqueado");
+              Promise.all([cargarClientes(), cargarOrdenes()]).then(function () {
+                renderizar();
+              }).catch(function (err) {
+                console.error("Error al cargar datos:", err);
+              });
+            }
+          } catch (e) {}
+        }
+
+        /* ===== LOGIN ===== */
+        function entrarModoAdminDirecto() {
+          var valorClave = inputClave.value;
+          if (valorClave === CLAVE_CORRECTA) {
+            mensajeError.textContent = "";
+            mensajeError.classList.remove("visible");
+            inputClave.classList.remove("shake-error");
+            loginScreen.classList.add("admin-bloqueado");
+            appScreen.classList.remove("admin-bloqueado");
+            try { sessionStorage.setItem(SESSION_KEY, "true"); } catch (e) {}
+            Promise.all([cargarClientes(), cargarOrdenes()]).then(function () {
+              renderizar();
+            }).catch(function (err) {
+              console.error("Error al cargar datos:", err);
+            });
+          } else {
+            mensajeError.textContent = "Contraseña incorrecta. Inténtalo de nuevo.";
+            mensajeError.classList.add("visible");
+            inputClave.classList.remove("shake-error");
+            void inputClave.offsetWidth;
+            inputClave.classList.add("shake-error");
+            inputClave.value = "";
+            inputClave.focus();
+          }
+        }
+
+        function salirModoAdmin() {
+          appScreen.classList.add("admin-bloqueado");
+          loginScreen.classList.remove("admin-bloqueado");
+          try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+          inputClave.value = "";
+          inputClave.focus();
+        }
+
+        btnEntrar.addEventListener("click", entrarModoAdminDirecto);
+        inputClave.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") entrarModoAdminDirecto();
+        });
+        btnSalir.addEventListener("click", salirModoAdmin);
+
+        restaurarSesion();
+
+        /* ===== DATA ACCESS (SUPABASE) ===== */
+        // Mapea una fila de la BD (columnas: id, fecha, cliente, tel, tipo, serie,
+        // pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega)
+        // al modelo interno que usa la vista.
+        function mapearFila(row) {
+          return {
+            id: row.id,
+            clienteId: row.cliente_id,
+            fecha: row.fecha,
+            nombre: row.cliente,
+            whatsapp: row.tel,
+            equipo: row.tipo,
+            serie: row.serie,
+            pin: row.pass,
+            sena: row.sena,
+            presupuesto: row.presupuesto,
+            presupuesta: row.presupuesta,
+            falla: row.falla,
+            estetico: row.estetico,
+            estado: row.estado,
+            fechaEntrega: row.fecha_entrega
+          };
+        }
+
+        // Descarga todas las órdenes de la tabla "ordenes" en un solo pedido.
+        // Sin bucles de sondeo ni nada que congela la pantalla.
+        function cargarOrdenes() {
+          return supabase
+            .from("ordenes")
+            .select("id, fecha, cliente_id, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega")
+            .order("fecha", { ascending: false })
+            .then(function (res) {
+              if (res.error) throw res.error;
+              ordenes = (res.data || []).map(mapearFila);
+            });
+        }
+
+        function cargarClientes() {
+          return supabase
+            .from("clientes")
+            .select("id, nombre, whatsapp")
+            .order("nombre", { ascending: true })
+            .then(function (res) {
+              if (res.error) throw res.error;
+              clientes = res.data || [];
+            });
+        }
+
+        function val(id) {
+          var el = document.getElementById(id);
+          return el ? el.value.trim() : "";
+        }
+
+        /* ===== AUTOCOMPLETE CLIENTE ===== */
+        var fNombre = document.getElementById("f-nombre");
+        var fWhatsapp = document.getElementById("f-whatsapp");
+        var acDropdown = document.getElementById("autocomplete-dropdown");
+        var btnAddCliente = document.getElementById("btn-add-cliente");
+
+        function mostrarSugerencias(query) {
+          if (!query) { acDropdown.classList.remove("visible"); return; }
+          var q = query.toLowerCase().trim();
+          var matches = clientes.filter(function (c) {
+            return c.nombre.toLowerCase().indexOf(q) !== -1;
+          }).slice(0, 8);
+
+          if (matches.length === 0) {
+            acDropdown.innerHTML = "<div class='autocomplete-empty'>No se encontro \"" + esc(query) + "\". Presiona + para crearlo.</div>";
+          } else {
+            acDropdown.innerHTML = matches.map(function (c) {
+              return "<div class='autocomplete-item' data-id='" + c.id + "'>"
+                + "<strong>" + esc(c.nombre) + "</strong>"
+                + (c.whatsapp ? " <span class='ac-wa'>· " + esc(c.whatsapp) + "</span>" : "")
+                + "</div>";
+            }).join("");
+          }
+          acDropdown.classList.add("visible");
+        }
+
+        fNombre.addEventListener("input", function () {
+          clienteSeleccionadoId = null;
+          mostrarSugerencias(fNombre.value);
+        });
+
+        fNombre.addEventListener("focus", function () {
+          if (fNombre.value) mostrarSugerencias(fNombre.value);
+        });
+
+        fNombre.addEventListener("blur", function () {
+          setTimeout(function () { acDropdown.classList.remove("visible"); }, 200);
+        });
+
+        acDropdown.addEventListener("mousedown", function (e) {
+          var item = e.target.closest(".autocomplete-item");
+          if (!item) return;
+          e.preventDefault();
+          var id = item.getAttribute("data-id");
+          var c = clientes.find(function (x) { return x.id === id; });
+          if (c) {
+            fNombre.value = c.nombre;
+            fWhatsapp.value = c.whatsapp;
+            clienteSeleccionadoId = c.id;
+          }
+          acDropdown.classList.remove("visible");
+        });
+
+        btnAddCliente.addEventListener("click", function () {
+          var nombre = val("f-nombre");
+          if (!nombre) { fNombre.focus(); return; }
+          supabase
+            .from("clientes")
+            .insert({ nombre: nombre, whatsapp: val("f-whatsapp") })
+            .select("id")
+            .then(function (res) {
+              if (res.error) throw res.error;
+              var nuevoId = res.data && res.data[0] && res.data[0].id;
+              if (!nuevoId) throw new Error("No se pudo crear el cliente");
+              clienteSeleccionadoId = nuevoId;
+              return cargarClientes();
+            })
+            .then(function () {
+              acDropdown.classList.remove("visible");
+              fWhatsapp.focus();
+            })
+            .catch(function (err) {
+              console.error("Error al crear cliente:", err);
+              alert("No se pudo crear el cliente. Intentalo de nuevo.");
+            });
+        });
+
+        /* ===== FORM SUBMIT ===== */
+        formIngreso.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var senaNum = parseFloat(val("f-sena")) || 0;
+          var presupNum = parseFloat(val("f-presupuesto")) || 0;
+          var nombreCliente = val("f-nombre");
+          var telCliente = val("f-whatsapp");
+
+          function insertarOrdenConCliente(clienteId) {
+            var fila = {
+              fecha: new Date().toISOString(),
+              cliente_id: clienteId,
+              cliente: nombreCliente,
+              tel: telCliente,
+              tipo: val("f-equipo"),
+              serie: val("f-serie"),
+              pass: val("f-pin"),
+              sena: senaNum,
+              falla: val("f-falla"),
+              presupuesto: presupNum,
+              presupuesta: "",
+              estetico: val("f-estetico"),
+              estado: "ingresado",
+              fecha_entrega: null
+            };
+            return supabase.from("ordenes").insert(fila).then(function (res) {
+              if (res.error) throw res.error;
+              formIngreso.reset();
+              clienteSeleccionadoId = null;
+              return cargarOrdenes();
+            }).then(renderizar);
+          }
+
+          function crearClienteYInsertar() {
+            return supabase
+              .from("clientes")
+              .insert({ nombre: nombreCliente, whatsapp: telCliente })
+              .select("id")
+              .then(function (res) {
+                if (res.error) throw res.error;
+                var nuevoId = res.data && res.data[0] && res.data[0].id;
+                if (!nuevoId) throw new Error("No se pudo crear el cliente");
+                return cargarClientes().then(function () {
+                  return insertarOrdenConCliente(nuevoId);
+                });
+              });
+          }
+
+          function manejarError(err) {
+            console.error("Error al registrar ingreso:", err);
+            alert("No se pudo registrar el ingreso. Revisa la conexión e inténtalo de nuevo.");
+          }
+
+          if (clienteSeleccionadoId) {
+            insertarOrdenConCliente(clienteSeleccionadoId).catch(manejarError);
+          } else {
+            var match = null;
+            var nb = nombreCliente.toLowerCase();
+            for (var i = 0; i < clientes.length; i++) {
+              if (clientes[i].nombre.toLowerCase() === nb) { match = clientes[i]; break; }
+            }
+            if (match) {
+              insertarOrdenConCliente(match.id).catch(manejarError);
+            } else {
+              crearClienteYInsertar().catch(manejarError);
+            }
+          }
+        });
+
+        formIngreso.addEventListener("reset", function () {
+          clienteSeleccionadoId = null;
+          var acDrop = document.getElementById("autocomplete-dropdown");
+          if (acDrop) acDrop.classList.remove("visible");
+        });
+
+        /* ===== RENDER TABLE ===== */
+        function renderizar() {
+          var query = buscador.value.toLowerCase().trim();
+          var filtradas = ordenes.filter(function (o) {
+            if (!query) return true;
+            return [o.nombre, o.equipo, o.serie, o.falla, o.whatsapp]
+              .join(" ").toLowerCase().indexOf(query) !== -1;
+          });
+
+          contadorOrdenes.textContent = filtradas.length + " / " + ordenes.length + " órdenes";
+          renderStats();
+
+          if (filtradas.length === 0) {
+            tablaOrdenes.innerHTML = "";
+            emptyState.classList.remove("hidden");
+            return;
+          }
+          emptyState.classList.add("hidden");
+
+          tablaOrdenes.innerHTML = filtradas.map(function (o) {
+            var est = ESTADOS[o.estado] || ESTADOS.ingresado;
+            return "<tr data-id='" + o.id + "'>"
+              + "<td>" + fmtFecha(o.fecha) + "</td>"
+              + "<td><strong>" + esc(o.nombre) + "</strong></td>"
+              + "<td>" + esc(o.equipo) + "</td>"
+              + "<td>" + esc(o.serie) + "</td>"
+              + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
+              + "<td>" + (o.presupuesto ? "$" + esc(o.presupuesto) : "—") + "</td>"
+              + "<td><span class='status-badge " + est.cls + "'>" + est.label + "</span></td>"
+              + "<td><div class='row-actions'>"
+              + "<button class='icon-btn' data-action='ver' title='Ver detalle'><svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z'/><circle cx='12' cy='12' r='3'/></svg></button>"
+              + "<button class='icon-btn wa' data-action='whatsapp' title='Enviar WhatsApp'><svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='currentColor' viewBox='0 0 24 24'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/></svg></button>"
+              + "<button class='icon-btn tk' data-action='ticket' title='Imprimir Ticket'><svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M6.72 13.829c-.19.232-.29.503-.29.791 0 .281.1.552.29.791.19.232.446.383.736.473.29.09.6.09.89 0 .29-.09.546-.241.736-.473l1.13-1.379a.946.946 0 011.459 0l1.13 1.379c.19.232.446.383.736.473.29.09.6.09.89 0 .29-.09.546-.241.736-.473.19-.239.29-.51.29-.791 0-.288-.1-.559-.29-.791l-1.13-1.379a.946.946 0 010-1.27l1.13-1.379c.19-.232.29-.503.29-.791 0-.281-.1-.552-.29-.791-.19-.232-.446-.383-.736-.473-.29-.09-.6-.09-.89 0-.29.09-.546.241-.736.473l-1.13 1.379a.946.946 0 01-1.459 0l-1.13-1.379a.946.946 0 00-.736-.473.946.946 0 00-.89 0c-.29.09-.546.241-.736.473l-1.13 1.379a.946.946 0 000 1.27l1.13 1.379z'/><path d='M14.25 3.75v3.75a.75.75 0 001.5 0V3.75a.75.75 0 00-1.5 0z'/><path d='M3.75 7.5h16.5a.75.75 0 01.75.75v11.25a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V8.25a.75.75 0 01.75-.75z'/></svg></button>"
+              + "<button class='icon-btn del' data-action='borrar' title='Eliminar'><svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'><path d='M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'/></svg></button>"
+              + "</div></td>"
+              + "</tr>";
+          }).join("");
+
+          tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
+            tr.addEventListener("click", function (e) {
+              var action = e.target.closest("[data-action]");
+              var id = tr.getAttribute("data-id");
+              if (action && action.getAttribute("data-action") === "borrar") {
+                e.stopPropagation();
+                borrarOrden(id);
+              } else if (action && action.getAttribute("data-action") === "whatsapp") {
+                e.stopPropagation();
+                enviarWhatsApp(id);
+              } else if (action && action.getAttribute("data-action") === "ticket") {
+                e.stopPropagation();
+                imprimirTicket(id);
+              } else {
+                abrirDetalle(id);
+              }
+            });
+          });
+        }
+
+        function renderStats() {
+          var counts = { ingresado: 0, reparando: 0, terminado: 0, entregado: 0, sinreparar: 0 };
+          ordenes.forEach(function (o) {
+            if (counts[o.estado] !== undefined) counts[o.estado]++;
+          });
+          statsRow.innerHTML = Object.keys(ESTADOS).map(function (k) {
+            return "<div class='stat-chip'>" + ESTADOS[k].label + ": <strong>" + counts[k] + "</strong></div>";
+          }).join("");
+        }
+
+        /* ===== DETAIL MODAL ===== */
+        function abrirDetalle(id) {
+          var o = ordenes.find(function (x) { return x.id === id; });
+          if (!o) return;
+          ordenActivaId = id;
+          estadoEditTemporal = o.estado;
+
+          var filas = [
+            ["Fecha de Ingreso", fmtFecha(o.fecha)],
+            ["Cliente", esc(o.nombre)],
+            ["WhatsApp", esc(o.whatsapp) || "—"],
+            ["Equipo", esc(o.equipo) || "—"],
+            ["Nro Serie", esc(o.serie) || "—"],
+            ["PIN", esc(o.pin) || "—"],
+            ["Seña", o.sena ? "$" + esc(o.sena) : "—"],
+            ["Presupuesto", o.presupuesto ? "$" + esc(o.presupuesto) : "—"],
+            ["Falla", esc(o.falla) || "—"],
+            ["Estético / Accesorios", esc(o.estetico) || "—"],
+            ["Fecha de Entrega", o.fechaEntrega ? fmtFecha(o.fechaEntrega) : "—"]
+          ];
+
+          var html = filas.map(function (f) {
+            return "<div class='detail-row'><div class='detail-label'>" + f[0] + "</div><div class='detail-value'>" + f[1] + "</div></div>";
+          }).join("");
+
+          html += "<div class='status-select-wrap'><label style='font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:0.4rem;'>Cambiar estado</label><select id='modal-estado'>";
+          Object.keys(ESTADOS).forEach(function (k) {
+            html += "<option value='" + k + "'" + (k === o.estado ? " selected" : "") + ">" + ESTADOS[k].label + "</option>";
+          });
+          html += "</select></div>";
+
+          html += "<div class='historial-section'>"
+            + "<div class='historial-title'>Historial de trabajos del cliente</div>"
+            + "<div id='historial-contenido'><div class='historial-loading'>Cargando historial...</div></div>"
+            + "</div>";
+
+          modalContenido.innerHTML = html;
+          modalDetalle.classList.add("visible");
+
+          var sel = document.getElementById("modal-estado");
+          if (sel) sel.addEventListener("change", function () { estadoEditTemporal = sel.value; });
+
+          if (o.clienteId) {
+            cargarHistorialCliente(o.clienteId, o.id);
+          } else {
+            var histEl = document.getElementById("historial-contenido");
+            if (histEl) histEl.innerHTML = "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
+          }
+        }
+
+        function cargarHistorialCliente(clienteId, ordenActualId) {
+          supabase
+            .from("ordenes")
+            .select("id, fecha, tipo, falla, estado")
+            .eq("cliente_id", clienteId)
+            .order("fecha", { ascending: false })
+            .then(function (res) {
+              var histEl = document.getElementById("historial-contenido");
+              if (!histEl) return;
+              if (res.error) { histEl.innerHTML = "<div class='historial-loading'>Error al cargar historial.</div>"; return; }
+              var otras = (res.data || []).filter(function (r) { return r.id !== ordenActualId; });
+              if (otras.length === 0) {
+                histEl.innerHTML = "<div class='historial-loading'>No hay trabajos anteriores para este cliente.</div>";
+                return;
+              }
+              histEl.innerHTML = "<ul class='historial-list'>" + otras.map(function (r) {
+                var est = ESTADOS[r.estado] || ESTADOS.ingresado;
+                return "<li class='historial-item'>"
+                  + "<span class='h-fecha'>" + fmtFecha(r.fecha) + "</span>"
+                  + "<span class='h-equipo'>" + esc(r.tipo || "—") + "</span>"
+                  + "<span class='status-badge " + est.cls + "'>" + est.label + "</span>"
+                  + "<span class='h-falla'>" + esc(r.falla || "") + "</span>"
+                  + "</li>";
+              }).join("") + "</ul>";
+            });
+        }
+
+        modalCerrar.addEventListener("click", function () { modalDetalle.classList.remove("visible"); });
+        modalDetalle.addEventListener("click", function (e) {
+          if (e.target === modalDetalle) modalDetalle.classList.remove("visible");
+        });
+
+        modalGuardar.addEventListener("click", function () {
+          if (!ordenActivaId) return;
+          var o = ordenes.find(function (x) { return x.id === ordenActivaId; });
+          if (!o) return;
+
+          var estadoPrevio = o.estado;
+          var nuevoEstado = estadoEditTemporal;
+          var update = { estado: nuevoEstado };
+
+          if ((nuevoEstado === "entregado" || nuevoEstado === "sinreparar") && estadoPrevio !== nuevoEstado) {
+            update.fecha_entrega = new Date().toISOString();
+          }
+          if (nuevoEstado !== "entregado" && nuevoEstado !== "sinreparar") {
+            update.fecha_entrega = null;
+          }
+
+          supabase
+            .from("ordenes")
+            .update(update)
+            .eq("id", o.id)
+            .then(function (res) {
+              if (res.error) throw res.error;
+              return cargarOrdenes();
+            })
+            .then(function () {
+              renderizar();
+              modalDetalle.classList.remove("visible");
+            })
+            .catch(function (err) {
+              console.error("Error al guardar cambios:", err);
+              alert("No se pudieron guardar los cambios. Inténtalo de nuevo.");
+            });
+        });
+
+        modalEliminar.addEventListener("click", function () {
+          if (ordenActivaId) borrarOrden(ordenActivaId);
+          modalDetalle.classList.remove("visible");
+        });
+
+        /* ===== DELETE ===== */
+        function borrarOrden(id) {
+          if (!confirm("¿Eliminar esta orden definitivamente?")) return;
+          supabase
+            .from("ordenes")
+            .delete()
+            .eq("id", id)
+            .then(function (res) {
+              if (res.error) throw res.error;
+              return cargarOrdenes();
+            })
+            .then(renderizar)
+            .catch(function (err) {
+              console.error("Error al eliminar orden:", err);
+              alert("No se pudo eliminar la orden. Inténtalo de nuevo.");
+            });
+        }
+
+        /* ===== SEARCH ===== */
+        buscador.addEventListener("input", renderizar);
+
+        /* ===== EXPORT / IMPORT ===== */
+        function exportarDatos() {
+          var data = JSON.stringify({ exportado: new Date().toISOString(), ordenes: ordenes }, null, 2);
+          var blob = new Blob([data], { type: "application/json" });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = "backup_infotac.json";
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+
+        btnExportar.addEventListener("click", function () {
+          // Refresca desde la nube antes de exportar para que el backup sea completo y actual.
+          cargarOrdenes()
+            .then(function () {
+              exportarDatos();
+            })
+            .catch(function (err) {
+              console.error("Error al refrescar antes de exportar:", err);
+              exportarDatos();
+            });
+        });
+
+        btnImportar.addEventListener("click", function () { fileImportar.click(); });
+
+        fileImportar.addEventListener("change", function (e) {
+          var file = e.target.files[0];
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function (ev) {
+            try {
+              var parsed = JSON.parse(ev.target.result);
+              var importadas = Array.isArray(parsed) ? parsed : parsed.ordenes;
+              if (!Array.isArray(importadas)) throw new Error("Formato inválido");
+              if (!confirm("Se importarán " + importadas.length + " órdenes reemplazando las actuales. ¿Continuar?")) return;
+
+              // Mapea al esquema de la tabla "ordenes" y deja que la BD genere nuevos id.
+              var filas = importadas.map(function (o) {
+                return {
+                  fecha: o.fecha || new Date().toISOString(),
+                  cliente: o.nombre || o.cliente || "",
+                  tel: o.whatsapp || o.tel || "",
+                  tipo: o.equipo || o.tipo || "",
+                  serie: o.serie || "",
+                  pass: o.pin || o.pass || "",
+                  sena: parseFloat(o.sena) || 0,
+                  falla: o.falla || "",
+                  presupuesto: parseFloat(o.presupuesto) || 0,
+                  presupuesta: o.presupuesta || "",
+                  estetico: o.estetico || "",
+                  estado: o.estado || "ingresado",
+                  fecha_entrega: o.fechaEntrega || o.fecha_entrega || null
+                };
+              });
+
+              // Borra las actuales y luego inserta las importadas.
+              supabase
+                .from("ordenes")
+                .delete()
+                .neq("id", "00000000-0000-0000-0000-000000000000")
+                .then(function (resDel) {
+                  if (resDel.error) throw resDel.error;
+                  return supabase.from("ordenes").insert(filas);
+                })
+                .then(function (resIns) {
+                  if (resIns.error) throw resIns.error;
+                  return cargarOrdenes();
+                })
+                .then(renderizar)
+                .catch(function (err) {
+                  console.error("Error al importar:", err);
+                  alert("Error al importar: " + (err.message || "no se pudo completar la operación."));
+                });
+            } catch (err) {
+              alert("Error al importar: el archivo no tiene un formato válido.");
+            }
+          };
+          reader.readAsText(file);
+          fileImportar.value = "";
+        });
+
+        /* ===== TICKET ====== */
+        var ticketOverlay = document.getElementById("ticket-overlay");
+        var ticketContenido = document.getElementById("ticket-contenido");
+        var ticketImprimir = document.getElementById("ticket-imprimir");
+        var ticketCerrar = document.getElementById("ticket-cerrar");
+
+        function imprimirTicket(id) {
+          var o = ordenes.find(function (x) { return x.id === id; });
+          if (!o) return;
+          var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
+          var est = ESTADOS[o.estado] || ESTADOS.ingresado;
+          var p = parseFloat(o.presupuesto) || 0;
+          var s = parseFloat(o.sena) || 0;
+          var saldo = (p - s).toFixed(2);
+
+          var html = "";
+          html += "<div class='tk-center'>";
+          html += "<div class='tk-header'>💻 SERVICIO TÉCNICO INFOTAC</div>";
+          html += "<div class='tk-sub'>Fecha: " + fmtFecha(o.fecha) + "</div>";
+          html += "</div>";
+          html += "<div class='tk-divider'></div>";
+          html += "<div class='tk-orden'>ORDEN #" + idOrden + "</div>";
+          html += "<div class='tk-estado-wrap'><span class='tk-estado'>" + est.label + "</span></div>";
+          html += "<div class='tk-divider'></div>";
+
+          html += "<div class='tk-section-title'>Datos del Cliente</div>";
+          html += "<div class='tk-row'><span class='tk-label'>Nombre:</span><span class='tk-val'>" + esc(o.nombre) + "</span></div>";
+          html += "<div class='tk-row'><span class='tk-label'>WhatsApp:</span><span class='tk-val'>" + esc(o.whatsapp) + "</span></div>";
+
+          html += "<div class='tk-section-title'>Detalles del Equipo</div>";
+          html += "<div class='tk-row'><span class='tk-label'>Equipo:</span><span class='tk-val'>" + esc(o.equipo) + "</span></div>";
+          html += "<div class='tk-row'><span class='tk-label'>Serie:</span><span class='tk-val'>" + esc(o.serie) + "</span></div>";
+          html += "<div class='tk-row'><span class='tk-label'>PIN:</span><span class='tk-val'>" + esc(o.pin) + "</span></div>";
+
+          html += "<div class='tk-section-title'>Estado de Recepción</div>";
+          html += "<div class='tk-val-block'><span class='tk-label'>Falla reportada:</span><span class='tk-val'>" + esc(o.falla) + "</span></div>";
+          html += "<div class='tk-val-block'><span class='tk-label'>Estético / Accesorios:</span><span class='tk-val'>" + esc(o.estetico) + "</span></div>";
+
+          html += "<div class='tk-section-title'>Resumen Económico</div>";
+          html += "<div class='tk-row'><span class='tk-label'>Presupuesto:</span><span class='tk-val'>$" + (o.presupuesto || "0.00") + "</span></div>";
+          html += "<div class='tk-row'><span class='tk-label'>Seña:</span><span class='tk-val'>$" + (o.sena || "0.00") + "</span></div>";
+          html += "<div class='tk-row'><span class='tk-label'>Saldo pendiente:</span><span class='tk-val tk-saldo'>$" + saldo + "</span></div>";
+
+          html += "<div class='tk-divider'></div>";
+          html += "<div class='tk-footer'>Nota: Los presupuestos tienen validez por 15 días. Todo equipo no retirado luego de los 90 días se considerará en abandono, perdiendo derecho a reclamo.</div>";
+          html += "<div class='tk-thanks'>¡Gracias por confiar en Infotac!</div>";
+
+          ticketContenido.innerHTML = html;
+          ticketOverlay.classList.add("visible");
+        }
+
+        ticketImprimir.addEventListener("click", function () { window.print(); });
+        ticketCerrar.addEventListener("click", function () { ticketOverlay.classList.remove("visible"); });
+        ticketOverlay.addEventListener("click", function (e) {
+          if (e.target === ticketOverlay) ticketOverlay.classList.remove("visible");
+        });
+
+        window.addEventListener("afterprint", function () {
+          ticketOverlay.classList.remove("visible");
+        });
+
+        /* ===== WHATSAPP ===== */
+        function enviarWhatsApp(id) {
+          var o = ordenes.find(function (x) { return x.id === id; });
+          if (!o) return;
+          var msg = construirMensajeWhatsApp(o);
+          var tel = (o.whatsapp || "").replace(/[^0-9]/g, "");
+          if (tel && tel.length < 2) tel = "";
+          var url = "https://wa.me/" + tel + "?text=" + encodeURIComponent(msg);
+          window.open(url, "_blank");
+        }
+
+        function construirMensajeWhatsApp(o) {
+          var nombre = o.nombre || "Cliente";
+          var equipo = o.equipo || "equipo";
+          var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
+          var saldo = "";
+          if (o.presupuesto || o.sena) {
+            var p = parseFloat(o.presupuesto) || 0;
+            var s = parseFloat(o.sena) || 0;
+            saldo = (p - s).toFixed(2);
+          }
+          switch (o.estado) {
+            case "ingresado":
+              return "Hola " + nombre + ", te informamos que tu equipo " + equipo + " ya ingresó a nuestro taller Infotac para revisión bajo el Nro de Orden " + idOrden + ". Saludos.";
+            case "reparando":
+              return "Hola " + nombre + ", tu equipo " + equipo + " (Orden " + idOrden + ") se encuentra actualmente en nuestro laboratorio bajo diagnóstico técnico. Te avisaremos apenas tengamos novedades.";
+            case "terminado":
+              return "Hola " + nombre + ", ¡buenas noticias! Tu equipo " + equipo + " (Orden " + idOrden + ") ya está reparado y listo para retirar. El saldo pendiente es de $" + saldo + ". Te esperamos.";
+            case "entregado":
+              return "Hola " + nombre + ", confirmamos la entrega de tu equipo " + equipo + " (Orden " + idOrden + "). Gracias por confiar en Infotac.";
+            case "sinreparar":
+              return "Hola " + nombre + ", te informamos que tu equipo " + equipo + " (Orden " + idOrden + ") está listo para ser retirado en el estado en que ingresó (Presupuesto no aceptado / Sin reparación).";
+            default:
+              return "Hola " + nombre + ", te informamos sobre tu equipo " + equipo + " (Orden " + idOrden + "). Saludos.";
+          }
+        }
+
+        /* ===== BACKUP AUTOMÁTICO PROGRAMADO ===== */
+        // Lunes a Sábados a las 12:00 hs. Silencioso.
+        // Solo guarda un flag (no son datos de órdenes) para no repetir el backup el mismo día.
+        var BACKUP_AUTO_KEY = "ultimo_backup_auto";
+
+        function verificarBackupAutomatico() {
+          var ahora = new Date();
+          var dia = ahora.getDay();
+          if (dia === 0) return; // Domingo: no se hace backup
+          var hora = ahora.getHours();
+          var minuto = ahora.getMinutes();
+          if (hora !== 12 || minuto !== 0) return;
+
+          var hoy = ahora.toISOString().slice(0, 10);
+          var ultimo = null;
+          try { ultimo = localStorage.getItem(BACKUP_AUTO_KEY); } catch (e) {}
+          if (ultimo === hoy) return;
+
+          try { localStorage.setItem(BACKUP_AUTO_KEY, hoy); } catch (e) {}
+          // Refresca desde la nube y luego exporta el backup actualizado.
+          cargarOrdenes()
+            .then(exportarDatos)
+            .catch(function (err) {
+              console.error("Backup automático falló:", err);
+              exportarDatos();
+            });
+        }
+
+        setInterval(verificarBackupAutomatico, 60000);
+
+        /* ===== HELPERS ===== */
+        function fmtFecha(iso) {
+          try {
+            var d = new Date(iso);
+            return d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+              " " + d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+          } catch (e) { return iso; }
+        }
+
+        function esc(s) {
+          if (s === null || s === undefined || s === "") return "";
+          return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+      })();
+    </script>
+  </body>
+</html>
