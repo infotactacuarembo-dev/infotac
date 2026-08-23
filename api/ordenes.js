@@ -107,20 +107,12 @@ module.exports = async function handler(req, res) {
           return orderInput(row, { requireClient: true });
         });
 
-        const { error: deleteError } = await supabase
-          .from('ordenes')
-          .delete()
-          .neq('id', '00000000-0000-0000-0000-000000000000');
+        const { error: importError } = await supabase.rpc(
+  'reemplazar_ordenes_importadas',
+  { p_ordenes: orders }
+);
 
-        if (deleteError) throw deleteError;
-
-        if (orders.length) {
-          const { error: insertError } = await supabase
-            .from('ordenes')
-            .insert(orders);
-
-          if (insertError) throw insertError;
-        }
+if (importError) throw importError;
 
         return res.status(200).json({ ok: true });
       }
