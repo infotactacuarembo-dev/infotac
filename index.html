@@ -713,6 +713,24 @@
       <div class="login-card">
         <h1>Infotac</h1>
         <p class="subtitle">Gestión de Taller — Introduce la contraseña</p>
+		  <div class="form-group full">
+  <label for="input-clave-actual">Contraseña actual</label>
+  <div class="password-wrap">
+    <input
+      type="password"
+      id="input-clave-actual"
+      placeholder="Ingresá la contraseña actual"
+      autocomplete="current-password"
+    >
+    <button
+      type="button"
+      class="password-toggle"
+      data-toggle-password="input-clave-actual"
+      aria-label="Mostrar contraseña"
+      title="Mostrar contraseña"
+    >👁</button>
+  </div>
+</div>
         <input type="password" id="input-clave-taller" placeholder="Contraseña" autocomplete="current-password" autofocus />
         <button type="button" class="btn-primary" id="btn-entrar">Entrar</button>
         <div class="login-msg" id="mensaje-error"></div>
@@ -860,46 +878,45 @@
     </div>
 
     <div class="modal-body">
-      <div class="form-group full">
-        <label for="input-nueva-clave">Nueva contraseña</label>
-        <div class="password-wrap">
-          <input
-            type="password"
-            id="input-nueva-clave"
-            placeholder="Ingresá la nueva contraseña"
-            autocomplete="new-password"
-          >
-          <button
-            type="button"
-            class="password-toggle"
-            id="btn-ver-nueva-clave"
-            aria-label="Mostrar contraseña"
-            title="Mostrar contraseña"
-          >👁</button>
-        </div>
-      </div>
-
-      <div class="form-group full">
-        <label for="input-confirmar-clave">Repetir nueva contraseña</label>
-        <div class="password-wrap">
-          <input
-            type="password"
-            id="input-confirmar-clave"
-            placeholder="Repetí la nueva contraseña"
-            autocomplete="new-password"
-          >
-          <button
-            type="button"
-            class="password-toggle"
-            id="btn-ver-confirmar-clave"
-            aria-label="Mostrar contraseña"
-            title="Mostrar contraseña"
-          >👁</button>
-        </div>
-      </div>
-
-      <div id="clave-msg" style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
+  <div class="form-group full">
+    <label for="input-clave-actual">Contraseña actual</label>
+    <div class="password-wrap">
+      <input type="password" id="input-clave-actual"
+        placeholder="Ingresá la contraseña actual"
+        autocomplete="current-password">
+      <button type="button" class="password-toggle"
+        data-toggle-password="input-clave-actual"
+        title="Mostrar contraseña">👁</button>
     </div>
+  </div>
+
+  <div class="form-group full">
+    <label for="input-nueva-clave">Nueva contraseña</label>
+    <div class="password-wrap">
+      <input type="password" id="input-nueva-clave"
+        placeholder="Ingresá la nueva contraseña"
+        autocomplete="new-password">
+      <button type="button" class="password-toggle"
+        data-toggle-password="input-nueva-clave"
+        title="Mostrar contraseña">👁</button>
+    </div>
+  </div>
+
+  <div class="form-group full">
+    <label for="input-confirmar-clave">Repetir nueva contraseña</label>
+    <div class="password-wrap">
+      <input type="password" id="input-confirmar-clave"
+        placeholder="Repetí la nueva contraseña"
+        autocomplete="new-password">
+      <button type="button" class="password-toggle"
+        data-toggle-password="input-confirmar-clave"
+        title="Mostrar contraseña">👁</button>
+    </div>
+  </div>
+
+  <div id="clave-msg"
+    style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
+</div>
 
     <div class="modal-footer">
       <button class="btn-primary" id="btn-clave-guardar">Guardar</button>
@@ -943,6 +960,8 @@ function solicitarJSON(url, datos) {
 var btnCambiarClave = document.getElementById('btn-cambiar-clave');
 var modalClave = document.getElementById('modal-cambiar-clave');
 var inputNuevaClave = document.getElementById('input-nueva-clave');
+var inputClaveActual = document.getElementById('input-clave-actual');
+var inputConfirmarClave = document.getElementById('input-confirmar-clave');
 var btnClaveGuardar = document.getElementById('btn-clave-guardar');
 var btnClaveCancelar = document.getElementById('btn-clave-cancelar');
 var btnClaveCancelarX = document.getElementById('btn-clave-cancelar-x');
@@ -950,6 +969,10 @@ var claveMsg = document.getElementById('clave-msg');
 
 function cerrarModalClave() {
   if (modalClave) modalClave.classList.remove('visible');
+  if (inputClaveActual) inputClaveActual.value = '';
+  if (inputNuevaClave) inputNuevaClave.value = '';
+  if (inputConfirmarClave) inputConfirmarClave.value = '';
+  if (claveMsg) claveMsg.textContent = '';
 }
 
 if (btnCambiarClave && modalClave) {
@@ -970,19 +993,19 @@ if (modalClave) {
   });
 }
 
-var inputClaveActual = document.getElementById('input-clave-actual');
-var inputConfirmarClave = document.getElementById('input-confirmar-clave');
+
 
 document.querySelectorAll('.password-toggle').forEach(function (boton) {
   boton.addEventListener('click', function () {
-    var input = document.getElementById(boton.getAttribute('data-toggle-password'));
+    var input = document.getElementById(
+      boton.getAttribute('data-toggle-password')
+    );
+
     if (!input) return;
 
     var visible = input.type === 'text';
     input.type = visible ? 'password' : 'text';
     boton.textContent = visible ? '👁' : '🙈';
-    boton.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
-    boton.setAttribute('title', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
   });
 });
 
