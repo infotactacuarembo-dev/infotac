@@ -990,113 +990,123 @@ if (btnClaveGuardar) {
           sinreparar: { label: "Sin Reparar / Devuelto", cls: "status-sinreparar" }
         };
 
-        /* ===== SESSION PERSISTENCE ===== */
-        var SESSION_KEY = "infotac_sesion_activa";
-
-        function restaurarSesion() {
-          try {
-            if (sessionStorage.getItem(SESSION_KEY) === "true") {
-              loginScreen.classList.add("admin-bloqueado");
-              appScreen.classList.remove("admin-bloqueado");
-              Promise.all([cargarClientes(), cargarOrdenes()]).then(function () {
-                renderizar();
-              }).catch(function (err) {
-                console.error("Error al cargar datos:", err);
-              });
-            }
-          } catch (e) {}
+               /* ===== SESIÓN, LOGIN Y LOGOUT ===== */
+        function solicitarJSON(url, datos, metodo) {
+          return fetch(url, {
+            method: metodo || "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: datos === undefined ? undefined : JSON.stringify(datos)
+          }).then(function (respuesta) {
+            return respuesta.json().catch(function () {
+              return {
+                ok: false,
+                error: "Respuesta inválida del servidor."
+              };
+            });
+          });
         }
 
-        /* ===== LOGIN ===== */
-        function entrarModoAdminDirecto() {
-  var valorClave = inputClave.value;
+        function mostrarAplicacion() {
+          loginScreen.classList.add("admin-bloqueado");
+          appScreen.classList.remove("admin-bloqueado");
+        }
 
-  if (!valorClave) {
-    mensajeError.textContent = "Ingresá la contraseña.";
-    mensajeError.classList.add("visible");
-    inputClave.focus();
-    return;
-  }
-
-  btnEntrar.disabled = true;
-  mensajeError.textContent = "Verificando...";
-  mensajeError.classList.add("visible");
-
-  solicitarJSON("/api/verify-password", { password: valorClave })
-    .then(function (resultado) {
-      if (!resultado.ok) {
-        throw new Error(resultado.error || "Contraseña incorrecta.");
-      }
-
-      mensajeError.textContent = "";
-      mensajeError.classList.remove("visible");
-      inputClave.classList.remove("shake-error");
-      loginScreen.classList.add("admin-bloqueado");
-      appScreen.classList.remove("admin-bloqueado");
-
-      try {
-        sessionStorage.setItem(SESSION_KEY, "true");
-      } catch (e) {}
-
-      return Promise.all([cargarClientes(), cargarOrdenes()]);
-    })
-    .then(function () {
-      if (!loginScreen.classList.contains("admin-bloqueado")) return;
-      renderizar();
-    })
-    .catch(function (error) {
-      console.error("Error de inicio de sesión:", error);
-
-      /*
-       * Si no hay conexión con Vercel, conserva el modo offline existente.
-       * No se aplica ante una respuesta válida de contraseña incorrecta.
-       */
-      if (!navigator.onLine && valorClave === CLAVE_CORRECTA) {
-        mensajeError.textContent = "";
-        mensajeError.classList.remove("visible");
-        loginScreen.classList.add("admin-bloqueado");
-        appScreen.classList.remove("admin-bloqueado");
-
-        try {
-          sessionStorage.setItem(SESSION_KEY, "true");
-        } catch (e) {}
-
-        Promise.all([cargarClientes(), cargarOrdenes()])
-          .then(renderizar)
-          .catch(function (err) {
-            console.error("Error al cargar datos offline:", err);
-          });
-        return;
-      }
-
-      mensajeError.textContent = "Contraseña incorrecta o no se pudo verificar.";
-      mensajeError.classList.add("visible");
-      inputClave.classList.remove("shake-error");
-      void inputClave.offsetWidth;
-      inputClave.classList.add("shake-error");
-      inputClave.value = "";
-      inputClave.focus();
-    })
-    .finally(function () {
-      btnEntrar.disabled = false;
-    });
-}
-
-        function salirModoAdmin() {
+        function mostrarLogin() {
           appScreen.classList.add("admin-bloqueado");
           loginScreen.classList.remove("admin-bloqueado");
-          try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
           inputClave.value = "";
           inputClave.focus();
         }
 
+        function cargarDatosIniciales() {
+          return Promise.all([cargarClientes(), cargarOrdenes()])
+            .then(function () {
+              renderizar();
+            })
+            .catch(function (error) {
+              console.error("Error al cargar datos:", error);
+
+              if (error && error.status === 401) {
+                mostrarLogin();
+                mensajeError.textContent = "Tu sesión venció. Ingresá nuevamente.";
+                mensajeError.classList.add("visible");
+                return;
+              }
+
+              alert("No se pudieron cargar los datos. Revisá tu conexión e intentá nuevamente.");
+            });
+        }
+
+        function entrarModoAdminDirecto() {
+          var valorClave = inputClave.value;
+
+          if (!valorClave) {
+            mensajeError.textContent = "Ingresá la contraseña.";
+            mensajeError.classList.add("visible");
+            inputClave.focus();
+            return;
+          }
+
+          btnEntrar.disabled = true;
+          mensajeError.textContent = "Verificando...";
+          mensajeError.classList.add("visible");
+
+          solicitarJSON("/api/verify-password", { password: valorClave })
+            .then(function (resultado) {
+              if (!resultado.ok) {
+                throw new Error(resultado.error || "Contraseña incorrecta.");
+              }
+
+              mensajeError.textContent = "";
+              mensajeError.classList.remove("visible");
+              inputClave.classList.remove("shake-error");
+
+              mostrarAplicacion();
+              return cargarDatosIniciales();
+            })
+            .catch(function (error) {
+              console.error("Error de inicio de sesión:", error);
+
+              mostrarLogin();
+              mensajeError.textContent =
+                error.message || "No se pudo verificar la contraseña.";
+              mensajeError.classList.add("visible");
+
+              inputClave.classList.remove("shake-error");
+              void inputClave.offsetWidth;
+              inputClave.classList.add("shake-error");
+              inputClave.value = "";
+              inputClave.focus();
+            })
+            .finally(function () {
+              btnEntrar.disabled = false;
+            });
+        }
+
+        function salirModoAdmin() {
+          btnSalir.disabled = true;
+
+          fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin"
+          })
+            .catch(function (error) {
+              console.error("Error al cerrar sesión:", error);
+            })
+            .finally(function () {
+              btnSalir.disabled = false;
+              mostrarLogin();
+            });
+        }
+
         btnEntrar.addEventListener("click", entrarModoAdminDirecto);
+
         inputClave.addEventListener("keydown", function (e) {
           if (e.key === "Enter") entrarModoAdminDirecto();
         });
-        btnSalir.addEventListener("click", salirModoAdmin);
 
-        restaurarSesion();
+        btnSalir.addEventListener("click", salirModoAdmin);
 
         /* ===== DATA ACCESS (SUPABASE) ===== */
         // Mapea una fila de la BD (columnas: id, fecha, cliente, tel, tipo, serie,
