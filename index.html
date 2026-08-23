@@ -463,7 +463,27 @@
         color: var(--text-muted);
         line-height: 1;
       }
+  .password-wrap {
+  position: relative;
+}
 
+.password-wrap input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.25rem;
+}	
       .modal-body { padding: 1.25rem; }
 
       .detail-row {
@@ -861,45 +881,45 @@
     </div>
 
     <div class="modal-body">
-  <div class="form-group full">
-    <label for="input-clave-actual">Contraseña actual</label>
-    <div class="password-wrap">
-      <input type="password" id="input-clave-actual"
-        placeholder="Ingresá la contraseña actual"
-        autocomplete="current-password">
-      <button type="button" class="password-toggle"
-        data-toggle-password="input-clave-actual"
-        title="Mostrar contraseña">👁</button>
-    </div>
-  </div>
+      <div class="form-group full">
+        <label for="input-clave-actual">Contraseña actual</label>
+        <div class="password-wrap">
+          <input type="password" id="input-clave-actual"
+            placeholder="Ingresá la contraseña actual"
+            autocomplete="current-password">
+          <button type="button" class="password-toggle"
+            data-toggle-password="input-clave-actual"
+            title="Mostrar contraseña">👁</button>
+        </div>
+      </div>
 
-  <div class="form-group full">
-    <label for="input-nueva-clave">Nueva contraseña</label>
-    <div class="password-wrap">
-      <input type="password" id="input-nueva-clave"
-        placeholder="Ingresá la nueva contraseña"
-        autocomplete="new-password">
-      <button type="button" class="password-toggle"
-        data-toggle-password="input-nueva-clave"
-        title="Mostrar contraseña">👁</button>
-    </div>
-  </div>
+      <div class="form-group full">
+        <label for="input-nueva-clave">Nueva contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="input-nueva-clave"
+            placeholder="Ingresá la nueva contraseña"
+            autocomplete="new-password">
+          <button type="button" class="password-toggle"
+            data-toggle-password="input-nueva-clave"
+            title="Mostrar contraseña">👁</button>
+        </div>
+      </div>
 
-  <div class="form-group full">
-    <label for="input-confirmar-clave">Repetir nueva contraseña</label>
-    <div class="password-wrap">
-      <input type="password" id="input-confirmar-clave"
-        placeholder="Repetí la nueva contraseña"
-        autocomplete="new-password">
-      <button type="button" class="password-toggle"
-        data-toggle-password="input-confirmar-clave"
-        title="Mostrar contraseña">👁</button>
-    </div>
-  </div>
+      <div class="form-group full">
+        <label for="input-confirmar-clave">Repetir nueva contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="input-confirmar-clave"
+            placeholder="Repetí la nueva contraseña"
+            autocomplete="new-password">
+          <button type="button" class="password-toggle"
+            data-toggle-password="input-confirmar-clave"
+            title="Mostrar contraseña">👁</button>
+        </div>
+      </div>
 
-  <div id="clave-msg"
-    style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
-</div>
+      <div id="clave-msg"
+        style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
+    </div>
 
     <div class="modal-footer">
       <button class="btn-primary" id="btn-clave-guardar">Guardar</button>
@@ -1047,6 +1067,17 @@ if (btnClaveGuardar) {
   });
 }
 
+	document.querySelectorAll('[data-toggle-password]').forEach(function(boton) {
+  	boton.addEventListener('click', function() {
+    var input = document.getElementById(boton.dataset.togglePassword);
+    if (!input) return;
+
+    var mostrando = input.type === 'text';
+    input.type = mostrando ? 'password' : 'text';
+    boton.textContent = mostrando ? '👁' : '🙈';
+    boton.title = mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña';
+  });
+});
         /* ===== ELEMENTS ===== */
         var loginScreen = document.getElementById("login-screen");
         var appScreen = document.getElementById("app-screen");
