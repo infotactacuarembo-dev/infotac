@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
-const { requireSession } = require('./auth');
+const { requireSession } = require('./_auth');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
