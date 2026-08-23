@@ -1108,6 +1108,32 @@ if (btnClaveGuardar) {
 
         btnSalir.addEventListener("click", salirModoAdmin);
 
+		  function restaurarSesion() {
+  fetch("/api/session", {
+    method: "GET",
+    credentials: "same-origin"
+  })
+    .then(function (respuesta) {
+      return respuesta.json().then(function (datos) {
+        return { respuesta: respuesta, datos: datos };
+      });
+    })
+    .then(function (resultado) {
+      if (!resultado.respuesta.ok || !resultado.datos.authenticated) {
+        mostrarLogin();
+        return;
+      }
+
+      mostrarAplicacion();
+      return cargarDatosIniciales();
+    })
+    .catch(function () {
+      mostrarLogin();
+    });
+}
+
+restaurarSesion();
+
                 /* ===== DATA ACCESS (API SEGURA) ===== */
         function errorApi(respuesta, datos) {
           var error = new Error(
