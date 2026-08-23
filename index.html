@@ -996,22 +996,6 @@ if (modalClave) {
   });
 }
 
-
-
-document.querySelectorAll('.password-toggle').forEach(function (boton) {
-  boton.addEventListener('click', function () {
-    var input = document.getElementById(
-      boton.getAttribute('data-toggle-password')
-    );
-
-    if (!input) return;
-
-    var visible = input.type === 'text';
-    input.type = visible ? 'password' : 'text';
-    boton.textContent = visible ? '👁' : '🙈';
-  });
-});
-
 if (btnClaveGuardar) {
   btnClaveGuardar.addEventListener('click', function () {
     var actual = inputClaveActual ? inputClaveActual.value : '';
@@ -1102,7 +1086,21 @@ if (btnClaveGuardar) {
         var modalCerrar = document.getElementById("modal-cerrar");
         var modalGuardar = document.getElementById("modal-guardar");
         var modalEliminar = document.getElementById("modal-eliminar");
+		document.querySelectorAll('[data-toggle-password]').forEach(function(boton) {
+  		boton.addEventListener('click', function() {
+    	var input = document.getElementById(boton.getAttribute('data-toggle-password'));
+    	if (!input) return;
 
+    	var mostrando = input.type === 'text';
+    	input.type = mostrando ? 'password' : 'text';
+    	boton.textContent = mostrando ? '👁' : '🙈';
+    	boton.title = mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña';
+    	boton.setAttribute(
+      'aria-label',
+      mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña'
+    );
+  });
+});
         var ordenes = [];
         var ordenActivaId = null;
         var estadoEditTemporal = "ingresado";
