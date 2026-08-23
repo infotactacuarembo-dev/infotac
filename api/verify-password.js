@@ -1,27 +1,28 @@
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
-
-const FALLBACK = 'infotac2026';
+const { createSessionToken, sessionCookie } = require('./_auth');
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Método no permitido.' });
+  }
 
   try {
     const { password } = req.body || {};
-    if (!password || typeof password !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Falta password' });
+
+    if (!password || typeof password !== 'string' || password.length > 256) {
+      return res.status(400).json({ ok: false, error: 'Contraseña inválida.' });
     }
 
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!url || !key) {
-      // Sin config de backend: usar fallback local
-      return res.status(200).json({ ok: password === FALLBACK, source: 'fallback' });
+      console.error('Faltan variables de Supabase en Vercel.');
+      return res.status(503).json({
+        ok: false,
+        error: 'Servicio de autenticación no disponible.'
+      });
     }
 
     const supabase = createClient(url, key);
@@ -32,25 +33,34 @@ module.exports = async function handler(req, res) {
       .single();
 
     if (error || !data || !data.valor) {
-      return res.status(200).json({ ok: password === FALLBACK, source: 'fallback' });
+      console.error('No se encontró password_taller:', error);
+      return res.status(503).json({
+        ok: false,
+        error: 'Servicio de autenticación no disponible.'
+      });
     }
 
     const stored = data.valor;
-    let valid;
-    if (stored.startsWith('$2')) {
-      valid = bcrypt.compareSync(password, stored);
-    } else {
-      // Compatibilidad con datos viejos en texto plano
-      valid = password === stored;
+    const valid = stored.startsWith('$2')
+      ? bcrypt.compareSync(password, stored)
+      : false;
+
+    if (!valid) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Contraseña incorrecta.'
+      });
     }
 
-    if (!valid && password === FALLBACK) {
-      valid = true;
-    }
+    const token = createSessionToken();
+    res.setHeader('Set-Cookie', sessionCookie(token));
 
-    return res.status(200).json({ ok: valid, source: 'db' });
-  } catch (e) {
-    console.error('verify-password error', e);
-    return res.status(200).json({ ok: false, error: 'internal_error' });
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('verify-password error:', error);
+    return res.status(500).json({
+      ok: false,
+      error: 'No se pudo iniciar sesión.'
+    });
   }
 };
