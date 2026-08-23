@@ -1108,10 +1108,42 @@ if (btnClaveGuardar) {
 
         btnSalir.addEventListener("click", salirModoAdmin);
 
-        /* ===== DATA ACCESS (SUPABASE) ===== */
-        // Mapea una fila de la BD (columnas: id, fecha, cliente, tel, tipo, serie,
-        // pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega)
-        // al modelo interno que usa la vista.
+                /* ===== DATA ACCESS (API SEGURA) ===== */
+        function errorApi(respuesta, datos) {
+          var error = new Error(
+            (datos && datos.error) || "No se pudo completar la operación."
+          );
+          error.status = respuesta.status;
+          return error;
+        }
+
+        function pedirApi(url, opciones) {
+          opciones = opciones || {};
+
+          return fetch(url, {
+            method: opciones.method || "GET",
+            credentials: "same-origin",
+            headers: opciones.body
+              ? { "Content-Type": "application/json" }
+              : undefined,
+            body: opciones.body ? JSON.stringify(opciones.body) : undefined
+          }).then(function (respuesta) {
+            return respuesta.json()
+              .catch(function () {
+                return {
+                  ok: false,
+                  error: "Respuesta inválida del servidor."
+                };
+              })
+              .then(function (datos) {
+                if (!respuesta.ok || !datos.ok) {
+                  throw errorApi(respuesta, datos);
+                }
+                return datos;
+              });
+          });
+        }
+
         function mapearFila(row) {
           return {
             id: row.id,
@@ -1132,28 +1164,16 @@ if (btnClaveGuardar) {
           };
         }
 
-        // Descarga todas las órdenes de la tabla "ordenes" en un solo pedido.
-        // Sin bucles de sondeo ni nada que congela la pantalla.
         function cargarOrdenes() {
-          return supabase
-            .from("ordenes")
-            .select("id, fecha, cliente_id, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega")
-            .order("fecha", { ascending: false })
-            .then(function (res) {
-              if (res.error) throw res.error;
-              ordenes = (res.data || []).map(mapearFila);
-            });
+          return pedirApi("/api/ordenes").then(function (resultado) {
+            ordenes = (resultado.data || []).map(mapearFila);
+          });
         }
 
         function cargarClientes() {
-          return supabase
-            .from("clientes")
-            .select("id, nombre, whatsapp")
-            .order("nombre", { ascending: true })
-            .then(function (res) {
-              if (res.error) throw res.error;
-              clientes = res.data || [];
-            });
+          return pedirApi("/api/clientes").then(function (resultado) {
+            clientes = resultado.data || [];
+          });
         }
 
         function val(id) {
