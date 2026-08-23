@@ -1,10 +1,10 @@
-const { requireSession } = require("./auth");
+const { requireSession } = require('./_auth');
 
-module.exports = async function handler(req, res) {
-  if (req.method !== "GET") {
+module.exports = function handler(req, res) {
+  if (req.method !== 'GET') {
     return res.status(405).json({
       ok: false,
-      error: "Método no permitido."
+      error: 'Método no permitido.'
     });
   }
 
@@ -12,5 +12,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  return res.status(200).json({ ok: true });
+  return res.status(200).json({
+    ok: true,
+    authenticated: true
+  });
 };
