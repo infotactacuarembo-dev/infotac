@@ -1086,20 +1086,18 @@ if (btnClaveGuardar) {
         var modalCerrar = document.getElementById("modal-cerrar");
         var modalGuardar = document.getElementById("modal-guardar");
         var modalEliminar = document.getElementById("modal-eliminar");
-		document.querySelectorAll('[data-toggle-password]').forEach(function(boton) {
-  		boton.addEventListener('click', function() {
-    	var input = document.getElementById(boton.getAttribute('data-toggle-password'));
-    	if (!input) return;
+		document.addEventListener("click", function(e) {
+  		var boton = e.target.closest(".password-toggle");
 
-    	var mostrando = input.type === 'text';
-    	input.type = mostrando ? 'password' : 'text';
-    	boton.textContent = mostrando ? '👁' : '🙈';
-    	boton.title = mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña';
-    	boton.setAttribute(
-      'aria-label',
-      mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña'
-    );
-  });
+  		if (!boton) return;
+
+  		var inputId = boton.getAttribute("data-toggle-password");
+  		var campo = document.getElementById(inputId);
+
+  		if (!campo) return;
+
+  		campo.type = campo.type === "password" ? "text" : "password";
+  		boton.textContent = campo.type === "text" ? "🙈" : "👁";
 });
         var ordenes = [];
         var ordenActivaId = null;
