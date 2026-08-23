@@ -673,7 +673,35 @@
       .historial-item .h-equipo { font-weight: 600; }
       .historial-item .h-falla { color: var(--text-muted); font-size: 0.78rem; flex: 1; min-width: 120px; }
       .historial-loading { color: var(--text-muted); font-size: 0.82rem; padding: 0.5rem 0; }
-    </style>
+    
+	.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
+  transform: translateY(-50%);
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.password-toggle:hover {
+  background: var(--bg);
+}
+	</style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -824,25 +852,61 @@
       </div>
     </div>
 
-      <div id="modal-cambiar-clave" class="modal-overlay">
-        <div class="modal">
-          <div class="modal-header">
-            <h3>Cambiar Clave</h3>
-            <button class="modal-close" id="btn-clave-cancelar-x">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="form-group full">
-              <label>Nueva contraseña</label>
-              <input type="password" id="input-nueva-clave" placeholder="Ingresá la nueva contraseña" autocomplete="new-password">
-            </div>
-            <div id="clave-msg" style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-primary" id="btn-clave-guardar">Guardar</button>
-            <button class="btn-sm" id="btn-clave-cancelar">Cancelar</button>
-          </div>
+     <div id="modal-cambiar-clave" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Cambiar Clave</h3>
+      <button class="modal-close" id="btn-clave-cancelar-x">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group full">
+        <label for="input-nueva-clave">Nueva contraseña</label>
+        <div class="password-wrap">
+          <input
+            type="password"
+            id="input-nueva-clave"
+            placeholder="Ingresá la nueva contraseña"
+            autocomplete="new-password"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            id="btn-ver-nueva-clave"
+            aria-label="Mostrar contraseña"
+            title="Mostrar contraseña"
+          >👁</button>
         </div>
       </div>
+
+      <div class="form-group full">
+        <label for="input-confirmar-clave">Repetir nueva contraseña</label>
+        <div class="password-wrap">
+          <input
+            type="password"
+            id="input-confirmar-clave"
+            placeholder="Repetí la nueva contraseña"
+            autocomplete="new-password"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            id="btn-ver-confirmar-clave"
+            aria-label="Mostrar contraseña"
+            title="Mostrar contraseña"
+          >👁</button>
+        </div>
+      </div>
+
+      <div id="clave-msg" style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.4rem;"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" id="btn-clave-guardar">Guardar</button>
+      <button class="btn-sm" id="btn-clave-cancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
 
     <!-- ====== SUPABASE JS SDK (CDN oficial v2) ====== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -906,20 +970,47 @@ if (modalClave) {
   });
 }
 
+var inputClaveActual = document.getElementById('input-clave-actual');
+var inputConfirmarClave = document.getElementById('input-confirmar-clave');
+
+document.querySelectorAll('.password-toggle').forEach(function (boton) {
+  boton.addEventListener('click', function () {
+    var input = document.getElementById(boton.getAttribute('data-toggle-password'));
+    if (!input) return;
+
+    var visible = input.type === 'text';
+    input.type = visible ? 'password' : 'text';
+    boton.textContent = visible ? '👁' : '🙈';
+    boton.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    boton.setAttribute('title', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  });
+});
+
 if (btnClaveGuardar) {
   btnClaveGuardar.addEventListener('click', function () {
+    var actual = inputClaveActual ? inputClaveActual.value : '';
     var nueva = inputNuevaClave ? inputNuevaClave.value.trim() : '';
+    var confirmar = inputConfirmarClave ? inputConfirmarClave.value.trim() : '';
+
+    if (!actual) {
+      if (claveMsg) claveMsg.textContent = 'Ingresá la contraseña actual.';
+      if (inputClaveActual) inputClaveActual.focus();
+      return;
+    }
 
     if (nueva.length < 4) {
       if (claveMsg) {
         claveMsg.textContent = 'La nueva contraseña debe tener al menos 4 caracteres.';
       }
+      if (inputNuevaClave) inputNuevaClave.focus();
       return;
     }
 
-    /* Se solicita la clave vigente: nunca se envía ni se guarda sin validación. */
-    var actual = window.prompt('Ingresá la contraseña actual:');
-    if (!actual) return;
+    if (nueva !== confirmar) {
+      if (claveMsg) claveMsg.textContent = 'Las nuevas contraseñas no coinciden.';
+      if (inputConfirmarClave) inputConfirmarClave.focus();
+      return;
+    }
 
     btnClaveGuardar.disabled = true;
     if (claveMsg) claveMsg.textContent = 'Guardando…';
@@ -949,7 +1040,6 @@ if (btnClaveGuardar) {
       });
   });
 }
-
 
         /* ===== ELEMENTS ===== */
         var loginScreen = document.getElementById("login-screen");
