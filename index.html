@@ -1256,32 +1256,29 @@ restaurarSesion();
           return error;
         }
 
-        function pedirApi(url, opciones) {
-          opciones = opciones || {};
+       function pedirApi(url, datos) {
+  var opciones = {
+    method: datos === undefined ? "GET" : "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "same-origin"
+  };
 
-          return fetch(url, {
-            method: opciones.method || "GET",
-            credentials: "same-origin",
-            headers: opciones.body
-              ? { "Content-Type": "application/json" }
-              : undefined,
-            body: opciones.body ? JSON.stringify(opciones.body) : undefined
-          }).then(function (respuesta) {
-            return respuesta.json()
-              .catch(function () {
-                return {
-                  ok: false,
-                  error: "Respuesta inválida del servidor."
-                };
-              })
-              .then(function (datos) {
-                if (!respuesta.ok || !datos.ok) {
-                  throw errorApi(respuesta, datos);
-                }
-                return datos;
-              });
-          });
-        }
+  if (datos !== undefined) {
+    opciones.body = JSON.stringify(datos);
+  }
+
+  return fetch(url, opciones).then(function (respuesta) {
+    return respuesta.json().then(function (resultado) {
+      if (!respuesta.ok) {
+        throw new Error(resultado.error || "Error HTTP " + respuesta.status);
+      }
+
+      return resultado;
+    });
+  });
+}
 
         function mapearFila(row) {
           return {
