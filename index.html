@@ -226,7 +226,10 @@
       }
 
       .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
-      .form-group.full { grid-column: 1 / -1; }
+      .form-group.full {
+  		grid-column: 1 / -1;
+  		min-width: 0;
+	}
 
       .form-group label {
         font-size: 0.78rem;
@@ -648,10 +651,31 @@
       }
 
       /* ====== AUTOCOMPLETE CLIENTE ====== */
-      .cliente-input-wrap { position: relative; display: flex; gap: 0.4rem; }
-      .cliente-input-wrap input { flex: 1; }
-      .btn-add-cliente {
-        width: 40px; height: 40px; flex-shrink: 0;
+      .cliente-input-wrap {
+  		position: relative;
+  		display: flex;
+  		align-items: center;
+  		width: 100%;
+  		min-width: 0;
+		gap: 0.4rem;
+	}
+
+	.cliente-input-wrap input {
+  	flex: 1 1 auto;
+  	min-width: 0;
+  	width: 100%;
+	}
+
+	.btn-add-cliente {
+  	flex: 0 0 40px;
+  	width: 40px;
+  	height: 40px;
+  	padding: 0;
+  	box-sizing: border-box;
+  	display: inline-flex;
+  	align-items: center;
+  	justify-content: center;
+	}
         display: inline-flex; align-items: center; justify-content: center;
         background: var(--primary); color: #fff; border: none;
         border-radius: 8px; font-size: 1.4rem; line-height: 1; cursor: pointer;
