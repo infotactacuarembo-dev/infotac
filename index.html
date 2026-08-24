@@ -1255,13 +1255,13 @@ restaurarSesion();
           return error;
         }
 
-       function pedirApi(url, datos) {
+       function pedirApi(url, datos, metodo) {
   var opciones = {
-    method: datos === undefined ? "GET" : "POST",
+    method: metodo || (datos === undefined ? "GET" : "POST"),
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json"
-    },
-    credentials: "same-origin"
+    }
   };
 
   if (datos !== undefined) {
@@ -1269,12 +1269,11 @@ restaurarSesion();
   }
 
   return fetch(url, opciones).then(function (respuesta) {
-    return respuesta.json().then(function (resultado) {
-      if (!respuesta.ok) {
-        throw new Error(resultado.error || "Error HTTP " + respuesta.status);
-      }
-
-      return resultado;
+    return respuesta.json().catch(function () {
+      return {
+        ok: false,
+        error: "Respuesta inválida del servidor."
+      };
     });
   });
 }
@@ -1680,21 +1679,25 @@ restaurarSesion();
 
         /* ===== DELETE ===== */
         function borrarOrden(id) {
-          if (!confirm("¿Eliminar esta orden definitivamente?")) return;
-          supabase
-            .from("ordenes")
-            .delete()
-            .eq("id", id)
-            .then(function (res) {
-              if (res.error) throw res.error;
-              return cargarOrdenes();
-            })
-            .then(renderizar)
-            .catch(function (err) {
-              console.error("Error al eliminar orden:", err);
-              alert("No se pudo eliminar la orden. Inténtalo de nuevo.");
-            });
-        }
+  			if (!confirm("¿Eliminar esta orden definitivamente?")) {
+    		return;
+  		}
+
+  		return pedirApi("/api/ordenes?id=" + encodeURIComponent(id), undefined, "DELETE")
+    	.then(function (resultado) {
+      	if (!resultado.ok) {
+        throw new Error(
+          resultado.error || "No se pudo eliminar la orden"
+        );
+      }
+
+      return cargarOrdenes().then(renderizar);
+    })
+    .catch(function (error) {
+      console.error("Error al eliminar la orden:", error);
+      alert("No se pudo eliminar la orden: " + error.message);
+    });
+}
 
         /* ===== SEARCH ===== */
         buscador.addEventListener("input", renderizar);
