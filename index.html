@@ -28,6 +28,7 @@
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
+		overflow-x: hidden;  
       }
 
       /* ====== LOGIN SCREEN ====== */
@@ -182,25 +183,34 @@
       .btn-sm.primary:hover { background: var(--primary-dark); }
 
       .app-body {
-        display: grid;
-        grid-template-columns: 380px 1fr;
-        gap: 1.5rem;
-        padding: 1.5rem;
-        max-width: 1400px;
-        margin: 0 auto;
-      }
+  		display: grid;
+  		grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  		gap: 1.5rem;
+  		padding: 1.5rem;
+  		width: 100%;
+  		max-width: 1400px;
+  		margin: 0 auto;
+  		box-sizing: border-box;
+	  }
 
-      @media (max-width: 960px) {
-        .app-body { grid-template-columns: 1fr; }
-      }
+     @media (max-width: 960px) {
+  		.app-body {
+    	grid-template-columns: minmax(0, 1fr);
+  		}
+
+  		.app-body .panel {
+	    width: 100%;
+  		}
+	}
 
       /* ====== PANEL CARDS ====== */
       .panel {
-        background: var(--surface);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-      }
+  		background: var(--surface);
+  		border-radius: var(--radius);
+  		box-shadow: var(--shadow);
+  		overflow: hidden;
+  		min-width: 0;
+	  }
 
       .panel-header {
         padding: 1rem 1.25rem;
