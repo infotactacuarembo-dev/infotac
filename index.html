@@ -1431,19 +1431,24 @@ restaurarSesion();
           }
 
           function crearClienteYInsertar() {
-            return supabase
-              .from("clientes")
-              .insert({ nombre: nombreCliente, whatsapp: telCliente })
-              .select("id")
-              .then(function (res) {
-                if (res.error) throw res.error;
-                var nuevoId = res.data && res.data[0] && res.data[0].id;
-                if (!nuevoId) throw new Error("No se pudo crear el cliente");
-                return cargarClientes().then(function () {
-                  return insertarOrdenConCliente(nuevoId);
-                });
-              });
-          }
+  			return pedirApi("/api/clientes", {
+    		nombre: nombreCliente,
+    		whatsapp: telCliente
+  })
+    	  .then(function (resultado) {
+      		if (!resultado.ok) {
+        	throw new Error(resultado.error || "No se pudo crear el cliente");
+      }
+
+      var nuevoId = resultado.data && resultado.data.id;
+      if (!nuevoId) {
+        throw new Error("No se pudo crear el cliente");
+      }
+
+      clienteSeleccionadoId = nuevoId;
+      return cargarClientes();
+    });
+}
 
           function manejarError(err) {
             console.error("Error al registrar ingreso:", err);
