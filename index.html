@@ -1402,23 +1402,36 @@ restaurarSesion();
           var nombreCliente = val("f-nombre");
           var telCliente = val("f-whatsapp");
 
-          function insertarOrdenConCliente(clienteId) {
-  	var fila = {
-    fecha: new Date().toISOString(),
-    cliente_id: clienteId,
-    cliente: nombreCliente,
-    tel: telCliente,
-    tipo: val("f-equipo"),
-    serie: val("f-serie"),
-    pass: val("f-pin"),
-    sena: senaNum,
-    falla: val("f-falla"),
-    presupuesto: presupNum,
-    presupuesta: "",
-    estetico: val("f-estetico"),
-    estado: "ingresado",
-    fecha_entrega: null
+         function insertarOrdenConCliente(clienteId) {
+  			var datosOrden = {
+    		fecha: new Date().toISOString(),
+    		cliente_id: clienteId,
+    		cliente: nombreCliente,
+    		tel: telCliente,
+    		tipo: val("f-equipo"),
+    		serie: val("f-serie"),
+    		pass: val("f-pin"),
+    		sena: senaNum,
+    		falla: val("f-falla"),
+    		presupuesto: presupNum,
+    		presupuesta: "",
+    		estetico: val("f-estetico"),
+    		estado: "ingresado",
+    		fecha_entrega: null
   };
+
+  return pedirApi("/api/ordenes", datosOrden)
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(resultado.error || "No se pudo crear la orden");
+      }
+
+      formIngreso.reset();
+      clienteSeleccionadoId = null;
+
+      return cargarOrdenes().then(renderizar);
+    });
+}
 
   return pedirApi("/api/ordenes", fila)
     .then(function (resultado) {
@@ -1433,23 +1446,27 @@ restaurarSesion();
     });
 }
 
-          function crearClienteYInsertar() {
-  			return pedirApi("/api/clientes", {
-    		nombre: nombreCliente,
-    		whatsapp: telCliente
+         function crearClienteYInsertar() {
+  return pedirApi("/api/clientes", {
+    nombre: nombreCliente,
+    whatsapp: telCliente
   })
-    	  .then(function (resultado) {
-      		if (!resultado.ok) {
-        	throw new Error(resultado.error || "No se pudo crear el cliente");
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(resultado.error || "No se pudo crear el cliente");
       }
 
       var nuevoId = resultado.data && resultado.data.id;
+
       if (!nuevoId) {
-        throw new Error("No se pudo crear el cliente");
+        throw new Error("La API no devolvió el ID del cliente");
       }
 
       clienteSeleccionadoId = nuevoId;
-      return cargarClientes();
+
+      return cargarClientes().then(function () {
+        return insertarOrdenConCliente(nuevoId);
+      });
     });
 }
 
