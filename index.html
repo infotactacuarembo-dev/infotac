@@ -1654,22 +1654,30 @@ restaurarSesion();
             update.fecha_entrega = null;
           }
 
-          supabase
-            .from("ordenes")
-            .update(update)
-            .eq("id", o.id)
-            .then(function (res) {
-              if (res.error) throw res.error;
-              return cargarOrdenes();
-            })
-            .then(function () {
-              renderizar();
-              modalDetalle.classList.remove("visible");
-            })
-            .catch(function (err) {
-              console.error("Error al guardar cambios:", err);
-              alert("No se pudieron guardar los cambios. Inténtalo de nuevo.");
-            });
+          pedirApi("/api/ordenes", {
+  			id: o.id,
+  			estado: nuevoEstado,
+  			fecha_entrega: update.fecha_entrega || null
+		}, "PATCH")
+  			.then(function (resultado) {
+    		if (!resultado.ok) {
+      		throw new Error(
+        	resultado.error || "No se pudo actualizar el estado"
+      );
+    }
+
+    return cargarOrdenes()
+      .then(function () {
+        renderizar();
+        modalDetalle.classList.remove("visible");
+      });
+  })
+  .catch(function (err) {
+    console.error("Error al guardar cambios:", err);
+    alert(
+      "No se pudieron guardar los cambios: " + err.message
+    );
+  });
         });
 
         modalEliminar.addEventListener("click", function () {
