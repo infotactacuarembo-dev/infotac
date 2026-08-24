@@ -937,7 +937,7 @@
       (function () {
         "use strict";
 
-        
+        var CLAVE_CORRECTA = "infotac2026";
 
 
         /* ===== SUPABASE CLIENT ===== */
@@ -953,7 +953,6 @@ function solicitarJSON(url, datos) {
   return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
     body: JSON.stringify(datos)
   }).then(function (respuesta) {
     return respuesta.json().catch(function () {
@@ -1037,7 +1036,7 @@ if (btnClaveGuardar) {
           throw new Error(resultado.error || 'No se pudo actualizar la contraseña.');
         }
 
-        
+        CLAVE_CORRECTA = nueva;
         cerrarModalClave();
         alert('Contraseña actualizada correctamente.');
       })
@@ -1153,60 +1152,14 @@ if (btnClaveGuardar) {
         }
 
         function entrarModoAdminDirecto() {
-  var valorClave = inputClave.value;
+          var valorClave = inputClave.value;
 
-  if (!valorClave) {
-    mensajeError.textContent = "Ingresá la contraseña.";
-    mensajeError.classList.add("visible");
-    inputClave.focus();
-    return;
-  }
-
-  btnEntrar.disabled = true;
-  mensajeError.textContent = "Verificando...";
-  mensajeError.classList.add("visible");
-
-  solicitarJSON("/api/verify-password", { password: valorClave })
-    .then(function (resultado) {
-      if (!resultado.ok) {
-        throw new Error(resultado.error || "Contraseña incorrecta.");
-      }
-
-      MODO_OFFLINE = false;
-      mensajeError.textContent = "";
-      mensajeError.classList.remove("visible");
-      inputClave.classList.remove("shake-error");
-
-      mostrarAplicacion();
-      return cargarDatosIniciales();
-    })
-    .catch(function (error) {
-      console.warn("No fue posible verificar online:", error);
-
-      if (leerCacheOffline()) {
-  		mostrarLogin();
-  		mensajeError.textContent =
-    	"Hay una copia disponible para consulta sin conexión. Para abrirla, usá el botón «Ver copia offline».";
-  		mensajeError.classList.add("visible");
-  		inputClave.value = "";
-  	return;
-}
-
-      mostrarLogin();
-      mensajeError.textContent =
-        "Sin conexión o permiso offline vencido. Conectate a Internet e ingresá nuevamente.";
-      mensajeError.classList.add("visible");
-
-      inputClave.classList.remove("shake-error");
-      void inputClave.offsetWidth;
-      inputClave.classList.add("shake-error");
-      inputClave.value = "";
-      inputClave.focus();
-    })
-    .finally(function () {
-      btnEntrar.disabled = false;
-    });
-}
+          if (!valorClave) {
+            mensajeError.textContent = "Ingresá la contraseña.";
+            mensajeError.classList.add("visible");
+            inputClave.focus();
+            return;
+          }
 
           btnEntrar.disabled = true;
           mensajeError.textContent = "Verificando...";
@@ -1245,33 +1198,20 @@ if (btnClaveGuardar) {
         }
 
         function salirModoAdmin() {
-  		btnSalir.disabled = true;
+          btnSalir.disabled = true;
 
-  		fetch("/api/logout", {
-    	method: "POST",
-    	credentials: "same-origin"
-  })
-    	.catch(function (error) {
-      	console.error("Error al cerrar sesión:", error);
-    })
-    	.finally(function () {
-      	try {
-        localStorage.removeItem(CLAVE_CACHE_ORDENES);
-        localStorage.removeItem(CLAVE_CACHE_CLIENTES);
-        localStorage.removeItem(CLAVE_OFFLINE_HASTA);
-      } catch (error) {
-        console.warn("No se pudo limpiar la copia offline:", error);
-      }
-
-      MODO_OFFLINE = false;
-
-      var aviso = document.getElementById("aviso-modo-offline");
-      if (aviso) aviso.remove();
-
-      btnSalir.disabled = false;
-      mostrarLogin();
-    });
-}
+          fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin"
+          })
+            .catch(function (error) {
+              console.error("Error al cerrar sesión:", error);
+            })
+            .finally(function () {
+              btnSalir.disabled = false;
+              mostrarLogin();
+            });
+        }
 
         btnEntrar.addEventListener("click", entrarModoAdminDirecto);
 
@@ -1363,19 +1303,17 @@ restaurarSesion();
           };
         }
 
+        function cargarOrdenes() {
+          return pedirApi("/api/ordenes").then(function (resultado) {
+            ordenes = (resultado.data || []).map(mapearFila);
+          });
+        }
 
-function cargarOrdenes() {
-  return pedirApi("/api/ordenes").then(function (resultado) {
-    ordenes = (resultado.data || []).map(mapearFila);
-  });
-}
-
-function cargarClientes() {
-  return pedirApi("/api/clientes").then(function (resultado) {
-    clientes = resultado.data || [];
-  });
-}
-
+        function cargarClientes() {
+          return pedirApi("/api/clientes").then(function (resultado) {
+            clientes = resultado.data || [];
+          });
+        }
 
         function val(id) {
           var el = document.getElementById(id);
@@ -1685,11 +1623,7 @@ function cargarClientes() {
         });
 
         modalGuardar.addEventListener("click", function () {
-         if (MODO_OFFLINE) {
-         alert('Estás sin conexión: las órdenes solo pueden consultarse.');
-         return;
-}
-		  if (!ordenActivaId) return;
+          if (!ordenActivaId) return;
           var o = ordenes.find(function (x) { return x.id === ordenActivaId; });
           if (!o) return;
 
@@ -1723,12 +1657,7 @@ function cargarClientes() {
         });
 
         modalEliminar.addEventListener("click", function () {
-          
-			if (MODO_OFFLINE) {
-  			alert('Estás sin conexión: las órdenes solo pueden consultarse.');
-  			return;
-			}
-			if (ordenActivaId) borrarOrden(ordenActivaId);
+          if (ordenActivaId) borrarOrden(ordenActivaId);
           modalDetalle.classList.remove("visible");
         });
 
