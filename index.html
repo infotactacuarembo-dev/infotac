@@ -1419,7 +1419,7 @@ restaurarSesion();
     		estado: "ingresado",
     		fecha_entrega: null
   };
-
+}
   return pedirApi("/api/ordenes", datosOrden)
     .then(function (resultado) {
       if (!resultado.ok) {
