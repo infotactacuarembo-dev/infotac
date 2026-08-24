@@ -1403,27 +1403,34 @@ restaurarSesion();
           var telCliente = val("f-whatsapp");
 
          function insertarOrdenConCliente(clienteId) {
-  			var datosOrden = {
-    		fecha: new Date().toISOString(),
-    		cliente_id: clienteId,
-    		cliente: nombreCliente,
-    		tel: telCliente,
-    		tipo: val("f-equipo"),
-    		serie: val("f-serie"),
-    		pass: val("f-pin"),
-    		sena: senaNum,
-    		falla: val("f-falla"),
-    		presupuesto: presupNum,
-    		presupuesta: "",
-    		estetico: val("f-estetico"),
-    		estado: "ingresado",
-    		fecha_entrega: null
+  var nombreCliente = val("f-nombre");
+  var telCliente = val("f-whatsapp");
+  var senaNum = parseFloat(val("f-sena")) || 0;
+  var presupNum = parseFloat(val("f-presupuesto")) || 0;
+
+  var datosOrden = {
+    fecha: new Date().toISOString(),
+    cliente_id: clienteId,
+    cliente: nombreCliente,
+    tel: telCliente,
+    tipo: val("f-equipo"),
+    serie: val("f-serie"),
+    pass: val("f-pin"),
+    sena: senaNum,
+    falla: val("f-falla"),
+    presupuesto: presupNum,
+    presupuesta: "",
+    estetico: val("f-estetico"),
+    estado: "ingresado",
+    fecha_entrega: null
   };
-}
+
   return pedirApi("/api/ordenes", datosOrden)
     .then(function (resultado) {
       if (!resultado.ok) {
-        throw new Error(resultado.error || "No se pudo crear la orden");
+        throw new Error(
+          resultado.error || "No se pudo crear la orden"
+        );
       }
 
       formIngreso.reset();
@@ -1432,20 +1439,6 @@ restaurarSesion();
       return cargarOrdenes().then(renderizar);
     });
 }
-
-  return pedirApi("/api/ordenes", fila)
-    .then(function (resultado) {
-      if (!resultado.ok) {
-        throw new Error(resultado.error || "No se pudo registrar la orden");
-      }
-
-      formIngreso.reset();
-      clienteSeleccionadoId = null;
-
-      return cargarOrdenes().then(renderizar);
-    });
-}
-
          function crearClienteYInsertar() {
   return pedirApi("/api/clientes", {
     nombre: nombreCliente,
