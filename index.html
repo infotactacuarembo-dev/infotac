@@ -1406,29 +1406,35 @@ restaurarSesion();
           var telCliente = val("f-whatsapp");
 
           function insertarOrdenConCliente(clienteId) {
-            var fila = {
-              fecha: new Date().toISOString(),
-              cliente_id: clienteId,
-              cliente: nombreCliente,
-              tel: telCliente,
-              tipo: val("f-equipo"),
-              serie: val("f-serie"),
-              pass: val("f-pin"),
-              sena: senaNum,
-              falla: val("f-falla"),
-              presupuesto: presupNum,
-              presupuesta: "",
-              estetico: val("f-estetico"),
-              estado: "ingresado",
-              fecha_entrega: null
-            };
-            return supabase.from("ordenes").insert(fila).then(function (res) {
-              if (res.error) throw res.error;
-              formIngreso.reset();
-              clienteSeleccionadoId = null;
-              return cargarOrdenes();
-            }).then(renderizar);
-          }
+  	var fila = {
+    fecha: new Date().toISOString(),
+    cliente_id: clienteId,
+    cliente: nombreCliente,
+    tel: telCliente,
+    tipo: val("f-equipo"),
+    serie: val("f-serie"),
+    pass: val("f-pin"),
+    sena: senaNum,
+    falla: val("f-falla"),
+    presupuesto: presupNum,
+    presupuesta: "",
+    estetico: val("f-estetico"),
+    estado: "ingresado",
+    fecha_entrega: null
+  };
+
+  return pedirApi("/api/ordenes", fila)
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(resultado.error || "No se pudo registrar la orden");
+      }
+
+      formIngreso.reset();
+      clienteSeleccionadoId = null;
+
+      return cargarOrdenes().then(renderizar);
+    });
+}
 
           function crearClienteYInsertar() {
   			return pedirApi("/api/clientes", {
