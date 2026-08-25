@@ -1487,14 +1487,28 @@ restaurarSesion();
     	fNombre.focus();
     	return;
  	 }
+	var nombreNormalizado = nombre.toLowerCase().trim();
 
-  pedirApi("/api/clientes", {
-  nombre: nombre,
-  whatsapp: val("f-whatsapp")
+	var clienteExistente = clientes.find(function (cliente) {
+  	return String(cliente.nombre || "").toLowerCase().trim() === nombreNormalizado;
+	});
+
+	if (clienteExistente) {
+  		fNombre.value = clienteExistente.nombre;
+  		fWhatsapp.value = clienteExistente.whatsapp || "";
+  		clienteSeleccionadoId = clienteExistente.id;
+  		acDropdown.classList.remove("visible");
+
+  		alert("Ese cliente ya existe y fue seleccionado.");
+  		return;
+	}
+  		pedirApi("/api/clientes", {
+  		nombre: nombre,
+  		whatsapp: val("f-whatsapp")
 })
-  .then(function (resultado) {
-    if (!resultado.ok) {
-      throw new Error(
+  		.then(function (resultado) {
+    	if (!resultado.ok) {
+      	throw new Error(
         resultado.error || "No se pudo crear el cliente"
       );
     }
