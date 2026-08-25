@@ -5,7 +5,7 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega`;
+  estado, fecha_entrega, empresa_id`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -93,10 +93,11 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       const { data, error } = await supabase
-        .from('ordenes')
-        .select(ORDER_FIELDS)
-        .order('fecha', { ascending: false })
-        .limit(1000);
+      .from('ordenes')
+      .select(ORDER_FIELDS)
+      .eq('empresa_id', INFOTAC_EMPRESA_ID)
+      .order('fecha', { ascending: false })
+      .limit(1000);
 
       if (error) throw error;
       return res.status(200).json({ ok: true, data: data || [] });
