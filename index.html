@@ -375,7 +375,20 @@
       }
 
       .status-ingresado { background: #dbeafe; color: #1d4ed8; }
-      .status-reparando { background: #fef3c7; color: #b45309; }
+      .status-reparando {
+       background: #ffedd5;
+       olor: #c2410c;
+      }
+		
+	  .status-revision {
+      background: #fef3c7;
+      color: #b45309;
+     }
+
+     .status-presupuesto {
+      background: #ede9fe;
+      color: #6d28d9;
+    } 	
       .status-terminado { background: #dcfce7; color: #15803d; }
       .status-entregado { background: #e0e7ff; color: #4338ca; }
       .status-sinreparar { background: #fee2e2; color: #b91c1c; }
@@ -1160,13 +1173,42 @@ if (btnClaveGuardar) {
         var clientes = [];
         var clienteSeleccionadoId = null;
 
-        var ESTADOS = {
-          ingresado: { label: "Ingresado", cls: "status-ingresado" },
-          reparando: { label: "En Revisión", cls: "status-reparando" },
-          terminado: { label: "Listo para Retirar", cls: "status-terminado" },
-          entregado: { label: "Entregado", cls: "status-entregado" },
-          sinreparar: { label: "Sin Reparar / Devuelto", cls: "status-sinreparar" }
-        };
+     	var ESTADOS = {
+  		ingresado: {
+    	label: "Ingresado",
+    	cls: "status-ingresado"
+ 	 },
+
+  	   revision: {
+       label: "En Revisión",
+       cls: "status-revision"
+ 	 },
+
+     presupuesto: {
+     label: "Presupuesto",
+     cls: "status-presupuesto"
+    },
+
+    reparando: {
+    label: "Reparando",
+    cls: "status-reparando"
+   },
+
+    terminado: {
+    label: "Listo para Retirar",
+    cls: "status-terminado"
+  },
+
+    entregado: {
+    label: "Entregado",
+    cls: "status-entregado"
+  },
+
+    sinreparar: {
+    label: "Sin Reparar / Devuelto",
+    cls: "status-sinreparar"
+  }
+};
 
                /* ===== SESIÓN, LOGIN Y LOGOUT ===== */
         function solicitarJSON(url, datos, metodo) {
