@@ -179,11 +179,12 @@ if (importError) throw importError;
       }
 
       const { data, error } = await supabase
-        .from('ordenes')
-        .update(update)
-        .eq('id', body.id)
-        .select(ORDER_FIELDS)
-        .single();
+      .from('ordenes')
+      .update(update)
+      .eq('id', body.id)
+      .eq('empresa_id', INFOTAC_EMPRESA_ID)
+      .select(ORDER_FIELDS)
+      .single();
 
       if (error) throw error;
       return res.status(200).json({ ok: true, data });
@@ -202,7 +203,8 @@ if (importError) throw importError;
       const { error } = await supabase
         .from('ordenes')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('empresa_id', INFOTAC_EMPRESA_ID);
 
       if (error) throw error;
       return res.status(200).json({ ok: true });
