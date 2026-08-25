@@ -1810,47 +1810,86 @@ restaurarSesion();
         });
 
         modalGuardar.addEventListener("click", function () {
-          if (!ordenActivaId) return;
-          var o = ordenes.find(function (x) { return x.id === ordenActivaId; });
-          if (!o) return;
+  if (!ordenActivaId) return;
 
-          var estadoPrevio = o.estado;
-          var nuevoEstado = estadoEditTemporal;
-          var update = { estado: nuevoEstado };
-
-          if ((nuevoEstado === "entregado" || nuevoEstado === "sinreparar") && estadoPrevio !== nuevoEstado) {
-            update.fecha_entrega = new Date().toISOString();
-          }
-          if (nuevoEstado !== "entregado" && nuevoEstado !== "sinreparar") {
-            update.fecha_entrega = null;
-          }
-
-          pedirApi("/api/ordenes", {
-  			id: o.id,
-  			estado: nuevoEstado,
-  			fecha_entrega: update.fecha_entrega || null
-		}, "PATCH")
-  			.then(function (resultado) {
-    		if (!resultado.ok) {
-      		throw new Error(
-        	resultado.error || "No se pudo actualizar el estado"
-      );
-    }
-
-    return cargarOrdenes()
-      .then(function () {
-        renderizar();
-        modalDetalle.classList.remove("visible");
-      });
-  })
-  .catch(function (err) {
-    console.error("Error al guardar cambios:", err);
-    alert(
-      "No se pudieron guardar los cambios: " + err.message
-    );
+  var o = ordenes.find(function (x) {
+    return x.id === ordenActivaId;
   });
-        });
 
+  if (!o) return;
+
+  var estadoPrevio = o.estado;
+  var nuevoEstado = document.getElementById("modal-estado")
+    ? document.getElementById("modal-estado").value
+    : o.estado;
+
+  var diagnosticoEl = document.getElementById("modal-diagnostico");
+  var trabajoEl = document.getElementById("modal-trabajo");
+  var senaEl = document.getElementById("modal-sena");
+  var presupuestoEl = document.getElementById("modal-presupuesto");
+  var aprobacionEl = document.getElementById("modal-aprobacion");
+
+  var update = {
+    estado: nuevoEstado,
+    diagnostico: diagnosticoEl ? diagnosticoEl.value.trim() : "",
+    trabajo_realizar: trabajoEl ? trabajoEl.value.trim() : "",
+    sena: senaEl ? parseFloat(senaEl.value) || 0 : 0,
+    presupuesto: presupuestoEl ? parseFloat(presupuestoEl.value) || 0 : 0,
+    aprobacion_presupuesto: aprobacionEl
+      ? aprobacionEl.value
+      : "pendiente"
+  };
+
+  if (
+    (nuevoEstado === "entregado" || nuevoEstado === "sinreparar") &&
+    estadoPrevio !== nuevoEstado
+  ) {
+    update.fecha_entrega = new Date().toISOString();
+  }
+
+  if (
+    nuevoEstado !== "entregado" &&
+    nuevoEstado !== "sinreparar"
+  ) {
+    update.fecha_entrega = null;
+  }
+
+  pedirApi(
+    "/api/ordenes",
+    {
+      id: o.id,
+      estado: update.estado,
+      fecha_entrega: update.fecha_entrega || null,
+      diagnostico: update.diagnostico,
+      trabajo_realizar: update.trabajo_realizar,
+      sena: update.sena,
+      presupuesto: update.presupuesto,
+      aprobacion_presupuesto: update.aprobacion_presupuesto
+    },
+    "PATCH"
+  )
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(
+          resultado.error || "No se pudieron guardar los cambios"
+        );
+      }
+
+      return cargarOrdenes();
+    })
+    .then(function () {
+      renderizar();
+      modalDetalle.classList.remove("visible");
+    })
+    .catch(function (err) {
+      console.error("Error al guardar cambios:", err);
+      alert(
+        "No se pudieron guardar los cambios: " +
+        (err.message || "intentá nuevamente.")
+      );
+    });
+});
+		  
         modalEliminar.addEventListener("click", function () {
           if (ordenActivaId) borrarOrden(ordenActivaId);
           modalDetalle.classList.remove("visible");
