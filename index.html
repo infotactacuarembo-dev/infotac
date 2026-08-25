@@ -1488,38 +1488,38 @@ restaurarSesion();
     	return;
  	 }
 
-  	supabase
-    .from("clientes")
-    .insert({
-  	empresa_id: "ce95321a-ea37-47d1-81bb-f25f0dd58eeb",
-  	nombre: nombre,
-  	whatsapp: val("f-whatsapp")
-	})
-    
-    .select("id")
-    .single()
-    .then(function (res) {
-      if (res.error) throw res.error;
-
-      var nuevoId = res.data && res.data.id;
-      if (!nuevoId) {
-        throw new Error("Supabase no devolvió el ID del cliente");
-      }
-
-      clienteSeleccionadoId = nuevoId;
-      return cargarClientes();
-    })
-    .then(function () {
-      acDropdown.classList.remove("visible");
-      fWhatsapp.focus();
-    })
-    .catch(function (err) {
-      console.error("Error al crear cliente:", err);
-      alert(
-        "No se pudo crear el cliente: " +
-        (err.message || "intentá nuevamente.")
+  pedirApi("/api/clientes", {
+  nombre: nombre,
+  whatsapp: val("f-whatsapp")
+})
+  .then(function (resultado) {
+    if (!resultado.ok) {
+      throw new Error(
+        resultado.error || "No se pudo crear el cliente"
       );
-    });
+    }
+
+    var nuevoId = resultado.data && resultado.data.id;
+
+    if (!nuevoId) {
+      throw new Error("La API no devolvió el ID del cliente");
+    }
+
+    clienteSeleccionadoId = nuevoId;
+
+    return cargarClientes();
+  })
+  .then(function () {
+    acDropdown.classList.remove("visible");
+    fWhatsapp.focus();
+  })
+  .catch(function (err) {
+    console.error("Error al crear cliente:", err);
+    alert(
+      "No se pudo crear el cliente: " +
+      (err.message || "intentá nuevamente.")
+    );
+  });
 });
         
 
