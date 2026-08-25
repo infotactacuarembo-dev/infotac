@@ -162,9 +162,6 @@ if (importError) throw importError;
 
       const update = {
         estado: body.estado,
-        falla: text(body.falla, 2000),
-        presupuesta: text(body.presupuesta, 2000),
-        estetico: text(body.estetico, 2000),
         diagnostico: text(body.diagnostico, 4000),
         trabajo_realizar: text(body.trabajo_realizar, 4000),
         sena: number(body.sena),
