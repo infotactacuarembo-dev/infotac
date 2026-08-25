@@ -50,7 +50,11 @@ module.exports = async function handler(req, res) {
 
       const { data, error } = await supabase
         .from('clientes')
-        .insert({ nombre, whatsapp })
+        .insert({
+        empresa_id: INFOTAC_EMPRESA_ID,
+        nombre,
+        whatsapp
+      })
         .select('id, nombre, whatsapp')
         .single();
 
