@@ -93,6 +93,26 @@ module.exports = async function handler(req, res) {
     const supabase = db();
 
     if (req.method === 'GET') {
+      const clienteId = req.query && req.query.cliente_id;
+
+      if (clienteId) {
+      if (!validId(clienteId)) {
+        return res.status(400).json({
+        ok: false,
+        error: 'Identificador de cliente inválido.'
+      });
+  }
+
+      const { data, error } = await supabase
+      .from('ordenes')
+      .select('id, fecha, tipo, falla, estado, cliente_id')
+      .eq('empresa_id', INFOTAC_EMPRESA_ID)
+      .eq('cliente_id', clienteId)
+      .order('fecha', { ascending: false });
+
+      if (error) throw error;
+      return res.status(200).json({ ok: true, data: data || [] });
+  }
       const { data, error } = await supabase
       .from('ordenes')
       .select(ORDER_FIELDS)
