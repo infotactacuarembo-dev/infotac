@@ -53,6 +53,7 @@ function orderInput(body, options) {
   const estado = ALLOWED_STATES.has(source.estado) ? source.estado : 'ingresado';
 
   const order = {
+    empresa_id: INFOTAC_EMPRESA_ID,
     fecha: isoDate(source.fecha, now),
     cliente: text(source.cliente, 160),
     tel: text(source.tel, 40),
