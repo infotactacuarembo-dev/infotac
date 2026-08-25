@@ -1434,28 +1434,46 @@ restaurarSesion();
           acDropdown.classList.remove("visible");
         });
 
-        btnAddCliente.addEventListener("click", function () {
-          var nombre = val("f-nombre");
-          if (!nombre) { fNombre.focus(); return; }
-          supabase
-            .from("clientes")
-            .insert({ nombre: nombre, whatsapp: val("f-whatsapp") })
-            .select("id")
-            .then(function (res) {
-              if (res.error) throw res.error;
-              var nuevoId = res.data && res.data[0] && res.data[0].id;
-              if (!nuevoId) throw new Error("No se pudo crear el cliente");
-              clienteSeleccionadoId = nuevoId;
-              return cargarClientes();
-            })
-            .then(function () {
-              acDropdown.classList.remove("visible");
-              fWhatsapp.focus();
-            })
-            .catch(function (err) {
-              console.error("Error al crear cliente:", err);
-              alert("No se pudo crear el cliente. Intentalo de nuevo.");
-            });
+        btnAddCliente.addEventListener("click", function (event) {
+  		event.preventDefault();
+
+  		var nombre = val("f-nombre");
+  		if (!nombre) {
+    	fNombre.focus();
+    	return;
+ 	 }
+
+  	supabase
+    .from("clientes")
+    .insert({
+      nombre: nombre,
+      whatsapp: val("f-whatsapp")
+    })
+    .select("id")
+    .single()
+    .then(function (res) {
+      if (res.error) throw res.error;
+
+      var nuevoId = res.data && res.data.id;
+      if (!nuevoId) {
+        throw new Error("Supabase no devolvió el ID del cliente");
+      }
+
+      clienteSeleccionadoId = nuevoId;
+      return cargarClientes();
+    })
+    .then(function () {
+      acDropdown.classList.remove("visible");
+      fWhatsapp.focus();
+    })
+    .catch(function (err) {
+      console.error("Error al crear cliente:", err);
+      alert(
+        "No se pudo crear el cliente: " +
+        (err.message || "intentá nuevamente.")
+      );
+    });
+});
         });
 
         /* ===== FORM SUBMIT ===== */
