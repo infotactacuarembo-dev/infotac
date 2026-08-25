@@ -1675,15 +1675,35 @@ restaurarSesion();
           });
         }
 
-        function renderStats() {
-          var counts = { ingresado: 0, reparando: 0, terminado: 0, entregado: 0, sinreparar: 0 };
-          ordenes.forEach(function (o) {
-            if (counts[o.estado] !== undefined) counts[o.estado]++;
-          });
-          statsRow.innerHTML = Object.keys(ESTADOS).map(function (k) {
-            return "<div class='stat-chip'>" + ESTADOS[k].label + ": <strong>" + counts[k] + "</strong></div>";
-          }).join("");
-        }
+function renderStats() {
+  var counts = {
+    ingresado: 0,
+    revision: 0,
+    presupuesto: 0,
+    reparando: 0,
+    terminado: 0,
+    entregado: 0,
+    sinreparar: 0
+  };
+
+  ordenes.forEach(function (o) {
+    if (counts[o.estado] !== undefined) {
+      counts[o.estado]++;
+    }
+  });
+
+  statsRow.innerHTML = Object.keys(ESTADOS)
+    .map(function (k) {
+      return (
+        "<div class='stat-chip'>" +
+        ESTADOS[k].label +
+        ": <strong>" +
+        counts[k] +
+        "</strong></div>"
+      );
+    })
+    .join("");
+}
 
         /* ===== DETAIL MODAL ===== */
         function abrirDetalle(id) {
