@@ -47,7 +47,23 @@ module.exports = async function handler(req, res) {
           error: 'El nombre del cliente es obligatorio.'
         });
       }
+      
+      const { data: existente, error: buscarError } = await supabase
+        .from('clientes')
+        .select('id, nombre, whatsapp')
+        .eq('empresa_id', INFOTAC_EMPRESA_ID)
+        .ilike('nombre', nombre)
+        .maybeSingle();
 
+      if (buscarError) throw buscarError;
+
+      if (existente) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Ese cliente ya existe.',
+        data: existente
+  });
+}
       const { data, error } = await supabase
         .from('clientes')
         .insert({
