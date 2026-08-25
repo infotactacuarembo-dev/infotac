@@ -16,6 +16,8 @@ const ALLOWED_STATES = new Set([
   'entregado',
   'sinreparar'
 ]);
+const INFOTAC_EMPRESA_ID =
+  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
 
 function db() {
   const url = process.env.SUPABASE_URL;
