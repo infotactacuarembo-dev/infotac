@@ -1809,33 +1809,72 @@ function renderStats() {
   }
 }
 
-        function cargarHistorialCliente(clienteId, ordenActualId) {
-          supabase
-            .from("ordenes")
-            .select("id, fecha, tipo, falla, estado")
-            .eq("cliente_id", clienteId)
-            .order("fecha", { ascending: false })
-            .then(function (res) {
-              var histEl = document.getElementById("historial-contenido");
-              if (!histEl) return;
-              if (res.error) { histEl.innerHTML = "<div class='historial-loading'>Error al cargar historial.</div>"; return; }
-              var otras = (res.data || []).filter(function (r) { return r.id !== ordenActualId; });
-              if (otras.length === 0) {
-                histEl.innerHTML = "<div class='historial-loading'>No hay trabajos anteriores para este cliente.</div>";
-                return;
-              }
-              histEl.innerHTML = "<ul class='historial-list'>" + otras.map(function (r) {
-                var est = ESTADOS[r.estado] || ESTADOS.ingresado;
-                return "<li class='historial-item'>"
-                  + "<span class='h-fecha'>" + fmtFecha(r.fecha) + "</span>"
-                  + "<span class='h-equipo'>" + esc(r.tipo || "—") + "</span>"
-                  + "<span class='status-badge " + est.cls + "'>" + est.label + "</span>"
-                  + "<span class='h-falla'>" + esc(r.falla || "") + "</span>"
-                  + "</li>";
-              }).join("") + "</ul>";
-            });
-        }
+function cargarHistorialCliente(clienteId, ordenActualId) {
+  pedirApi(
+    "/api/ordenes?cliente_id=" + encodeURIComponent(clienteId)
+  )
+    .then(function (res) {
+      var histEl = document.getElementById("historial-contenido");
 
+      if (!histEl) return;
+
+      if (!res.ok) {
+        histEl.innerHTML =
+          "<div class='historial-loading'>Error al cargar historial.</div>";
+        return;
+      }
+
+      var otras = (res.data || []).filter(function (r) {
+        return r.id !== ordenActualId;
+      });
+
+      if (otras.length === 0) {
+        histEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "No hay trabajos anteriores para este cliente." +
+          "</div>";
+        return;
+      }
+
+      histEl.innerHTML =
+        "<ul class='historial-list'>" +
+        otras.map(function (r) {
+          var est = ESTADOS[r.estado] || ESTADOS.ingresado;
+
+          return (
+            "<li class='historial-item'>" +
+            "<span class='h-fecha'>" +
+            fmtFecha(r.fecha) +
+            "</span>" +
+            "<span class='h-equipo'>" +
+            esc(r.tipo || "—") +
+            "</span>" +
+            "<span class='status-badge " +
+            est.cls +
+            "'>" +
+            est.label +
+            "</span>" +
+            "<span class='h-falla'>" +
+            esc(r.falla || "") +
+            "</span>" +
+            "</li>"
+          );
+        }).join("") +
+        "</ul>";
+    })
+    .catch(function (err) {
+      console.error("Error al cargar historial:", err);
+
+      var histEl = document.getElementById("historial-contenido");
+
+      if (histEl) {
+        histEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar historial." +
+          "</div>";
+      }
+    });
+}
         modalCerrar.addEventListener("click", function () { modalDetalle.classList.remove("visible"); });
         modalDetalle.addEventListener("click", function (e) {
           if (e.target === modalDetalle) modalDetalle.classList.remove("visible");
