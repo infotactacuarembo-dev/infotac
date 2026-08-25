@@ -6,6 +6,8 @@ const ORDER_FIELDS =
 
 const ALLOWED_STATES = new Set([
   'ingresado',
+  'revision',
+  'presupuesto',
   'reparando',
   'terminado',
   'entregado',
