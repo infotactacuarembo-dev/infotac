@@ -1387,24 +1387,27 @@ restaurarSesion();
 }
 
         function mapearFila(row) {
-          return {
-            id: row.id,
-            clienteId: row.cliente_id,
-            fecha: row.fecha,
-            nombre: row.cliente,
-            whatsapp: row.tel,
-            equipo: row.tipo,
-            serie: row.serie,
-            pin: row.pass,
-            sena: row.sena,
-            presupuesto: row.presupuesto,
-            presupuesta: row.presupuesta,
-            falla: row.falla,
-            estetico: row.estetico,
-            estado: row.estado,
-            fechaEntrega: row.fecha_entrega
-          };
-        }
+  			return {
+    		id: row.id,
+    		clienteId: row.cliente_id,
+    		fecha: row.fecha,
+    		nombre: row.cliente,
+    		whatsapp: row.tel,
+    		equipo: row.tipo,
+    		serie: row.serie,
+    		pin: row.pass,
+    		sena: row.sena,
+    		presupuesto: row.presupuesto,
+    		presupuesta: row.presupuesta,
+    		diagnostico: row.diagnostico || "",
+    		trabajoRealizar: row.trabajo_realizar || "",
+    		aprobacionPresupuesto: row.aprobacion_presupuesto || "pendiente",
+    		falla: row.falla,
+    		estetico: row.estetico,
+    		estado: row.estado,
+    		fechaEntrega: row.fecha_entrega
+  			};
+		}
 
         function cargarOrdenes() {
           return pedirApi("/api/ordenes").then(function (resultado) {
