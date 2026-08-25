@@ -1734,7 +1734,17 @@ function renderStats() {
   html += "<label for='modal-presupuesto'>Presupuesto</label>";
   html += "<input type='number' id='modal-presupuesto' min='0' step='0.01' value='" + (o.presupuesto || "") + "'>";
   html += "</div>";
+			
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-falla'>Falla declarada</label>";
+  html += "<textarea id='modal-falla' rows='4' readonly>" + esc(o.falla || "") + "</textarea>";
+  html += "</div>";
 
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-estetico'>Estado Estético / Accesorios</label>";
+  html += "<textarea id='modal-estetico' rows='4' readonly>" + esc(o.estetico || "") + "</textarea>";
+  html += "</div>";
+			
   html += "<div class='form-group full'>";
   html += "<label for='modal-diagnostico'>Diagnóstico</label>";
   html += "<textarea id='modal-diagnostico' rows='4' placeholder='Describí la falla encontrada y el diagnóstico técnico...'>" + esc(o.diagnostico) + "</textarea>";
