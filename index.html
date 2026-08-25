@@ -663,12 +663,8 @@
      /* ====== AUTOCOMPLETE CLIENTE ====== */
 .cliente-input-wrap {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   width: 100%;
   min-width: 0;
-  gap: 0.5rem;
 }
 
 .cliente-input-wrap input {
@@ -676,28 +672,7 @@
   min-width: 0;
 }
 
-.btn-add-cliente {
-  align-self: flex-start;
-  min-height: 36px;
-  padding: 0.45rem 0.8rem;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.15s;
-}
 
-.btn-add-cliente:hover {
-  background: var(--primary-dark);
-}
 
 .autocomplete-dropdown {
   position: absolute;
@@ -823,14 +798,7 @@
     		autocomplete="off"
  		 />
 
-  		<button
-  		type="button"
-  		class="btn-add-cliente"
-  		id="btn-add-cliente"
-  		title="Crear cliente nuevo"
-		>
-  		+ Crear cliente
-		</button>
+  		
 
   <div
     class="autocomplete-dropdown"
@@ -1434,45 +1402,7 @@ restaurarSesion();
           acDropdown.classList.remove("visible");
         });
 
-        btnAddCliente.addEventListener("click", function (event) {
-  		event.preventDefault();
-
-  		var nombre = val("f-nombre");
-  		if (!nombre) {
-    	fNombre.focus();
-    	return;
- 	 }
-
-  	supabase
-    .from("clientes")
-    .insert({
-      nombre: nombre,
-      whatsapp: val("f-whatsapp")
-    })
-    .select("id")
-    .single()
-    .then(function (res) {
-      if (res.error) throw res.error;
-
-      var nuevoId = res.data && res.data.id;
-      if (!nuevoId) {
-        throw new Error("Supabase no devolvió el ID del cliente");
-      }
-
-      clienteSeleccionadoId = nuevoId;
-      return cargarClientes();
-    })
-    .then(function () {
-      acDropdown.classList.remove("visible");
-      fWhatsapp.focus();
-    })
-    .catch(function (err) {
-      console.error("Error al crear cliente:", err);
-      alert(
-        "No se pudo crear el cliente: " +
-        (err.message || "intentá nuevamente.")
-      );
-    });
+        
 });
         
 
