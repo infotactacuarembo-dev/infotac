@@ -660,45 +660,59 @@
         @page { margin: 0; size: 80mm auto; }
       }
 
-      /* ====== AUTOCOMPLETE CLIENTE ====== */
-      .cliente-input-wrap {
-  		position: relative;
-  		display: flex;
-  		align-items: center;
-  		width: 100%;
-  		min-width: 0;
-		gap: 0.4rem;
-	}
+     /* ====== AUTOCOMPLETE CLIENTE ====== */
+.cliente-input-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  gap: 0.5rem;
+}
 
-	.cliente-input-wrap input {
-  	flex: 1 1 auto;
-  	min-width: 0;
-  	width: 100%;
-	}
+.cliente-input-wrap input {
+  width: 100%;
+  min-width: 0;
+}
 
-	.btn-add-cliente {
-  	flex: 0 0 40px;
-  	width: 40px;
-  	height: 40px;
-  	padding: 0;
-  	box-sizing: border-box;
-  	display: inline-flex;
-  	align-items: center;
-  	justify-content: center;
-	}
-        display: inline-flex; align-items: center; justify-content: center;
-        background: var(--primary); color: #fff; border: none;
-        border-radius: 8px; font-size: 1.4rem; line-height: 1; cursor: pointer;
-        transition: background 0.15s;
-      }
-      .btn-add-cliente:hover { background: var(--primary-dark); }
-      .autocomplete-dropdown {
-        position: absolute; top: 100%; left: 0; right: 46px;
-        background: var(--surface); border: 1px solid var(--border);
-        border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-        max-height: 200px; overflow-y: auto; z-index: 50;
-        display: none;
-      }
+.btn-add-cliente {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0.45rem 0.8rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-add-cliente:hover {
+  background: var(--primary-dark);
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% - 44px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
       .autocomplete-dropdown.visible { display: block; }
       .autocomplete-item {
         padding: 0.55rem 0.75rem; cursor: pointer; font-size: 0.88rem;
@@ -801,10 +815,28 @@
                 <div class="form-group full">
                   <label for="f-nombre">Nombre del cliente</label>
                   <div class="cliente-input-wrap">
-                    <input type="text" id="f-nombre" required placeholder="Buscar o crear cliente..." autocomplete="off" />
-                    <button type="button" class="btn-add-cliente" id="btn-add-cliente" title="Crear cliente nuevo">+</button>
-                    <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
-                  </div>
+  			<input
+    		type="text"
+    		id="f-nombre"
+    		required
+    		placeholder="Buscar o crear cliente..."
+    		autocomplete="off"
+ 		 />
+
+  		<button
+  		type="button"
+  		class="btn-add-cliente"
+  		id="btn-add-cliente"
+  		title="Crear cliente nuevo"
+		>
+  		+ Crear cliente
+		</button>
+
+  <div
+    class="autocomplete-dropdown"
+    id="autocomplete-dropdown"
+  ></div>
+</div>
                 </div>
                 <div class="form-group">
                   <label for="f-whatsapp">WhatsApp</label>
