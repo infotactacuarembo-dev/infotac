@@ -1,8 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession } = require('./_auth');
 
-const ORDER_FIELDS =
-  'id, fecha, cliente_id, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega';
+const ORDER_FIELDS = `
+  id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
+  sena, falla, presupuesto, presupuesta, estetico,
+  diagnostico, trabajo_realizar, aprobacion_presupuesto,
+  estado, fecha_entrega`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -56,10 +59,15 @@ function orderInput(body, options) {
     pass: text(source.pass, 160),
     sena: number(source.sena),
     falla: text(source.falla, 2000),
-    presupuesto: number(source.presupuesto),
     presupuesta: text(source.presupuesta, 2000),
     estetico: text(source.estetico, 2000),
-    estado,
+    diagnostico: text(source.diagnostico, 4000),
+    trabajo_realizar: text(source.trabajo_realizar, 4000),
+    aprobacion_presupuesto: text(
+    source.aprobacion_presupuesto || "pendiente",
+    20
+  ),
+   estado,
     fecha_entrega:
       estado === 'entregado' || estado === 'sinreparar'
         ? isoDate(source.fecha_entrega, now)
@@ -148,7 +156,17 @@ if (importError) throw importError;
         });
       }
 
-      const update = { estado: body.estado };
+      const update = {
+      estado: body.estado,
+      diagnostico: text(body.diagnostico, 4000),
+      trabajo_realizar: text(body.trabajo_realizar, 4000),
+      sena: number(body.sena),
+      presupuesto: number(body.presupuesto),
+      aprobacion_presupuesto: text(
+      body.aprobacion_presupuesto || "pendiente",
+      20
+    )
+  };
 
       if (body.estado === 'entregado' || body.estado === 'sinreparar') {
         update.fecha_entrega = isoDate(body.fecha_entrega, new Date().toISOString());
