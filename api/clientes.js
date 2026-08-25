@@ -27,9 +27,10 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       const { data, error } = await supabase
-        .from('clientes')
-        .select('id, nombre, whatsapp')
-        .order('nombre', { ascending: true });
+      .from('clientes')
+      .select('id, nombre, whatsapp')
+      .eq('empresa_id', INFOTAC_EMPRESA_ID)
+      .order('nombre', { ascending: true });
 
       if (error) throw error;
       return res.status(200).json({ ok: true, data: data || [] });
