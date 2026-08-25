@@ -1687,53 +1687,95 @@ restaurarSesion();
 
         /* ===== DETAIL MODAL ===== */
         function abrirDetalle(id) {
-          var o = ordenes.find(function (x) { return x.id === id; });
-          if (!o) return;
-          ordenActivaId = id;
-          estadoEditTemporal = o.estado;
+  var o = ordenes.find(function (x) {
+    return x.id === id;
+  });
 
-          var filas = [
-            ["Fecha de Ingreso", fmtFecha(o.fecha)],
-            ["Cliente", esc(o.nombre)],
-            ["WhatsApp", esc(o.whatsapp) || "—"],
-            ["Equipo", esc(o.equipo) || "—"],
-            ["Nro Serie", esc(o.serie) || "—"],
-            ["PIN", esc(o.pin) || "—"],
-            ["Seña", o.sena ? "$" + esc(o.sena) : "—"],
-            ["Presupuesto", o.presupuesto ? "$" + esc(o.presupuesto) : "—"],
-            ["Falla", esc(o.falla) || "—"],
-            ["Estético / Accesorios", esc(o.estetico) || "—"],
-            ["Fecha de Entrega", o.fechaEntrega ? fmtFecha(o.fechaEntrega) : "—"]
-          ];
+  if (!o) return;
 
-          var html = filas.map(function (f) {
-            return "<div class='detail-row'><div class='detail-label'>" + f[0] + "</div><div class='detail-value'>" + f[1] + "</div></div>";
-          }).join("");
+  ordenActivaId = id;
+  estadoEditTemporal = o.estado;
 
-          html += "<div class='status-select-wrap'><label style='font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:0.4rem;'>Cambiar estado</label><select id='modal-estado'>";
-          Object.keys(ESTADOS).forEach(function (k) {
-            html += "<option value='" + k + "'" + (k === o.estado ? " selected" : "") + ">" + ESTADOS[k].label + "</option>";
-          });
-          html += "</select></div>";
+  var html = "";
 
-          html += "<div class='historial-section'>"
-            + "<div class='historial-title'>Historial de trabajos del cliente</div>"
-            + "<div id='historial-contenido'><div class='historial-loading'>Cargando historial...</div></div>"
-            + "</div>";
+  html += "<div class='detail-row'><div class='detail-label'>Fecha de Ingreso</div><div class='detail-value'>" + fmtFecha(o.fecha) + "</div></div>";
+  html += "<div class='detail-row'><div class='detail-label'>Cliente</div><div class='detail-value'>" + esc(o.nombre) + "</div></div>";
+  html += "<div class='detail-row'><div class='detail-label'>WhatsApp</div><div class='detail-value'>" + (esc(o.whatsapp) || "—") + "</div></div>";
+  html += "<div class='detail-row'><div class='detail-label'>Equipo</div><div class='detail-value'>" + (esc(o.equipo) || "—") + "</div></div>";
+  html += "<div class='detail-row'><div class='detail-label'>Nro Serie</div><div class='detail-value'>" + (esc(o.serie) || "—") + "</div></div>";
+  html += "<div class='detail-row'><div class='detail-label'>PIN</div><div class='detail-value'>" + (esc(o.pin) || "—") + "</div></div>";
 
-          modalContenido.innerHTML = html;
-          modalDetalle.classList.add("visible");
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-sena'>Seña</label>";
+  html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
+  html += "</div>";
 
-          var sel = document.getElementById("modal-estado");
-          if (sel) sel.addEventListener("change", function () { estadoEditTemporal = sel.value; });
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-presupuesto'>Presupuesto</label>";
+  html += "<input type='number' id='modal-presupuesto' min='0' step='0.01' value='" + (o.presupuesto || "") + "'>";
+  html += "</div>";
 
-          if (o.clienteId) {
-            cargarHistorialCliente(o.clienteId, o.id);
-          } else {
-            var histEl = document.getElementById("historial-contenido");
-            if (histEl) histEl.innerHTML = "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
-          }
-        }
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-diagnostico'>Diagnóstico</label>";
+  html += "<textarea id='modal-diagnostico' rows='4' placeholder='Describí la falla encontrada y el diagnóstico técnico...'>" + esc(o.diagnostico) + "</textarea>";
+  html += "</div>";
+
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-trabajo'>Trabajo a realizar</label>";
+  html += "<textarea id='modal-trabajo' rows='4' placeholder='Describí qué se le va a realizar al equipo...'>" + esc(o.trabajoRealizar) + "</textarea>";
+  html += "</div>";
+
+  html += "<div class='status-select-wrap'>";
+  html += "<label for='modal-aprobacion'>Aprobación del presupuesto</label>";
+  html += "<select id='modal-aprobacion'>";
+  html += "<option value='pendiente'" + (o.aprobacionPresupuesto === "pendiente" ? " selected" : "") + ">Pendiente</option>";
+  html += "<option value='aprobado'" + (o.aprobacionPresupuesto === "aprobado" ? " selected" : "") + ">Aprobado</option>";
+  html += "<option value='rechazado'" + (o.aprobacionPresupuesto === "rechazado" ? " selected" : "") + ">Rechazado</option>";
+  html += "</select>";
+  html += "</div>";
+
+  html += "<div class='status-select-wrap'>";
+  html += "<label for='modal-estado'>Estado</label>";
+  html += "<select id='modal-estado'>";
+
+  Object.keys(ESTADOS).forEach(function (k) {
+    html += "<option value='" + k + "'" +
+      (k === o.estado ? " selected" : "") +
+      ">" + ESTADOS[k].label + "</option>";
+  });
+
+  html += "</select>";
+  html += "</div>";
+
+  html += "<div class='historial-section'>";
+  html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
+  html += "<div id='historial-contenido'>";
+  html += "<div class='historial-loading'>Cargando historial...</div>";
+  html += "</div>";
+  html += "</div>";
+
+  modalContenido.innerHTML = html;
+  modalDetalle.classList.add("visible");
+
+  var selEstado = document.getElementById("modal-estado");
+
+  if (selEstado) {
+    selEstado.addEventListener("change", function () {
+      estadoEditTemporal = selEstado.value;
+    });
+  }
+
+  if (o.clienteId) {
+    cargarHistorialCliente(o.clienteId, o.id);
+  } else {
+    var histEl = document.getElementById("historial-contenido");
+
+    if (histEl) {
+      histEl.innerHTML =
+        "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
+    }
+  }
+}
 
         function cargarHistorialCliente(clienteId, ordenActualId) {
           supabase
