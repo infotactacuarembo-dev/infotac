@@ -2075,30 +2075,97 @@ restaurarSesion();
         }
 
         function construirMensajeWhatsApp(o) {
-          var nombre = o.nombre || "Cliente";
-          var equipo = o.equipo || "equipo";
-          var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
-          var saldo = "";
-          if (o.presupuesto || o.sena) {
-            var p = parseFloat(o.presupuesto) || 0;
-            var s = parseFloat(o.sena) || 0;
-            saldo = (p - s).toFixed(2);
-          }
-          switch (o.estado) {
-            case "ingresado":
-              return "Hola " + nombre + ", te informamos que tu equipo " + equipo + " ya ingresó a nuestro taller Infotac para revisión bajo el Nro de Orden " + idOrden + ". Saludos.";
-            case "reparando":
-              return "Hola " + nombre + ", tu equipo " + equipo + " (Orden " + idOrden + ") se encuentra actualmente en nuestro laboratorio bajo diagnóstico técnico. Te avisaremos apenas tengamos novedades.";
-            case "terminado":
-              return "Hola " + nombre + ", ¡buenas noticias! Tu equipo " + equipo + " (Orden " + idOrden + ") ya está reparado y listo para retirar. El saldo pendiente es de $" + saldo + ". Te esperamos.";
-            case "entregado":
-              return "Hola " + nombre + ", confirmamos la entrega de tu equipo " + equipo + " (Orden " + idOrden + "). Gracias por confiar en Infotac.";
-            case "sinreparar":
-              return "Hola " + nombre + ", te informamos que tu equipo " + equipo + " (Orden " + idOrden + ") está listo para ser retirado en el estado en que ingresó (Presupuesto no aceptado / Sin reparación).";
-            default:
-              return "Hola " + nombre + ", te informamos sobre tu equipo " + equipo + " (Orden " + idOrden + "). Saludos.";
-          }
-        }
+  var nombre = o.nombre || "Cliente";
+  var equipo = o.equipo || "equipo";
+  var idOrden = String(o.id)
+    .replace(/-/g, "")
+    .slice(-6)
+    .toUpperCase();
+
+  var diagnostico = o.diagnostico || "A confirmar luego de la revisión técnica.";
+  var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";
+  var presupuesto = parseFloat(o.presupuesto) || 0;
+  var sena = parseFloat(o.sena) || 0;
+  var saldo = (presupuesto - sena).toFixed(2);
+
+  switch (o.estado) {
+    case "ingresado":
+      return (
+        "Hola " + nombre + ", recibimos tu equipo " + equipo +
+        " en Infotac.\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Vamos a revisarlo y te informaremos el diagnóstico y el presupuesto.\n\n" +
+        "Saludos."
+      );
+
+    case "revision":
+      return (
+        "Hola " + nombre + ", tu equipo " + equipo +
+        " se encuentra en revisión técnica.\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Estamos evaluando la falla. Te avisaremos cuando tengamos el diagnóstico y el presupuesto.\n\n" +
+        "Saludos."
+      );
+
+    case "presupuesto":
+      return (
+        "Hola " + nombre + ", ya tenemos novedades sobre tu equipo " +
+        equipo + ".\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Diagnóstico:\n" + diagnostico + "\n\n" +
+        "Trabajo a realizar:\n" + trabajo + "\n\n" +
+        "Presupuesto: $" + presupuesto.toFixed(2) + "\n" +
+        "Seña registrada: $" + sena.toFixed(2) + "\n" +
+        "Saldo estimado: $" + saldo + "\n\n" +
+        "Por favor, confirmán si aprobás el trabajo para que podamos avanzar.\n\n" +
+        "Saludos, Infotac."
+      );
+
+    case "reparando":
+      return (
+        "Hola " + nombre + ", recibimos la autorización para reparar tu equipo " +
+        equipo + ".\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Ya comenzamos el trabajo según el diagnóstico y presupuesto informados.\n\n" +
+        "Te avisaremos cuando esté listo.\n\n" +
+        "Saludos, Infotac."
+      );
+
+    case "terminado":
+      return (
+        "Hola " + nombre + ", ¡buenas noticias!\n\n" +
+        "Tu equipo " + equipo + " ya está reparado y listo para retirar.\n\n" +
+        "Nro. de orden: " + idOrden + "\n" +
+        "Saldo pendiente: $" + saldo + "\n\n" +
+        "Te esperamos en Infotac."
+      );
+
+    case "entregado":
+      return (
+        "Hola " + nombre + ", confirmamos la entrega de tu equipo " +
+        equipo + ".\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Gracias por confiar en Infotac."
+      );
+
+    case "sinreparar":
+      return (
+        "Hola " + nombre + ", tu equipo " + equipo +
+        " está listo para retirar.\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "La reparación no fue realizada porque el presupuesto no fue aceptado.\n\n" +
+        "Te esperamos en Infotac."
+      );
+
+    default:
+      return (
+        "Hola " + nombre + ", te informamos sobre tu equipo " +
+        equipo + ".\n\n" +
+        "Nro. de orden: " + idOrden + "\n\n" +
+        "Saludos, Infotac."
+      );
+  }
+}
 
         /* ===== BACKUP AUTOMÁTICO PROGRAMADO ===== */
         // Lunes a Sábados a las 12:00 hs. Silencioso.
