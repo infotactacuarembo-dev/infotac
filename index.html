@@ -1363,27 +1363,38 @@ restaurarSesion();
           return error;
         }
 
-       function pedirApi(url, datos, metodo) {
-  var opciones = {
-    method: metodo || (datos === undefined ? "GET" : "POST"),
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  };
+      function pedirApi(url, datos, metodo) {
+  		var opciones = {
+    	method: metodo || (datos === undefined ? "GET" : "POST"),
+    	credentials: "same-origin",
+    	headers: {
+      	"Content-Type": "application/json"
+    	}
+  	};
 
   if (datos !== undefined) {
     opciones.body = JSON.stringify(datos);
   }
 
-  return fetch(url, opciones).then(function (respuesta) {
-    return respuesta.json().catch(function () {
-      return {
-        ok: false,
-        error: "Respuesta inválida del servidor."
-      };
+  return fetch(url, opciones)
+    .then(function (respuesta) {
+      return respuesta.json()
+        .catch(function () {
+          return {
+            ok: false,
+            error: "Respuesta inválida del servidor."
+          };
+        })
+        .then(function (resultado) {
+          if (!respuesta.ok) {
+            throw new Error(
+              resultado.error || "Error HTTP " + respuesta.status
+            );
+          }
+
+          return resultado;
+        });
     });
-  });
 }
 
         function mapearFila(row) {
@@ -1501,11 +1512,17 @@ restaurarSesion();
 
   		alert("Ese cliente ya existe y fue seleccionado.");
   		return;
+		
 	}
-  		pedirApi("/api/clientes", {
-  		nombre: nombre,
-  		whatsapp: val("f-whatsapp")
-})
+  		pedirApi(
+  		"/api/clientes",
+  	{
+    nombre: nombre,
+    whatsapp: val("f-whatsapp")
+  },
+  "POST"
+)
+			
   		.then(function (resultado) {
     	if (!resultado.ok) {
       	throw new Error(
@@ -1545,7 +1562,7 @@ restaurarSesion();
           var nombreCliente = val("f-nombre");
           var telCliente = val("f-whatsapp");
 
-         function insertarOrdenConCliente(clienteId) {
+ function insertarOrdenConCliente(clienteId) {
   var nombreCliente = val("f-nombre");
   var telCliente = val("f-whatsapp");
   var senaNum = parseFloat(val("f-sena")) || 0;
@@ -1562,13 +1579,17 @@ restaurarSesion();
     sena: senaNum,
     falla: val("f-falla"),
     presupuesto: presupNum,
-    presupuesta: val("f-estetico"),
+    presupuesta: "",
     estetico: val("f-estetico"),
     estado: "ingresado",
     fecha_entrega: null
   };
 
-  return pedirApi("/api/ordenes", datosOrden)
+  return pedirApi(
+    "/api/ordenes",
+    datosOrden,
+    "POST"
+  )
     .then(function (resultado) {
       if (!resultado.ok) {
         throw new Error(
@@ -1582,20 +1603,29 @@ restaurarSesion();
       return cargarOrdenes().then(renderizar);
     });
 }
-         function crearClienteYInsertar() {
-  return pedirApi("/api/clientes", {
-    nombre: nombreCliente,
-    whatsapp: telCliente
-  })
+
+function crearClienteYInsertar() {
+  return pedirApi(
+    "/api/clientes",
+    {
+      nombre: nombreCliente,
+      whatsapp: telCliente
+    },
+    "POST"
+  )
     .then(function (resultado) {
       if (!resultado.ok) {
-        throw new Error(resultado.error || "No se pudo crear el cliente");
+        throw new Error(
+          resultado.error || "No se pudo crear el cliente"
+        );
       }
 
       var nuevoId = resultado.data && resultado.data.id;
 
       if (!nuevoId) {
-        throw new Error("La API no devolvió el ID del cliente");
+        throw new Error(
+          "La API no devolvió el ID del cliente"
+        );
       }
 
       clienteSeleccionadoId = nuevoId;
@@ -1605,7 +1635,6 @@ restaurarSesion();
       });
     });
 }
-
           function manejarError(err) {
             console.error("Error al registrar ingreso:", err);
             alert("No se pudo registrar el ingreso. Revisa la conexión e inténtalo de nuevo.");
