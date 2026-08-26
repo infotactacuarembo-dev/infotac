@@ -1082,13 +1082,13 @@ if (btnClaveGuardar) {
       return;
     }
 
-    if (nueva.length < 4) {
-      if (claveMsg) {
-        claveMsg.textContent = 'La nueva contraseña debe tener al menos 4 caracteres.';
-      }
-      if (inputNuevaClave) inputNuevaClave.focus();
-      return;
-    }
+    if (nueva.length < 10) {
+  if (claveMsg) {
+    claveMsg.textContent =
+      'La nueva contraseña debe tener al menos 10 caracteres.';
+  }
+  return;
+}
 
     if (nueva !== confirmar) {
       if (claveMsg) claveMsg.textContent = 'Las nuevas contraseñas no coinciden.';
@@ -1114,9 +1114,9 @@ if (btnClaveGuardar) {
       .catch(function (error) {
         console.error('Error al cambiar clave:', error);
         if (claveMsg) {
-          claveMsg.textContent =
-            'No se pudo actualizar: verificá la contraseña actual y tu conexión.';
-        }
+  			claveMsg.textContent =
+    		error.message || 'No se pudo actualizar la contraseña.';
+		}
       })
       .finally(function () {
         btnClaveGuardar.disabled = false;
