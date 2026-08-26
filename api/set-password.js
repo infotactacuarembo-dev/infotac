@@ -20,11 +20,11 @@ module.exports = async function handler(req, res) {
       typeof currentPassword !== 'string' ||
       !newPassword ||
       typeof newPassword !== 'string' ||
-      newPassword.trim().length < 4
+      newPassword.trim().length < 10
     ) {
       return res.status(400).json({
         ok: false,
-        error: 'Datos inválidos. La nueva clave debe tener al menos 4 caracteres.'
+        error: 'Datos inválidos. La nueva clave debe tener al menos 10 caracteres.'
       });
     }
 
