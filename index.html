@@ -2061,24 +2061,33 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
                 };
               });
 
-              // Borra las actuales y luego inserta las importadas.
-              supabase
-                .from("ordenes")
-                .delete()
-                .neq("id", "00000000-0000-0000-0000-000000000000")
-                .then(function (resDel) {
-                  if (resDel.error) throw resDel.error;
-                  return supabase.from("ordenes").insert(filas);
-                })
-                .then(function (resIns) {
-                  if (resIns.error) throw resIns.error;
-                  return cargarOrdenes();
-                })
-                .then(renderizar)
-                .catch(function (err) {
-                  console.error("Error al importar:", err);
-                  alert("Error al importar: " + (err.message || "no se pudo completar la operación."));
-                });
+// Envía la importación a la API protegida.
+pedirApi(
+  "/api/ordenes",
+  {
+    action: "import",
+    ordenes: filas
+  },
+  "POST"
+)
+  .then(function (resultado) {
+    if (!resultado.ok) {
+      throw new Error(
+        resultado.error || "No se pudo importar el backup"
+      );
+    }
+
+    return cargarOrdenes();
+  })
+  .then(renderizar)
+  .catch(function (err) {
+    console.error("Error al importar:", err);
+    alert(
+      "Error al importar: " +
+      (err.message || "no se pudo completar la operación.")
+    );
+  });
+				
             } catch (err) {
               alert("Error al importar: el archivo no tiene un formato válido.");
             }
