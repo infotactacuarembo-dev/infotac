@@ -18,7 +18,8 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { password, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
+  const password = currentPassword;
 
   if (!password || !newPassword) {
     return res.status(400).json({
