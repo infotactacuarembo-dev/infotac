@@ -2080,24 +2080,41 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
               if (!Array.isArray(importadas)) throw new Error("Formato inválido");
               if (!confirm("Se importarán " + importadas.length + " órdenes reemplazando las actuales. ¿Continuar?")) return;
 
-              // Mapea al esquema de la tabla "ordenes" y deja que la BD genere nuevos id.
-              var filas = importadas.map(function (o) {
-                return {
-                  fecha: o.fecha || new Date().toISOString(),
-                  cliente: o.nombre || o.cliente || "",
-                  tel: o.whatsapp || o.tel || "",
-                  tipo: o.equipo || o.tipo || "",
-                  serie: o.serie || "",
-                  pass: o.pin || o.pass || "",
-                  sena: parseFloat(o.sena) || 0,
-                  falla: o.falla || "",
-                  presupuesto: parseFloat(o.presupuesto) || 0,
-                  presupuesta: o.presupuesta || "",
-                  estetico: o.estetico || "",
-                  estado: o.estado || "ingresado",
-                  fecha_entrega: o.fechaEntrega || o.fecha_entrega || null
-                };
-              });
+// Mapea al esquema de la tabla "ordenes" y deja que la BD genere nuevos id.
+  var filas = importadas.map(function (o) {
+  return {
+    id: o.id,
+
+    fecha: o.fecha || new Date().toISOString(),
+    cliente: o.nombre || o.cliente || "",
+    tel: o.whatsapp || o.tel || "",
+    tipo: o.equipo || o.tipo || "",
+    serie: o.serie || "",
+    pass: o.pin || o.pass || "",
+    sena: String(o.sena ?? "0"),
+    falla: o.falla || "",
+    presupuesto: String(o.presupuesto ?? "0"),
+    presupuesta: o.presupuesta || "",
+    estetico: o.estetico || "",
+    estado: o.estado || "ingresado",
+
+    fecha_entrega:
+      o.fechaEntrega || o.fecha_entrega || "",
+
+    cliente_id:
+      o.clienteId || o.cliente_id || null,
+
+    diagnostico: o.diagnostico || "",
+
+    trabajo_realizar:
+      o.trabajoRealizar || o.trabajo_realizar || "",
+
+    aprobacion_presupuesto:
+      o.aprobacionPresupuesto ||
+      o.aprobacion_presupuesto ||
+      "pendiente"
+  };
+});
 
 // Envía la importación a la API protegida.
 pedirApi(
