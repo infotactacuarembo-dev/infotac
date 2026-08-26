@@ -2009,19 +2009,34 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
           modalDetalle.classList.remove("visible");
         });
 
-        /* ===== DELETE ===== */
-        function borrarOrden(id) {
-  			if (!confirm("¿Eliminar esta orden definitivamente?")) {
-    		return;
-  		}
+      /* ===== DELETE ===== */
+  function borrarOrden(id) {
+  if (!confirm("¿Eliminar esta orden definitivamente?")) {
+    return;
+  }
 
-  		return pedirApi("/api/ordenes?id=" + encodeURIComponent(id), undefined, "DELETE")
-    	.then(function (resultado) {
-      	if (!resultado.ok) {
+  return pedirApi(
+    "/api/ordenes?id=" + encodeURIComponent(id),
+    undefined,
+    "DELETE"
+  )
+    .then(function (resultado) {
+      if (!resultado.ok) {
         throw new Error(
           resultado.error || "No se pudo eliminar la orden"
         );
       }
+
+      return cargarOrdenes().then(renderizar);
+    })
+    .catch(function (error) {
+      console.error("Error al eliminar la orden:", error);
+      alert(
+        "No se pudo eliminar la orden: " +
+        (error.message || "intentá nuevamente.")
+      );
+    });
+}
 
       return cargarOrdenes().then(renderizar);
     })
