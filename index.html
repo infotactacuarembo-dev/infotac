@@ -2038,13 +2038,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     });
 }
 
-      return cargarOrdenes().then(renderizar);
-    })
-    .catch(function (error) {
-      console.error("Error al eliminar la orden:", error);
-      alert("No se pudo eliminar la orden: " + error.message);
-    });
-}
+   
 
         /* ===== SEARCH ===== */
         buscador.addEventListener("input", renderizar);
