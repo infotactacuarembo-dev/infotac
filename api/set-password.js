@@ -6,10 +6,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY
-  );
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Faltan variables de Supabase en Vercel.');
+    return res.status(503).json({
+      error: 'Servicio de autenticación no disponible.'
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { password, newPassword } = req.body;
 
