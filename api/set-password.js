@@ -1,96 +1,93 @@
-const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
-const { requireSession } = require('./_auth');
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({
-      ok: false,
-      error: 'Método no permitido.'
+    return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
+  );
+
+  const { password, newPassword } = req.body;
+
+  if (!password || !newPassword) {
+    return res.status(400).json({
+      error: 'Faltan datos. Envíe "password" y "newPassword".'
     });
   }
 
-  if (!requireSession(req, res)) return;
+  if (newPassword.trim().length < 10) {
+    return res.status(400).json({
+      error: 'La nueva contraseña debe tener al menos 10 caracteres.'
+    });
+  }
 
-  try {
-    const { currentPassword, newPassword } = req.body || {};
+  const { data: config } = await supabase
+    .from('configuracion')
+    .select('valor')
+    .eq('clave', 'password_taller')
+    .single();
 
-    if (
-      !currentPassword ||
-      typeof currentPassword !== 'string' ||
-      !newPassword ||
-      typeof newPassword !== 'string' ||
-      newPassword.trim().length < 10
-    ) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Datos inválidos. La nueva clave debe tener al menos 10 caracteres.'
-      });
-    }
-
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!url || !key) {
-      return res.status(503).json({
-        ok: false,
-        error: 'Backend no disponible.'
-      });
-    }
-
-    const supabase = createClient(url, key);
-
-    const { data, error } = await supabase
-      .from('configuracion')
-      .select('valor')
-      .eq('clave', 'password_taller')
-      .single();
-
-    if (error || !data || !data.valor) {
-      console.error('set-password lectura de configuración:', error);
-      return res.status(503).json({
-        ok: false,
-        error: 'No se pudo verificar la contraseña actual.'
-      });
-    }
-
-    const stored = data.valor;
-
-    const currentValid = stored.startsWith('$2')
-      ? bcrypt.compareSync(currentPassword, stored)
-      : currentPassword === stored;
-
-    if (!currentValid) {
-      return res.status(401).json({
-        ok: false,
-        error: 'La contraseña actual no es correcta.'
-      });
-    }
-
-    const hash = bcrypt.hashSync(newPassword.trim(), 10);
-
-    const { error: updateError } = await supabase
-      .from('configuracion')
-      .update({
-        valor: hash,
-        password: null
-      })
-      .eq('clave', 'password_taller');
-
-    if (updateError) {
-      console.error('set-password actualización:', updateError);
-      return res.status(500).json({
-        ok: false,
-        error: 'No se pudo guardar la nueva clave.'
-      });
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (error) {
-    console.error('set-password error:', error);
+  const valor = config?.valor;
+  if (!valor) {
     return res.status(500).json({
-      ok: false,
-      error: 'Error interno del servidor.'
+      error: 'No hay contraseña configurada en el sistema.'
     });
   }
-};
+
+  const coincide = valor === require('bcryptjs').hashSync(password, valor);
+
+  if (!coincide) {
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0] ||
+      req.headers['x-real-ip'] ||
+      'desconocida';
+
+    await supabase.from('password_changes').insert({
+      resultado: 'fallo',
+      ip,
+      detalle: 'Contraseña actual incorrecta'
+    });
+
+    return res.status(401).json({
+      error: 'Contraseña actual incorrecta.'
+    });
+  }
+
+  const nuevoHash = require('bcryptjs').hashSync(
+    newPassword.trim(),
+    10
+  );
+
+  const { error: updateError } = await supabase
+    .from('configuracion')
+    .update({
+      valor: nuevoHash,
+      password: null
+    })
+    .eq('clave', 'password_taller');
+
+  if (updateError) {
+    return res.status(500).json({
+      error: 'No se pudo actualizar la contraseña.'
+    });
+  }
+
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0] ||
+    req.headers['x-real-ip'] ||
+    'desconocida';
+
+  await supabase.from('password_changes').insert({
+    resultado: 'exito',
+    ip,
+    detalle: 'Contraseña cambiada correctamente'
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Contraseña cambiada correctamente.'
+  });
+}
