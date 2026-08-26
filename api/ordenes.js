@@ -61,6 +61,7 @@ function orderInput(body, options) {
     serie: text(source.serie, 160),
     pass: text(source.pass, 160),
     sena: number(source.sena),
+    presupuesto: number(source.presupuesto),
     falla: text(source.falla, 2000),
     presupuesta: text(source.presupuesta, 2000),
     estetico: text(source.estetico, 2000),
