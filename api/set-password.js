@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -37,7 +38,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const coincide = valor === require('bcryptjs').hashSync(password, valor);
+  let coincide;
+  try {
+    coincide = await bcrypt.compare(password, valor);
+  } catch (err) {
+    console.error('Error al comparar contraseña:', err);
+    return res.status(500).json({
+      error: 'Error interno al verificar contraseña.'
+    });
+  }
 
   if (!coincide) {
     const ip =
@@ -56,10 +65,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const nuevoHash = require('bcryptjs').hashSync(
-    newPassword.trim(),
-    10
-  );
+  const nuevoHash = await bcrypt.hash(newPassword.trim(), 10);
 
   const { error: updateError } = await supabase
     .from('configuracion')
@@ -70,6 +76,7 @@ export default async function handler(req, res) {
     .eq('clave', 'password_taller');
 
   if (updateError) {
+    console.error('Error al actualizar contraseña:', updateError);
     return res.status(500).json({
       error: 'No se pudo actualizar la contraseña.'
     });
