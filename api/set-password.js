@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 
@@ -57,11 +58,16 @@ export default async function handler(req, res) {
   }
 
   if (!coincide) {
-    const ip =
-      req.headers['x-forwarded-for']?.split(',')[0] ||
-      req.headers['x-real-ip'] ||
-      'desconocida';
+    const ipOriginal =
+    req.headers['x-forwarded-for']?.split(',')[0] ||
+    req.headers['x-real-ip'] ||
+    req.socket?.remoteAddress ||
+    'desconocida';
 
+  const ip = crypto
+    .createHash('sha256')
+    .update(ipOriginal.trim())
+    .digest('hex');
     await supabase.from('password_changes').insert({
       resultado: 'fallo',
       ip,
