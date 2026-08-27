@@ -96,16 +96,22 @@ export default async function handler(req, res) {
     });
   }
 
-  const ip =
+  const ipOriginal =
     req.headers['x-forwarded-for']?.split(',')[0] ||
     req.headers['x-real-ip'] ||
+    req.socket?.remoteAddress ||
     'desconocida';
+
+  const ip = crypto
+  .createHash('sha256')
+  .update(ipOriginal.trim())
+  .digest('hex');
 
   await supabase.from('password_changes').insert({
     resultado: 'exito',
     ip,
     detalle: 'Contraseña cambiada correctamente'
-  });
+});
 
   return res.status(200).json({
   ok: true,
