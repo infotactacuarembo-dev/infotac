@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -11,6 +11,15 @@ module.exports = async function handler(req, res) {
 
   if (!requireSession(req, res)) {
     return;
+  }
+
+  // Validar que el usuario sea admin
+  const user = getSessionUser(req);
+  if (!user || user.rol !== 'admin') {
+    return res.status(403).json({
+      ok: false,
+      error: 'Acceso no autorizado.'
+    });
   }
 
   const url = process.env.SUPABASE_URL;
