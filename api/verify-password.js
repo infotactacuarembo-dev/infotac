@@ -28,6 +28,18 @@ function minutosRestantes(segundos) {
   return Math.max(1, Math.ceil(Number(segundos || 0) / 60));
 }
 
+async function registrarAuditoria(supabase, identificador, resultado, detalle) {
+  const { error } = await supabase.from('login_audit').insert({
+    identificador,
+    resultado,
+    detalle
+  });
+
+  if (error) {
+    console.error('No se pudo registrar auditoría de login:', error);
+  }
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({
@@ -71,14 +83,15 @@ module.exports = async function handler(req, res) {
     const intentoActual = Array.isArray(estado) ? estado[0] : estado;
 
     if (intentoActual && intentoActual.bloqueado) {
-      return res.status(429).json({
-        ok: false,
-        error:
-          'Demasiados intentos. Esperá ' +
-          minutosRestantes(intentoActual.segundos_restantes) +
-          ' minutos e intentá nuevamente.'
-      });
-    }
+  await registrarAuditoria(
+    supabase,
+    identificador,
+    'bloqueado',
+    'Intento realizado durante bloqueo temporal'
+  );
+
+  return res.status(429).json({
+  }
 
     const { data, error } = await supabase
       .from('configuracion')
@@ -102,6 +115,12 @@ module.exports = async function handler(req, res) {
       : false;
 
     if (!valid) {
+      await registrarAuditoria(
+      supabase,
+      identificador,
+      'fallo',
+      'Contraseña incorrecta'
+      );
       const { data: fallo, error: falloError } = await supabase.rpc(
         'registrar_fallo_login',
         { p_identificador: identificador }
@@ -112,13 +131,14 @@ module.exports = async function handler(req, res) {
       const resultadoFallo = Array.isArray(fallo) ? fallo[0] : fallo;
 
       if (resultadoFallo && resultadoFallo.bloqueado) {
-        return res.status(429).json({
-          ok: false,
-          error:
-            'Demasiados intentos. Esperá ' +
-            minutosRestantes(resultadoFallo.segundos_restantes) +
-            ' minutos e intentá nuevamente.'
-        });
+        await registrarAuditoria(
+        supabase,
+        identificador,
+      'bloqueado',
+      'Bloqueo temporal activado por demasiados intentos'
+      );
+
+      return res.status(429).json({
       }
 
       return res.status(401).json({
@@ -133,11 +153,18 @@ module.exports = async function handler(req, res) {
     );
 
     if (limpiarError) throw limpiarError;
+    
+      await registrarAuditoria(
+      supabase,
+      identificador,
+      'exito',
+      'Inicio de sesión correcto'
+      );  
+     const token = createSessionToken();
+      
+     res.setHeader('Set-Cookie', sessionCookie(token));
 
-    const token = createSessionToken();
-    res.setHeader('Set-Cookie', sessionCookie(token));
-
-    return res.status(200).json({ ok: true });
+     return res.status(200).json({ ok: true });
   } catch (error) {
     console.error('verify-password error:', error);
 
