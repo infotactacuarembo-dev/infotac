@@ -1024,11 +1024,15 @@
 function solicitarJSON(url, datos) {
   return fetch(url, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
   }).then(function (respuesta) {
     return respuesta.json().catch(function () {
-      return { ok: false, error: 'Respuesta inválida del servidor.' };
+      return {
+        ok: false,
+        error: 'Respuesta inválida del servidor.'
+      };
     });
   });
 }
