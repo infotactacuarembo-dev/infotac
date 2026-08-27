@@ -791,29 +791,32 @@
 </head>
   <body>
 
+   
     <!-- ====== LOGIN SCREEN ====== -->
-    <div id="login-screen">
-      <div class="login-card">
-        <h1>Infotac</h1>
-        <p class="subtitle">Gestión de Taller — Introduce la contraseña</p>
-		  
-        <input type="password" id="input-clave-taller" placeholder="Contraseña" autocomplete="current-password" autofocus />
-        <button type="button" class="btn-primary" id="btn-entrar">Entrar</button>
-        <div class="login-msg" id="mensaje-error"></div>
-      </div>
-    </div>
+		<div id="login-screen">
+  		<div class="login-card">
+    	<h1>Infotac</h1>
+    	<p class="subtitle">Gestión de Taller — Inicia sesión</p>
+
+    	<input type="text" id="input-identificador" placeholder="Usuario" autocomplete="username" />
+    	<input type="password" id="input-clave-taller" placeholder="Contraseña" autocomplete="current-password" />
+    	<button type="button" class="btn-primary" id="btn-entrar">Entrar</button>
+    	<div class="login-msg" id="mensaje-error"></div>
+  		</div>
+	</div>
 
     <!-- ====== APP SCREEN ====== -->
     <div id="app-screen" class="admin-bloqueado">
       <header class="app-header">
-        <div class="logo"><span class="dot"></span> Infotac</div>
-        <div class="header-actions">
-          <button class="btn-sm" id="btn-exportar">Exportar backup</button>
-          <button class="btn-sm" id="btn-importar">Importar backup</button>
-          <input type="file" id="file-importar" accept=".json" class="hidden" />
-	<button class="btn-sm" id="btn-cambiar-clave">🔑 Cambiar Clave</button>
-          <button class="btn-sm danger" id="btn-salir">Cerrar sesión</button>
-        </div>
+      <div class="logo"><span class="dot"></span> Infotac</div>
+      <div class="header-actions">
+  	  <button class="btn-sm" id="btn-exportar">Exportar backup</button>
+  	  <button class="btn-sm" id="btn-importar">Importar backup</button>
+      <input type="file" id="file-importar" accept=".json" class="hidden" />
+      <button class="btn-sm" id="btn-cambiar-clave">🔑 Cambiar Clave</button>
+      <button class="btn-sm" id="btn-administracion" style="display:none;">Administración</button>
+      <button class="btn-sm danger" id="btn-salir">Cerrar sesión</button>
+	</div>
       </header>
 
       <div class="app-body">
@@ -1225,9 +1228,16 @@ if (btnClaveGuardar) {
         }
 
         function mostrarAplicacion() {
-          loginScreen.classList.add("admin-bloqueado");
-          appScreen.classList.remove("admin-bloqueado");
-        }
+  		loginScreen.classList.add("admin-bloqueado");
+  		appScreen.classList.remove("admin-bloqueado");
+
+  		// Mostrar/ocultar botón Administración según el rol
+  		var rol = sessionStorage.getItem('rol') || 'user';
+  		var btnAdmin = document.getElementById('btn-administracion');
+  		if (btnAdmin) {
+    		btnAdmin.style.display = (rol === 'admin') ? 'inline-block' : 'none';
+  			}
+		}
 
         function mostrarLogin() {
           appScreen.classList.add("admin-bloqueado");
@@ -1255,52 +1265,62 @@ if (btnClaveGuardar) {
             });
         }
 
-        function entrarModoAdminDirecto() {
-          var valorClave = inputClave.value;
+  function entrarModoAdminDirecto() {
+  var identificador = document.getElementById('input-identificador').value;
+  var valorClave = inputClave.value;
 
-          if (!valorClave) {
-            mensajeError.textContent = "Ingresá la contraseña.";
-            mensajeError.classList.add("visible");
-            inputClave.focus();
-            return;
-          }
+  if (!identificador) {
+    mensajeError.textContent = "Ingresá el usuario.";
+    mensajeError.classList.add("visible");
+    document.getElementById('input-identificador').focus();
+    return;
+  }
 
-          btnEntrar.disabled = true;
-          mensajeError.textContent = "Verificando...";
-          mensajeError.classList.add("visible");
+  if (!valorClave) {
+    mensajeError.textContent = "Ingresá la contraseña.";
+    mensajeError.classList.add("visible");
+    inputClave.focus();
+    return;
+  }
 
-          solicitarJSON("/api/verify-password", { password: valorClave })
-            .then(function (resultado) {
-              if (!resultado.ok) {
-                throw new Error(resultado.error || "Contraseña incorrecta.");
-              }
+  btnEntrar.disabled = true;
+  mensajeError.textContent = "Verificando...";
+  mensajeError.classList.add("visible");
 
-              mensajeError.textContent = "";
-              mensajeError.classList.remove("visible");
-              inputClave.classList.remove("shake-error");
+  solicitarJSON("/api/verify-password", { identificador: identificador, password: valorClave })
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(resultado.error || "Usuario o contraseña incorrectos.");
+      }
 
-              mostrarAplicacion();
-              return cargarDatosIniciales();
-            })
-            .catch(function (error) {
-              console.error("Error de inicio de sesión:", error);
+      mensajeError.textContent = "";
+      mensajeError.classList.remove("visible");
+      inputClave.classList.remove("shake-error");
 
-              mostrarLogin();
-              mensajeError.textContent =
-                error.message || "No se pudo verificar la contraseña.";
-              mensajeError.classList.add("visible");
+      // Guardar rol en sessionStorage
+      sessionStorage.setItem('rol', resultado.rol || 'user');
 
-              inputClave.classList.remove("shake-error");
-              void inputClave.offsetWidth;
-              inputClave.classList.add("shake-error");
-              inputClave.value = "";
-              inputClave.focus();
-            })
-            .finally(function () {
-              btnEntrar.disabled = false;
-            });
-        }
+      mostrarAplicacion();
+      return cargarDatosIniciales();
+    })
+    .catch(function (error) {
+      console.error("Error de inicio de sesión:", error);
 
+      mostrarLogin();
+      mensajeError.textContent =
+        error.message || "No se pudo verificar la contraseña.";
+      mensajeError.classList.add("visible");
+
+      inputClave.classList.remove("shake-error");
+      void inputClave.offsetWidth;
+      inputClave.classList.add("shake-error");
+      inputClave.value = "";
+      inputClave.focus();
+    })
+    .finally(function () {
+      btnEntrar.disabled = false;
+    });
+}
         function salirModoAdmin() {
           btnSalir.disabled = true;
 
@@ -2356,7 +2376,139 @@ pedirApi(
           if (s === null || s === undefined || s === "") return "";
           return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
+
+		  /* ===== AUDITORÍA ===== */
+var btnAdministracion = document.getElementById('btn-administracion');
+var auditoriaPanel = document.getElementById('auditoria-panel');
+var btnCerrarAuditoria = document.getElementById('btn-cerrar-auditoria');
+
+if (btnAdministracion) {
+  btnAdministracion.addEventListener('click', function () {
+    appScreen.classList.add('admin-bloqueado');
+    if (auditoriaPanel) {
+      auditoriaPanel.style.display = 'block';
+      cargarAuditoria();
+    }
+  });
+}
+
+function cargarAuditoria() {
+  fetch('/api/audit-log', {
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        alert('No se pudo cargar la auditoría: ' + (datos.error || 'Error desconocido'));
+        return;
+      }
+      dibujarTablaAccesos(datos.accesos || []);
+      dibujarTablaCambiosClave(datos.cambiosClave || []);
+    })
+    .catch(function (e) {
+      console.error(e);
+      alert('Error de red al cargar la auditoría.');
+    });
+}
+
+function dibujarTablaAccesos(accesos) {
+  var tbody = document.querySelector('#tabla-accesos tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  accesos.forEach(function (fila) {
+    var tr = document.createElement('tr');
+
+    var tdFecha = document.createElement('td');
+    tdFecha.textContent = fila.creado_en || '';
+    tr.appendChild(tdFecha);
+
+    var tdId = document.createElement('td');
+    tdId.textContent = fila.identificador || '';
+    tr.appendChild(tdId);
+
+    var tdRes = document.createElement('td');
+    tdRes.textContent = fila.resultado || '';
+    tr.appendChild(tdRes);
+
+    var tdDet = document.createElement('td');
+    tdDet.textContent = fila.detalle || '';
+    tr.appendChild(tdDet);
+
+    tbody.appendChild(tr);
+  });
+}
+
+function dibujarTablaCambiosClave(cambios) {
+  var tbody = document.querySelector('#tabla-cambios-clave tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  cambios.forEach(function (fila) {
+    var tr = document.createElement('tr');
+
+    var tdFecha = document.createElement('td');
+    tdFecha.textContent = fila.cambiado_en || '';
+    tr.appendChild(tdFecha);
+
+    var tdIp = document.createElement('td');
+    tdIp.textContent = fila.ip || '';
+    tr.appendChild(tdIp);
+
+    var tdRes = document.createElement('td');
+    tdRes.textContent = fila.resultado || '';
+    tr.appendChild(tdRes);
+
+    var tdDet = document.createElement('td');
+    tdDet.textContent = fila.detalle || '';
+    tr.appendChild(tdDet);
+
+    tbody.appendChild(tr);
+  });
+}
+
+if (btnCerrarAuditoria && auditoriaPanel) {
+  btnCerrarAuditoria.addEventListener('click', function () {
+    auditoriaPanel.style.display = 'none';
+    appScreen.classList.remove('admin-bloqueado');
+  });
+}
       })();
     </script>
+	  
+	  <!-- ====== PANEL DE AUDITORÍA ====== -->
+<div id="auditoria-panel" style="display:none; padding: 16px; max-width: 900px; margin: 0 auto;">
+  <h2>Auditoría</h2>
+
+  <h3>Accesos recientes</h3>
+  <table id="tabla-accesos" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Identificador</th>
+        <th>Resultado</th>
+        <th>Detalle</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Cambios de clave</h3>
+  <table id="tabla-cambios-clave" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse; margin-top: 16px;">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>IP</th>
+        <th>Resultado</th>
+        <th>Detalle</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p style="margin-top: 16px;">
+    <button type="button" class="btn-sm" id="btn-cerrar-auditoria">Cerrar</button>
+  </p>
+</div>
   </body>
 </html>
