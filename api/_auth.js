@@ -18,14 +18,15 @@ function sign(payload) {
     .digest('base64url');
 }
 
-function createSessionToken() {
-  const payload = Buffer.from(
-    JSON.stringify({
-      exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
-      nonce: crypto.randomBytes(16).toString('hex')
-    })
-  ).toString('base64url');
+function createSessionToken(identificador, rol) {
+  const payloadData = {
+    exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
+    nonce: crypto.randomBytes(16).toString('hex'),
+    identificador,
+    rol
+  };
 
+  const payload = Buffer.from(JSON.stringify(payloadData)).toString('base64url');
   return payload + '.' + sign(payload);
 }
 
@@ -77,6 +78,30 @@ function requireSession(req, res) {
   }
 }
 
+function getSessionUser(req) {
+  try {
+    const token = parseCookies(req)[COOKIE_NAME];
+    if (!token) return null;
+
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+
+    const payload = parts[0];
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+
+    if (!Number.isInteger(data.exp) || data.exp <= Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+
+    return {
+      identificador: data.identificador || null,
+      rol: data.rol || null
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 function sessionCookie(token) {
   return [
     COOKIE_NAME + '=' + encodeURIComponent(token),
@@ -102,6 +127,7 @@ function clearSessionCookie() {
 module.exports = {
   createSessionToken,
   requireSession,
+  getSessionUser,
   sessionCookie,
   clearSessionCookie
 };
