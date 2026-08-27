@@ -2377,7 +2377,7 @@ pedirApi(
           return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-		  /* ===== AUDITORÍA ===== */
+/* ===== AUDITORÍA ===== */
 var btnAdministracion = document.getElementById('btn-administracion');
 var auditoriaPanel = document.getElementById('auditoria-panel');
 var btnCerrarAuditoria = document.getElementById('btn-cerrar-auditoria');
@@ -2473,42 +2473,261 @@ if (btnCerrarAuditoria && auditoriaPanel) {
     appScreen.classList.remove('admin-bloqueado');
   });
 }
+
+/* ===== GESTIÓN DE USUARIOS ===== */
+var btnPestanaAuditoria = document.getElementById('btn-pestana-auditoria');
+var btnPestanaUsuarios = document.getElementById('btn-pestana-usuarios');
+var auditoriaContenido = document.getElementById('auditoria-contenido');
+var usuariosContenido = document.getElementById('usuarios-contenido');
+var btnNuevoUsuario = document.getElementById('btn-nuevo-usuario');
+var tablaUsuarios = document.getElementById('tabla-usuarios');
+
+// Cambiar entre pestañas
+if (btnPestanaAuditoria && btnPestanaUsuarios) {
+  btnPestanaAuditoria.addEventListener('click', function () {
+    auditoriaContenido.style.display = 'block';
+    usuariosContenido.style.display = 'none';
+    btnPestanaAuditoria.classList.add('primary');
+    btnPestanaUsuarios.classList.remove('primary');
+  });
+
+  btnPestanaUsuarios.addEventListener('click', function () {
+    auditoriaContenido.style.display = 'none';
+    usuariosContenido.style.display = 'block';
+    btnPestanaAuditoria.classList.remove('primary');
+    btnPestanaUsuarios.classList.add('primary');
+    cargarUsuarios();
+  });
+}
+
+// Cargar lista de usuarios
+function cargarUsuarios() {
+  fetch('/api/users', {
+    method: 'GET',
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        alert('No se pudo cargar la lista de usuarios: ' + (datos.error || 'Error desconocido'));
+        return;
+      }
+      dibujarTablaUsuarios(datos.usuarios || []);
+    })
+    .catch(function (e) {
+      console.error(e);
+      alert('Error de red al cargar usuarios.');
+    });
+}
+
+function dibujarTablaUsuarios(usuarios) {
+  var tbody = document.querySelector('#tabla-usuarios tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  usuarios.forEach(function (usuario) {
+    var tr = document.createElement('tr');
+
+    var tdId = document.createElement('td');
+    tdId.textContent = usuario.identificador || '';
+    tr.appendChild(tdId);
+
+    var tdRol = document.createElement('td');
+    tdRol.textContent = usuario.rol || 'user';
+    tr.appendChild(tdRol);
+
+    var tdCreado = document.createElement('td');
+    tdCreado.textContent = fmtFecha(usuario.creado_en) || '';
+    tr.appendChild(tdCreado);
+
+    var tdAcciones = document.createElement('td');
+    var btnEditar = document.createElement('button');
+    btnEditar.type = 'button';
+    btnEditar.className = 'btn-sm';
+    btnEditar.textContent = 'Editar';
+    btnEditar.addEventListener('click', function () {
+      editarUsuario(usuario);
+    });
+
+    var btnEliminar = document.createElement('button');
+    btnEliminar.type = 'button';
+    btnEliminar.className = 'btn-sm danger';
+    btnEliminar.textContent = 'Eliminar';
+    btnEliminar.addEventListener('click', function () {
+      eliminarUsuario(usuario);
+    });
+
+    tdAcciones.appendChild(btnEditar);
+    tdAcciones.appendChild(btnEliminar);
+    tr.appendChild(tdAcciones);
+
+    tbody.appendChild(tr);
+  });
+}
+
+// Nuevo usuario
+if (btnNuevoUsuario) {
+  btnNuevoUsuario.addEventListener('click', function () {
+    var identificador = prompt('Identificador del usuario:');
+    if (!identificador) return;
+
+    var password = prompt('Contraseña (mínimo 10 caracteres):');
+    if (!password) return;
+
+    var rol = prompt('Rol (user o admin):', 'user');
+    if (!rol) rol = 'user';
+
+    fetch('/api/users', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identificador: identificador,
+        password: password,
+        rol: rol
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (datos) {
+        if (!datos.ok) {
+          alert('Error al crear usuario: ' + (datos.error || 'Error desconocido'));
+          return;
+        }
+        alert('Usuario creado correctamente.');
+        cargarUsuarios();
+      })
+      .catch(function (e) {
+        console.error(e);
+        alert('Error de red al crear usuario.');
+      });
+  });
+}
+
+// Editar usuario
+function editarUsuario(usuario) {
+  var nuevoRol = prompt('Nuevo rol (user o admin) para ' + usuario.identificador + ':', usuario.rol);
+  if (!nuevoRol) return;
+
+  var nuevaPassword = prompt('Nueva contraseña (dejar vacío para no cambiar):', '');
+
+  fetch('/api/users', {
+    method: 'PUT',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: usuario.id,
+      rol: nuevoRol,
+      password: nuevaPassword || undefined
+    })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        alert('Error al editar usuario: ' + (datos.error || 'Error desconocido'));
+        return;
+      }
+      alert('Usuario actualizado correctamente.');
+      cargarUsuarios();
+    })
+    .catch(function (e) {
+      console.error(e);
+      alert('Error de red al editar usuario.');
+    });
+}
+
+// Eliminar usuario
+function eliminarUsuario(usuario) {
+  if (!confirm('¿Seguro que querés eliminar al usuario ' + usuario.identificador + '?')) {
+    return;
+  }
+
+  fetch('/api/users', {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: usuario.id })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        alert('Error al eliminar usuario: ' + (datos.error || 'Error desconocido'));
+        return;
+      }
+      alert('Usuario eliminado correctamente.');
+      cargarUsuarios();
+    })
+    .catch(function (e) {
+      console.error(e);
+      alert('Error de red al eliminar usuario.');
+    });
+}
+		  
       })();
     </script>
 	  
-	  <!-- ====== PANEL DE AUDITORÍA ====== -->
-<div id="auditoria-panel" style="display:none; padding: 16px; max-width: 900px; margin: 0 auto;">
-  <h2>Auditoría</h2>
+<!-- ====== PANEL DE AUDITORÍA ====== -->
+<div id="auditoria-panel" style="display:none; padding: 16px; max-width: 1000px; margin: 0 auto;">
+  <h2>Administración</h2>
 
-  <h3>Accesos recientes</h3>
-  <table id="tabla-accesos" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse;">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Identificador</th>
-        <th>Resultado</th>
-        <th>Detalle</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Pestañas -->
+  <div style="margin-bottom: 16px;">
+    <button type="button" class="btn-sm" id="btn-pestana-auditoria">Auditoría</button>
+    <button type="button" class="btn-sm" id="btn-pestana-usuarios">Usuarios</button>
+  </div>
 
-  <h3>Cambios de clave</h3>
-  <table id="tabla-cambios-clave" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse; margin-top: 16px;">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>IP</th>
-        <th>Resultado</th>
-        <th>Detalle</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Contenido: Auditoría -->
+  <div id="auditoria-contenido">
+    <h3>Accesos recientes</h3>
+    <table id="tabla-accesos" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Identificador</th>
+          <th>Resultado</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>Cambios de clave</h3>
+    <table id="tabla-cambios-clave" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse; margin-top: 16px;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>IP</th>
+          <th>Resultado</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Contenido: Usuarios -->
+  <div id="usuarios-contenido" style="display:none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3>Gestión de Usuarios</h3>
+      <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
+    </div>
+
+    <table id="tabla-usuarios" border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Identificador</th>
+          <th>Rol</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <p style="margin-top: 16px;">
     <button type="button" class="btn-sm" id="btn-cerrar-auditoria">Cerrar</button>
   </p>
 </div>
+	  
   </body>
 </html>
