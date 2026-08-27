@@ -83,15 +83,21 @@ module.exports = async function handler(req, res) {
     const intentoActual = Array.isArray(estado) ? estado[0] : estado;
 
     if (intentoActual && intentoActual.bloqueado) {
-  await registrarAuditoria(
-    supabase,
-    identificador,
-    'bloqueado',
-    'Intento realizado durante bloqueo temporal'
-  );
+      await registrarAuditoria(
+        supabase,
+        identificador,
+        'bloqueado',
+        'Intento realizado durante bloqueo temporal'
+      );
 
-  return res.status(429).json({
-  }
+      return res.status(429).json({
+        ok: false,
+        error:
+          'Demasiados intentos. Esperá ' +
+          minutosRestantes(intentoActual.segundos_restantes) +
+          ' minutos e intentá nuevamente.'
+      });
+    }
 
     const { data, error } = await supabase
       .from('configuracion')
@@ -116,11 +122,12 @@ module.exports = async function handler(req, res) {
 
     if (!valid) {
       await registrarAuditoria(
-      supabase,
-      identificador,
-      'fallo',
-      'Contraseña incorrecta'
+        supabase,
+        identificador,
+        'fallo',
+        'Contraseña incorrecta'
       );
+
       const { data: fallo, error: falloError } = await supabase.rpc(
         'registrar_fallo_login',
         { p_identificador: identificador }
@@ -132,13 +139,19 @@ module.exports = async function handler(req, res) {
 
       if (resultadoFallo && resultadoFallo.bloqueado) {
         await registrarAuditoria(
-        supabase,
-        identificador,
-      'bloqueado',
-      'Bloqueo temporal activado por demasiados intentos'
-      );
+          supabase,
+          identificador,
+          'bloqueado',
+          'Bloqueo temporal activado por demasiados intentos'
+        );
 
-      return res.status(429).json({
+        return res.status(429).json({
+          ok: false,
+          error:
+            'Demasiados intentos. Esperá ' +
+            minutosRestantes(resultadoFallo.segundos_restantes) +
+            ' minutos e intentá nuevamente.'
+        });
       }
 
       return res.status(401).json({
@@ -153,18 +166,18 @@ module.exports = async function handler(req, res) {
     );
 
     if (limpiarError) throw limpiarError;
-    
-      await registrarAuditoria(
+
+    await registrarAuditoria(
       supabase,
       identificador,
       'exito',
       'Inicio de sesión correcto'
-      );  
-     const token = createSessionToken();
-      
-     res.setHeader('Set-Cookie', sessionCookie(token));
+    );
 
-     return res.status(200).json({ ok: true });
+    const token = createSessionToken();
+    res.setHeader('Set-Cookie', sessionCookie(token));
+
+    return res.status(200).json({ ok: true });
   } catch (error) {
     console.error('verify-password error:', error);
 
