@@ -49,7 +49,14 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { password } = req.body || {};
+    const { identificador, password } = req.body || {};
+
+    if (!identificador || typeof identificador !== 'string' || identificador.length > 256) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Identificador inválido.'
+      });
+    }
 
     if (!password || typeof password !== 'string' || password.length > 256) {
       return res.status(400).json({
@@ -71,105 +78,51 @@ module.exports = async function handler(req, res) {
     }
 
     const supabase = createClient(url, key);
-    const identificador = huellaIp(req);
+    const identificadorNormalizado = identificador.trim().toLowerCase();
 
-    const { data: estado, error: estadoError } = await supabase.rpc(
-      'estado_intento_login',
-      { p_identificador: identificador }
-    );
-
-    if (estadoError) throw estadoError;
-
-    const intentoActual = Array.isArray(estado) ? estado[0] : estado;
-
-    if (intentoActual && intentoActual.bloqueado) {
-      await registrarAuditoria(
-        supabase,
-        identificador,
-        'bloqueado',
-        'Intento realizado durante bloqueo temporal'
-      );
-
-      return res.status(429).json({
-        ok: false,
-        error:
-          'Demasiados intentos. Esperá ' +
-          minutosRestantes(intentoActual.segundos_restantes) +
-          ' minutos e intentá nuevamente.'
-      });
-    }
-
-    const { data, error } = await supabase
-      .from('configuracion')
-      .select('valor')
-      .eq('clave', 'password_taller')
+    // Buscar usuario en la tabla usuarios
+    const { data: usuario, error: usuarioError } = await supabase
+      .from('usuarios')
+      .select('id, identificador, password_hash, rol')
+      .eq('identificador', identificadorNormalizado)
       .single();
 
-    if (error || !data || !data.valor) {
-      console.error('No se encontró password_taller:', error);
+    if (usuarioError || !usuario) {
+      // Intento con usuario inexistente
+      await registrarAuditoria(
+        supabase,
+        identificadorNormalizado,
+        'fallo',
+        'Usuario no encontrado'
+      );
 
-      return res.status(503).json({
+      return res.status(401).json({
         ok: false,
-        error: 'Servicio de autenticación no disponible.'
+        error: 'Usuario o contraseña incorrectos.'
       });
     }
 
-    const stored = data.valor;
-
-    const valid = stored.startsWith('$2')
-      ? bcrypt.compareSync(password, stored)
-      : false;
+    // Validar contraseña
+    const valid = bcrypt.compareSync(password, usuario.password_hash);
 
     if (!valid) {
       await registrarAuditoria(
         supabase,
-        identificador,
+        identificadorNormalizado,
         'fallo',
         'Contraseña incorrecta'
       );
 
-      const { data: fallo, error: falloError } = await supabase.rpc(
-        'registrar_fallo_login',
-        { p_identificador: identificador }
-      );
-
-      if (falloError) throw falloError;
-
-      const resultadoFallo = Array.isArray(fallo) ? fallo[0] : fallo;
-
-      if (resultadoFallo && resultadoFallo.bloqueado) {
-        await registrarAuditoria(
-          supabase,
-          identificador,
-          'bloqueado',
-          'Bloqueo temporal activado por demasiados intentos'
-        );
-
-        return res.status(429).json({
-          ok: false,
-          error:
-            'Demasiados intentos. Esperá ' +
-            minutosRestantes(resultadoFallo.segundos_restantes) +
-            ' minutos e intentá nuevamente.'
-        });
-      }
-
       return res.status(401).json({
         ok: false,
-        error: 'Contraseña incorrecta.'
+        error: 'Usuario o contraseña incorrectos.'
       });
     }
 
-    const { error: limpiarError } = await supabase.rpc(
-      'limpiar_fallos_login',
-      { p_identificador: identificador }
-    );
-
-    if (limpiarError) throw limpiarError;
-
+    // Login exitoso
     await registrarAuditoria(
       supabase,
-      identificador,
+      identificadorNormalizado,
       'exito',
       'Inicio de sesión correcto'
     );
@@ -177,7 +130,10 @@ module.exports = async function handler(req, res) {
     const token = createSessionToken();
     res.setHeader('Set-Cookie', sessionCookie(token));
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+      rol: usuario.rol
+    });
   } catch (error) {
     console.error('verify-password error:', error);
 
