@@ -1131,6 +1131,23 @@
             <tbody></tbody>
           </table>
         </div>
+
+		        <h3 style="margin:1rem 0 .75rem;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
+        <div style="overflow:auto;">
+          <table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Fecha</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Realizado por</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Acción</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Usuario afectado</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Detalle</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+		  
       </div>
       <div id="usuarios-contenido" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -2574,6 +2591,8 @@ function cargarAuditoria() {
       }
       dibujarTablaAccesos(datos.accesos || []);
       dibujarTablaCambiosClave(datos.cambiosClave || []);
+	  dibujarTablaAuditoriaUsuarios(datos.auditoriaUsuarios || []);	
+		
     })
     .catch(function (e) {
       console.error(e);
@@ -2637,6 +2656,39 @@ function dibujarTablaCambiosClave(cambios) {
   });
 }
 
+function dibujarTablaAuditoriaUsuarios(registros) {
+  var tbody = document.querySelector('#tabla-auditoria-usuarios tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  registros.forEach(function (fila) {
+    var tr = document.createElement('tr');
+
+    var tdFecha = document.createElement('td');
+    tdFecha.textContent = fila.creado_en || '';
+    tr.appendChild(tdFecha);
+
+    var tdActor = document.createElement('td');
+    tdActor.textContent = fila.actor_identificador || '';
+    tr.appendChild(tdActor);
+
+    var tdAccion = document.createElement('td');
+    tdAccion.textContent = fila.accion || '';
+    tr.appendChild(tdAccion);
+
+    var tdAfectado = document.createElement('td');
+    tdAfectado.textContent = fila.usuario_afectado || '';
+    tr.appendChild(tdAfectado);
+
+    var tdDetalle = document.createElement('td');
+    tdDetalle.textContent = fila.detalle || '';
+    tr.appendChild(tdDetalle);
+
+    tbody.appendChild(tr);
+  });
+}
+		  
 if (btnCerrarAuditoria && auditoriaPanel) {
   btnCerrarAuditoria.addEventListener('click', function () {
     auditoriaPanel.style.display = 'none';
