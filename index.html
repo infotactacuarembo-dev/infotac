@@ -2794,6 +2794,7 @@ if (modalUsuario) {
 
 if (btnUsuarioGuardar) {
   btnUsuarioGuardar.addEventListener('click', function () {
+    var esEdicion = !!usuarioIdEdicion.value;
     var identificador = usuarioIdentificador.value.trim();
     var rol = usuarioRol.value;
     var password = usuarioPassword.value;
@@ -2806,70 +2807,90 @@ if (btnUsuarioGuardar) {
       return;
     }
 
-    if (!password) {
-      usuarioMensaje.textContent = 'Ingresá una contraseña.';
-      usuarioPassword.focus();
-      return;
-    }
-
-    if (password.trim().length < 10) {
-      usuarioMensaje.textContent =
-        'La contraseña debe tener al menos 10 caracteres.';
-      usuarioPassword.focus();
-      return;
-    }
-
     if (rol !== 'user' && rol !== 'admin') {
       usuarioMensaje.textContent = 'Seleccioná un rol válido.';
       usuarioRol.focus();
       return;
     }
 
+    if (!esEdicion && !password) {
+      usuarioMensaje.textContent = 'Ingresá una contraseña.';
+      usuarioPassword.focus();
+      return;
+    }
+
+    if (password && password.trim().length < 10) {
+      usuarioMensaje.textContent =
+        'La contraseña debe tener al menos 10 caracteres.';
+      usuarioPassword.focus();
+      return;
+    }
+
+    var datos = {
+      rol: rol
+    };
+
+    if (esEdicion) {
+      datos.id = usuarioIdEdicion.value;
+
+      if (password) {
+        datos.password = password;
+      }
+    } else {
+      datos.identificador = identificador;
+      datos.password = password;
+    }
+
     btnUsuarioGuardar.disabled = true;
-    btnUsuarioGuardar.textContent = 'Guardando...';
+    btnUsuarioGuardar.textContent =
+      esEdicion ? 'Guardando cambios...' : 'Creando usuario...';
 
     fetch('/api/users', {
-      method: 'POST',
+      method: esEdicion ? 'PUT' : 'POST',
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        identificador: identificador,
-        password: password,
-        rol: rol
-      })
+      body: JSON.stringify(datos)
     })
       .then(function (respuesta) {
-        return respuesta.json().then(function (datos) {
+        return respuesta.json().then(function (datosRespuesta) {
           return {
             respuesta: respuesta,
-            datos: datos
+            datos: datosRespuesta
           };
         });
       })
       .then(function (resultado) {
         if (!resultado.respuesta.ok || !resultado.datos.ok) {
           throw new Error(
-            resultado.datos.error || 'No se pudo crear el usuario.'
+            resultado.datos.error ||
+            'No se pudieron guardar los cambios.'
           );
         }
 
         cerrarModalUsuario();
-        alert('Usuario creado correctamente.');
+
+        alert(
+          esEdicion
+            ? 'Usuario actualizado correctamente.'
+            : 'Usuario creado correctamente.'
+        );
+
         return cargarUsuarios();
       })
       .catch(function (error) {
-        console.error('Error al crear usuario:', error);
+        console.error('Error al guardar usuario:', error);
+
         usuarioMensaje.textContent =
-          error.message || 'No se pudo crear el usuario.';
+          error.message || 'No se pudieron guardar los cambios.';
       })
       .finally(function () {
         btnUsuarioGuardar.disabled = false;
         btnUsuarioGuardar.textContent = 'Guardar usuario';
       });
   });
-}		  
+}
 		  
 // Editar usuario
 function editarUsuario(usuario) {
