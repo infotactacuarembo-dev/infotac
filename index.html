@@ -1015,6 +1015,81 @@
   </div>
 </div>
 
+<!-- ====== MODAL DE USUARIO ====== -->
+<div id="modal-usuario" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-usuario-titulo">Nuevo usuario</h3>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="btn-usuario-cerrar-x"
+        title="Cerrar"
+      >&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="usuario-id-edicion" value="" />
+
+      <div class="form-group full">
+        <label for="usuario-identificador">Usuario</label>
+
+        <input
+          type="text"
+          id="usuario-identificador"
+          placeholder="Ejemplo: marcelo"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="form-group full">
+        <label for="usuario-rol">Rol</label>
+
+        <select id="usuario-rol">
+          <option value="user">Usuario normal</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+
+      <div class="form-group full">
+        <label for="usuario-password">
+          Contraseña
+        </label>
+
+        <input
+          type="password"
+          id="usuario-password"
+          placeholder="Mínimo 10 caracteres"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <p
+        id="usuario-ayuda-password"
+        style="font-size:0.82rem;color:var(--text-muted);margin-top:0.35rem;"
+      >
+        Para un usuario nuevo, la contraseña es obligatoria.
+      </p>
+
+      <div
+        id="usuario-mensaje"
+        style="color:var(--error);font-size:0.85rem;min-height:1.1rem;margin-top:0.75rem;"
+      ></div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-primary" id="btn-usuario-guardar">
+        Guardar usuario
+      </button>
+
+      <button type="button" class="btn-sm" id="btn-usuario-cancelar">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+	  
  <!-- ====== PANEL DE AUDITORÍA ====== -->
 <section id="auditoria-panel" style="display:none; min-height:100vh; padding:1.5rem;">
   <div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 10px 30px rgba(0,0,0,.06);overflow:hidden;max-width:1400px;margin:0 auto;">
@@ -2574,6 +2649,17 @@ var btnPestanaUsuarios = document.getElementById('btn-pestana-usuarios');
 var auditoriaContenido = document.getElementById('auditoria-contenido');
 var usuariosContenido = document.getElementById('usuarios-contenido');
 var btnNuevoUsuario = document.getElementById('btn-nuevo-usuario');
+var modalUsuario = document.getElementById('modal-usuario');
+var modalUsuarioTitulo = document.getElementById('modal-usuario-titulo');
+var usuarioIdEdicion = document.getElementById('usuario-id-edicion');
+var usuarioIdentificador = document.getElementById('usuario-identificador');
+var usuarioRol = document.getElementById('usuario-rol');
+var usuarioPassword = document.getElementById('usuario-password');
+var usuarioMensaje = document.getElementById('usuario-mensaje');
+var usuarioAyudaPassword = document.getElementById('usuario-ayuda-password');
+var btnUsuarioGuardar = document.getElementById('btn-usuario-guardar');
+var btnUsuarioCancelar = document.getElementById('btn-usuario-cancelar');
+var btnUsuarioCerrarX = document.getElementById('btn-usuario-cerrar-x');
 var tablaUsuarios = document.getElementById('tabla-usuarios');
 
 // Cambiar entre pestañas
@@ -2660,43 +2746,22 @@ function dibujarTablaUsuarios(usuarios) {
 }
 
 // Nuevo usuario
-if (btnNuevoUsuario) {
+if (btnNuevoUsuario && modalUsuario) {
   btnNuevoUsuario.addEventListener('click', function () {
-    var identificador = prompt('Identificador del usuario:');
-    if (!identificador) return;
-
-    var password = prompt('Contraseña (mínimo 10 caracteres):');
-    if (!password) return;
-
-    var rol = prompt('Rol (user o admin):', 'user');
-    if (!rol) rol = 'user';
-
-    fetch('/api/users', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        identificador: identificador,
-        password: password,
-        rol: rol
-      })
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (datos) {
-        if (!datos.ok) {
-          alert('Error al crear usuario: ' + (datos.error || 'Error desconocido'));
-          return;
-        }
-        alert('Usuario creado correctamente.');
-        cargarUsuarios();
-      })
-      .catch(function (e) {
-        console.error(e);
-        alert('Error de red al crear usuario.');
-      });
+    modalUsuarioTitulo.textContent = 'Nuevo usuario';
+    usuarioIdEdicion.value = '';
+    usuarioIdentificador.value = '';
+    usuarioIdentificador.disabled = false;
+    usuarioRol.value = 'user';
+    usuarioPassword.value = '';
+    usuarioPassword.placeholder = 'Mínimo 10 caracteres';
+    usuarioAyudaPassword.textContent =
+      'Para un usuario nuevo, la contraseña es obligatoria.';
+    usuarioMensaje.textContent = '';
+    modalUsuario.classList.add('visible');
+    usuarioIdentificador.focus();
   });
 }
-
 // Editar usuario
 function editarUsuario(usuario) {
   var nuevoRol = prompt('Nuevo rol (user o admin) para ' + usuario.identificador + ':', usuario.rol);
