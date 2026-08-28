@@ -2873,34 +2873,28 @@ if (btnUsuarioGuardar) {
 		  
 // Editar usuario
 function editarUsuario(usuario) {
-  var nuevoRol = prompt('Nuevo rol (user o admin) para ' + usuario.identificador + ':', usuario.rol);
-  if (!nuevoRol) return;
+  if (!modalUsuario) return;
 
-  var nuevaPassword = prompt('Nueva contraseña (dejar vacío para no cambiar):', '');
+  modalUsuarioTitulo.textContent =
+    'Editar usuario: ' + usuario.identificador;
 
-  fetch('/api/users', {
-    method: 'PUT',
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: usuario.id,
-      rol: nuevoRol,
-      password: nuevaPassword || undefined
-    })
-  })
-    .then(function (r) { return r.json(); })
-    .then(function (datos) {
-      if (!datos.ok) {
-        alert('Error al editar usuario: ' + (datos.error || 'Error desconocido'));
-        return;
-      }
-      alert('Usuario actualizado correctamente.');
-      cargarUsuarios();
-    })
-    .catch(function (e) {
-      console.error(e);
-      alert('Error de red al editar usuario.');
-    });
+  usuarioIdEdicion.value = usuario.id;
+  usuarioIdentificador.value = usuario.identificador;
+  usuarioIdentificador.disabled = true;
+
+  usuarioRol.value = usuario.rol || 'user';
+
+  usuarioPassword.value = '';
+  usuarioPassword.placeholder =
+    'Dejar vacío para conservar la contraseña';
+
+  usuarioAyudaPassword.textContent =
+    'Dejá la contraseña vacía si no querés cambiarla.';
+
+  usuarioMensaje.textContent = '';
+
+  modalUsuario.classList.add('visible');
+  usuarioRol.focus();
 }
 		  
 		  
