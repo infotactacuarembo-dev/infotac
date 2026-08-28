@@ -2382,7 +2382,7 @@ pedirApi(
 
 /* ===== AUDITORÍA ===== */
 var btnAdministracion = document.getElementById('btn-administracion');
-var auditoriaPanel = document.getElementById('auditoria-panel');
+var Panel = document.getElementById('auditoria-panel');
 var btnCerrarAuditoria = document.getElementById('btn-cerrar-auditoria');
 
 if (btnAdministracion) {
@@ -2666,8 +2666,8 @@ function eliminarUsuario(usuario) {
 }
 
       })();
-    </script>
-	  	<!-- ====== PANEL DE AUDITORÍA ====== -->
+
+	<!-- ====== PANEL DE AUDITORÍA ====== -->
 <div id="auditoria-panel" style="display:none; padding: 16px; max-width: 1000px; margin: 0 auto;">
   <h2>Administración</h2>
 
@@ -2729,7 +2729,11 @@ function eliminarUsuario(usuario) {
   <p style="margin-top: 16px;">
     <button type="button" class="btn-sm" id="btn-cerrar-auditoria">Cerrar</button>
   </p>
+		
 </div>	  
+		
+    </script>
+	  
 	  
   </body>
 </html>
