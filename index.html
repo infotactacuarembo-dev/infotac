@@ -1440,6 +1440,7 @@ if (btnClaveGuardar) {
 
       // Guardar rol en sessionStorage
       sessionStorage.setItem('rol', resultado.rol || 'user');
+	  sessionStorage.setItem('usuario', identificador);	
 
       mostrarAplicacion();
       return cargarDatosIniciales();
@@ -2730,12 +2731,28 @@ function dibujarTablaUsuarios(usuarios) {
     });
 
     var btnEliminar = document.createElement('button');
-    btnEliminar.type = 'button';
-    btnEliminar.className = 'btn-sm danger';
-    btnEliminar.textContent = 'Eliminar';
-    btnEliminar.addEventListener('click', function () {
-      eliminarUsuario(usuario);
-    });
+btnEliminar.type = 'button';
+btnEliminar.className = 'btn-sm danger';
+
+var usuarioActual = sessionStorage.getItem('usuario') || '';
+
+if (usuarioActual &&
+    usuario.identificador.toLowerCase() === usuarioActual.toLowerCase()) {
+
+  btnEliminar.textContent = 'Usuario actual';
+  btnEliminar.disabled = true;
+  btnEliminar.title = 'No podés eliminar el usuario con el que iniciaste sesión.';
+  btnEliminar.style.opacity = '0.5';
+  btnEliminar.style.cursor = 'not-allowed';
+
+} else {
+
+  btnEliminar.textContent = 'Eliminar';
+
+  btnEliminar.addEventListener('click', function () {
+    eliminarUsuario(usuario);
+  });
+}
 
     tdAcciones.appendChild(btnEditar);
     tdAcciones.appendChild(btnEliminar);
