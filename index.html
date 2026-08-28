@@ -2762,6 +2762,35 @@ if (btnNuevoUsuario && modalUsuario) {
     usuarioIdentificador.focus();
   });
 }
+
+function cerrarModalUsuario() {
+  if (!modalUsuario) return;
+
+  modalUsuario.classList.remove('visible');
+
+  usuarioIdEdicion.value = '';
+  usuarioIdentificador.value = '';
+  usuarioIdentificador.disabled = false;
+  usuarioRol.value = 'user';
+  usuarioPassword.value = '';
+  usuarioMensaje.textContent = '';
+}
+
+if (btnUsuarioCancelar) {
+  btnUsuarioCancelar.addEventListener('click', cerrarModalUsuario);
+}
+
+if (btnUsuarioCerrarX) {
+  btnUsuarioCerrarX.addEventListener('click', cerrarModalUsuario);
+}
+
+if (modalUsuario) {
+  modalUsuario.addEventListener('click', function (e) {
+    if (e.target === modalUsuario) {
+      cerrarModalUsuario();
+    }
+  });
+}
 // Editar usuario
 function editarUsuario(usuario) {
   var nuevoRol = prompt('Nuevo rol (user o admin) para ' + usuario.identificador + ':', usuario.rol);
