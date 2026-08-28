@@ -36,30 +36,41 @@ module.exports = async function handler(req, res) {
     const supabase = createClient(url, key);
 
     const [
-      { data: accesos, error: accesosError },
-      { data: cambiosClave, error: cambiosError }
-    ] = await Promise.all([
-      supabase
-        .from('login_audit')
-        .select('id, creado_en, identificador, resultado, detalle')
-        .order('creado_en', { ascending: false })
-        .limit(30),
+  { data: accesos, error: accesosError },
+  { data: cambiosClave, error: cambiosError },
+  { data: auditoriaUsuarios, error: usuariosError }
+] = await Promise.all([
+  supabase
+    .from('login_audit')
+    .select('id, creado_en, identificador, resultado, detalle')
+    .order('creado_en', { ascending: false })
+    .limit(30),
 
-      supabase
-        .from('password_changes')
-        .select('id, cambiado_en, ip, resultado, detalle')
-        .order('cambiado_en', { ascending: false })
-        .limit(30)
-    ]);
+  supabase
+    .from('password_changes')
+    .select('id, cambiado_en, ip, resultado, detalle')
+    .order('cambiado_en', { ascending: false })
+    .limit(30),
 
-    if (accesosError) throw accesosError;
-    if (cambiosError) throw cambiosError;
+  supabase
+    .from('user_audit')
+    .select('id, creado_en, actor_identificador, accion, usuario_afectado, detalle')
+    .order('creado_en', { ascending: false })
+    .limit(30)
+]);
 
-    return res.status(200).json({
-      ok: true,
-      accesos: accesos || [],
-      cambiosClave: cambiosClave || []
-    });
+if (accesosError) throw accesosError;
+if (cambiosError) throw cambiosError;
+if (usuariosError) throw usuariosError;
+
+return res.status(200).json({
+  ok: true,
+  accesos: accesos || [],
+  cambiosClave: cambiosClave || [],
+  auditoriaUsuarios: auditoriaUsuarios || []
+});
+
+    
   } catch (error) {
     console.error('audit-log error:', error);
 
