@@ -207,10 +207,30 @@ module.exports = async function handler(req, res) {
 
       if (error) throw error;
 
-      return res.status(200).json({
-        ok: true,
-        usuario: data
-      });
+      const cambios = [];
+
+      if (rol && rol !== usuarioExistente.rol) {
+        cambios.push('Rol: ' + usuarioExistente.rol + ' → ' + data.rol);
+      }
+
+      if (password && password.length >= 10) {
+        cambios.push('Contraseña restablecida');
+      }
+
+      if (cambios.length > 0) {
+        await registrarAuditoriaUsuario(
+        supabase,
+        user.identificador,
+        'usuario_editado',
+        data.identificador,
+        cambios.join('. ')
+      );
+    }
+
+    return res.status(200).json({
+    ok: true,
+    usuario: data
+  });
     }
 
     // ELIMINAR USUARIO (DELETE)
