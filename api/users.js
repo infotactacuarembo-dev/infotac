@@ -2,6 +2,31 @@ const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 const bcrypt = require('bcryptjs');
 
+async function registrarAuditoriaUsuario(
+  supabase,
+  actorIdentificador,
+  accion,
+  usuarioAfectado,
+  detalle
+) {
+  try {
+    const { error } = await supabase
+      .from('user_audit')
+      .insert({
+        actor_identificador: actorIdentificador,
+        accion: accion,
+        usuario_afectado: usuarioAfectado,
+        detalle: detalle
+      });
+
+    if (error) {
+      console.error('No se pudo registrar auditoría de usuario:', error);
+    }
+  } catch (error) {
+    console.error('Error al registrar auditoría de usuario:', error);
+  }
+}
+
 module.exports = async function handler(req, res) {
   // Solo permitir GET, POST, PUT, DELETE
   if (!['GET', 'POST', 'PUT', 'DELETE'].includes(req.method)) {
@@ -107,6 +132,16 @@ module.exports = async function handler(req, res) {
 
       if (error) throw error;
 
+      const actor = getSessionUser(req);
+
+      await registrarAuditoriaUsuario(
+      supabase,
+      actor ? actor.identificador : 'desconocido',
+      'usuario_creado',
+      data.identificador,
+      'Rol asignado: ' + data.rol
+    );
+      
       return res.status(201).json({
         ok: true,
         usuario: data
