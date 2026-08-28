@@ -2791,6 +2791,86 @@ if (modalUsuario) {
     }
   });
 }
+
+if (btnUsuarioGuardar) {
+  btnUsuarioGuardar.addEventListener('click', function () {
+    var identificador = usuarioIdentificador.value.trim();
+    var rol = usuarioRol.value;
+    var password = usuarioPassword.value;
+
+    usuarioMensaje.textContent = '';
+
+    if (!identificador) {
+      usuarioMensaje.textContent = 'Ingresá un nombre de usuario.';
+      usuarioIdentificador.focus();
+      return;
+    }
+
+    if (!password) {
+      usuarioMensaje.textContent = 'Ingresá una contraseña.';
+      usuarioPassword.focus();
+      return;
+    }
+
+    if (password.trim().length < 10) {
+      usuarioMensaje.textContent =
+        'La contraseña debe tener al menos 10 caracteres.';
+      usuarioPassword.focus();
+      return;
+    }
+
+    if (rol !== 'user' && rol !== 'admin') {
+      usuarioMensaje.textContent = 'Seleccioná un rol válido.';
+      usuarioRol.focus();
+      return;
+    }
+
+    btnUsuarioGuardar.disabled = true;
+    btnUsuarioGuardar.textContent = 'Guardando...';
+
+    fetch('/api/users', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        identificador: identificador,
+        password: password,
+        rol: rol
+      })
+    })
+      .then(function (respuesta) {
+        return respuesta.json().then(function (datos) {
+          return {
+            respuesta: respuesta,
+            datos: datos
+          };
+        });
+      })
+      .then(function (resultado) {
+        if (!resultado.respuesta.ok || !resultado.datos.ok) {
+          throw new Error(
+            resultado.datos.error || 'No se pudo crear el usuario.'
+          );
+        }
+
+        cerrarModalUsuario();
+        alert('Usuario creado correctamente.');
+        return cargarUsuarios();
+      })
+      .catch(function (error) {
+        console.error('Error al crear usuario:', error);
+        usuarioMensaje.textContent =
+          error.message || 'No se pudo crear el usuario.';
+      })
+      .finally(function () {
+        btnUsuarioGuardar.disabled = false;
+        btnUsuarioGuardar.textContent = 'Guardar usuario';
+      });
+  });
+}		  
+		  
 // Editar usuario
 function editarUsuario(usuario) {
   var nuevoRol = prompt('Nuevo rol (user o admin) para ' + usuario.identificador + ':', usuario.rol);
