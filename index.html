@@ -2579,6 +2579,24 @@ if (btnAdministracion) {
   });
 }
 
+function fmtFechaAuditoria(fechaIso) {
+  if (!fechaIso) return '';
+
+  try {
+    return new Date(fechaIso).toLocaleString('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  } catch (error) {
+    return fechaIso;
+  }
+}
+		  
 function cargarAuditoria() {
   fetch('/api/audit-log', {
     credentials: 'same-origin'
@@ -2609,7 +2627,7 @@ function dibujarTablaAccesos(accesos) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
-    tdFecha.textContent = fila.creado_en || '';
+    tdFecha.textContent = fmtFechaAuditoria(fila.creado_en)
     tr.appendChild(tdFecha);
 
     var tdId = document.createElement('td');
@@ -2637,7 +2655,7 @@ function dibujarTablaCambiosClave(cambios) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
-    tdFecha.textContent = fila.cambiado_en || '';
+    tdFecha.textContent = fmtFechaAuditoria(fila.cambiado_en);
     tr.appendChild(tdFecha);
 
     var tdIp = document.createElement('td');
@@ -2666,7 +2684,7 @@ function dibujarTablaAuditoriaUsuarios(registros) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
-    tdFecha.textContent = fila.creado_en || '';
+    tdFecha.textContent = fmtFechaAuditoria(fila.creado_en);
     tr.appendChild(tdFecha);
 
     var tdActor = document.createElement('td');
