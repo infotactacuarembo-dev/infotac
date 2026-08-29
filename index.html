@@ -1150,7 +1150,7 @@
         </div>
 		  
       </div>
-      <div id="usuarios-contenido" style="display:none;">
+            <div id="usuarios-contenido" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
           <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
           <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
@@ -1169,71 +1169,68 @@
           </table>
         </div>
       </div>
+      <div id="metricas-contenido" style="display:none;">
+        <!-- Tarjetas de métricas -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
+          <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+            <div style="font-size:14px;color:#64748b;">Usuarios activos</div>
+            <div id="metrica-usuarios-activos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+            <div style="font-size:14px;color:#64748b;">Usuarios inactivos</div>
+            <div id="metrica-usuarios-inactivos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+            <div style="font-size:14px;color:#64748b;">Accesos exitosos (7 días)</div>
+            <div id="metrica-accesos-exitosos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+            <div style="font-size:14px;color:#64748b;">Accesos fallidos (7 días)</div>
+            <div id="metrica-accesos-fallidos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+          </div>
+        </div>
+
+        <!-- Tablas -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px;">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+            <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos usuarios creados</h3>
+            <table id="tabla-ultimos-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+              <thead>
+                <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+                  <th style="padding:8px;">Usuario</th>
+                  <th style="padding:8px;">Nombre</th>
+                  <th style="padding:8px;">Rol</th>
+                  <th style="padding:8px;">Creado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+            <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos cambios de clave</h3>
+            <table id="tabla-ultimos-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+              <thead>
+                <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+                  <th style="padding:8px;">Usuario</th>
+                  <th style="padding:8px;">Resultado</th>
+                  <th style="padding:8px;">Detalle</th>
+                  <th style="padding:8px;">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</section>   
-
 </section>
 
-<!-- ====== CONTENIDO DE MÉTRICAS ====== -->
-<div id="metricas-contenido" style="display:none;">
-  <!-- Tarjetas de métricas -->
-  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
-    <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-      <div style="font-size:14px;color:#64748b;">Usuarios activos</div>
-      <div id="metrica-usuarios-activos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
-    </div>
-    <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-      <div style="font-size:14px;color:#64748b;">Usuarios inactivos</div>
-      <div id="metrica-usuarios-inactivos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
-    </div>
-    <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-      <div style="font-size:14px;color:#64748b;">Accesos exitosos (7 días)</div>
-      <div id="metrica-accesos-exitosos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
-    </div>
-    <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-      <div style="font-size:14px;color:#64748b;">Accesos fallidos (7 días)</div>
-      <div id="metrica-accesos-fallidos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
-    </div>
-  </div>
-
-  <!-- Tablas -->
-  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px;">
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
-      <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos usuarios creados</h3>
-      <table id="tabla-ultimos-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
-        <thead>
-          <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
-            <th style="padding:8px;">Usuario</th>
-            <th style="padding:8px;">Nombre</th>
-            <th style="padding:8px;">Rol</th>
-            <th style="padding:8px;">Creado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
-      <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos cambios de clave</h3>
-      <table id="tabla-ultimos-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
-        <thead>
-          <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
-            <th style="padding:8px;">Usuario</th>
-            <th style="padding:8px;">Resultado</th>
-            <th style="padding:8px;">Detalle</th>
-            <th style="padding:8px;">Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
 <script>
 	  
