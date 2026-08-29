@@ -1154,6 +1154,34 @@
   		<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Cambios de clave</h3>
   		<button type="button" class="btn-sm" id="btn-exportar-cambios-clave">Exportar CSV</button>
 		</div>
+		  <div id="filtros-cambios-clave" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end;margin-bottom:.9rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+  <div>
+    <label for="filtro-cambios-desde" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Desde</label>
+    <input type="date" id="filtro-cambios-desde" class="input-filtro">
+  </div>
+
+  <div>
+    <label for="filtro-cambios-hasta" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Hasta</label>
+    <input type="date" id="filtro-cambios-hasta" class="input-filtro">
+  </div>
+
+  <div style="min-width:180px;flex:1;">
+    <label for="filtro-cambios-usuario" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Usuario</label>
+    <input type="text" id="filtro-cambios-usuario" class="input-filtro" placeholder="Ej.: admin">
+  </div>
+
+  <div>
+    <label for="filtro-cambios-resultado" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Resultado</label>
+    <select id="filtro-cambios-resultado" class="input-filtro">
+      <option value="">Todos</option>
+      <option value="exito">Éxito</option>
+      <option value="fallo">Fallo</option>
+    </select>
+  </div>
+
+  <button type="button" class="btn-sm primary" id="btn-aplicar-filtros-cambios">Aplicar filtros</button>
+  <button type="button" class="btn-sm" id="btn-limpiar-filtros-cambios">Limpiar</button>
+</div>
         <div style="overflow:auto;">
           <table id="tabla-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
             <thead>
@@ -2793,7 +2821,18 @@ var filas = origen.map(function (a) {
 }
 
 function exportarCambiosClaveCSV() {
-  var filas = datosAuditoriaActuales.cambiosClave.map(function (c) {
+
+  var hayFiltrosCambiosActivos =
+  (filtroCambiosDesde && filtroCambiosDesde.value) ||
+  (filtroCambiosHasta && filtroCambiosHasta.value) ||
+  (filtroCambiosUsuario && filtroCambiosUsuario.value.trim()) ||
+  (filtroCambiosResultado && filtroCambiosResultado.value);
+
+  var origen = hayFiltrosCambiosActivos
+  ? cambiosClaveFiltradosActuales
+  : datosAuditoriaActuales.cambiosClave;
+	
+  var filas = origen.map(function (c) {
     return [
       fmtFechaAuditoria(c.cambiado_en || c.creado_en),
       c.identificador || c.usuario || '',
@@ -3125,18 +3164,20 @@ if (btnPestanaAuditoria && btnPestanaUsuarios) {
 });
 }
 
-function aplicarFiltrosAccesos() {
-  var desde = filtroAccesosDesde ? filtroAccesosDesde.value : '';
-  var hasta = filtroAccesosHasta ? filtroAccesosHasta.value : '';
-  var usuario = filtroAccesosUsuario
-    ? filtroAccesosUsuario.value.trim().toLowerCase()
+function aplicarFiltrosCambiosClave() {
+  var desde = filtroCambiosDesde ? filtroCambiosDesde.value : '';
+  var hasta = filtroCambiosHasta ? filtroCambiosHasta.value : '';
+  var usuario = filtroCambiosUsuario
+    ? filtroCambiosUsuario.value.trim().toLowerCase()
     : '';
-  var evento = filtroAccesosEvento ? filtroAccesosEvento.value : '';
+  var resultado = filtroCambiosResultado ? filtroCambiosResultado.value : '';
 
-  accesosFiltradosActuales = datosAuditoriaActuales.accesos.filter(function (acceso) {
-    var fecha = new Date(acceso.creado_en);
-    var identificador = String(acceso.identificador || '').toLowerCase();
-    var resultado = acceso.resultado || '';
+  cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.filter(function (cambio) {
+    var fecha = new Date(cambio.cambiado_en || cambio.creado_en);
+    var identificador = String(
+      cambio.identificador || cambio.usuario || ''
+    ).toLowerCase();
+    var resultadoCambio = cambio.resultado || '';
 
     if (desde) {
       var fechaDesde = new Date(desde + 'T00:00:00');
@@ -3152,14 +3193,14 @@ function aplicarFiltrosAccesos() {
       return false;
     }
 
-    if (evento && resultado !== evento) {
+    if (resultado && resultadoCambio !== resultado) {
       return false;
     }
 
     return true;
   });
 
-  dibujarTablaAccesos(accesosFiltradosActuales);
+  dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
 }
 		  
 /* ===== EXPORTAR AUDITORÍAS CSV ===== */
@@ -3173,6 +3214,14 @@ var filtroAccesosEvento = document.getElementById('filtro-accesos-evento');
 var btnAplicarFiltrosAccesos = document.getElementById('btn-aplicar-filtros-accesos');
 var btnLimpiarFiltrosAccesos = document.getElementById('btn-limpiar-filtros-accesos');
 var accesosFiltradosActuales = [];
+var filtroCambiosDesde = document.getElementById('filtro-cambios-desde');
+var filtroCambiosHasta = document.getElementById('filtro-cambios-hasta');
+var filtroCambiosUsuario = document.getElementById('filtro-cambios-usuario');
+var filtroCambiosResultado = document.getElementById('filtro-cambios-resultado');
+var btnAplicarFiltrosCambios = document.getElementById('btn-aplicar-filtros-cambios');
+var btnLimpiarFiltrosCambios = document.getElementById('btn-limpiar-filtros-cambios');
+
+var cambiosClaveFiltradosActuales = [];		  
 		  
 if (btnExportarAccesos) {
   btnExportarAccesos.addEventListener('click', function () {
@@ -3207,6 +3256,24 @@ if (btnLimpiarFiltrosAccesos) {
 
     accesosFiltradosActuales = datosAuditoriaActuales.accesos.slice();
     dibujarTablaAccesos(accesosFiltradosActuales);
+  });
+}
+
+if (btnAplicarFiltrosCambios) {
+  btnAplicarFiltrosCambios.addEventListener('click', function () {
+    aplicarFiltrosCambiosClave();
+  });
+}
+
+if (btnLimpiarFiltrosCambios) {
+  btnLimpiarFiltrosCambios.addEventListener('click', function () {
+    if (filtroCambiosDesde) filtroCambiosDesde.value = '';
+    if (filtroCambiosHasta) filtroCambiosHasta.value = '';
+    if (filtroCambiosUsuario) filtroCambiosUsuario.value = '';
+    if (filtroCambiosResultado) filtroCambiosResultado.value = '';
+
+    cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.slice();
+    dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
   });
 }
 		  
