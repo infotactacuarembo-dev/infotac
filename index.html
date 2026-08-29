@@ -3138,11 +3138,16 @@ function aplicarFiltrosAccesos() {
     ? filtroAccesosUsuario.value.trim().toLowerCase()
     : '';
   var evento = filtroAccesosEvento
-    ? String(filtroAccesosEvento.value).trim().toLowerCase()
+    ? String(filtroAccesosEvento.value)
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
     : '';
 
   accesosFiltradosActuales = datosAuditoriaActuales.accesos.filter(function (acceso) {
     var fecha = new Date(acceso.creado_en);
+
     var identificador = String(
       acceso.identificador || acceso.actor_identificador || ''
     )
@@ -3169,6 +3174,12 @@ function aplicarFiltrosAccesos() {
       return false;
     }
 
+    /*
+      Coincidencia estricta:
+      éxito → exito
+      fallo → fallo
+      cierre sesión → cierre sesion
+    */
     if (evento && resultado !== evento) {
       return false;
     }
