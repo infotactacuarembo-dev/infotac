@@ -2993,9 +2993,16 @@ function dibujarTablaAccesos(accesos) {
     tr.appendChild(tdId);
 
     var tdRes = document.createElement('td');
-    tdRes.textContent = fila.resultado || '';
-    tr.appendChild(tdRes);
 
+	var resultadoVisible = String(fila.resultado || '')
+  	.trim()
+  	.toLowerCase()
+  	.normalize('NFD')
+  	.replace(/[\u0300-\u036f]/g, '');
+
+	tdRes.textContent = resultadoVisible || '';
+	tr.appendChild(tdRes);
+	  
     var tdDet = document.createElement('td');
     tdDet.textContent = fila.detalle || '';
     tr.appendChild(tdDet);
