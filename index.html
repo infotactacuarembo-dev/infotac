@@ -3130,12 +3130,23 @@ function aplicarFiltrosAccesos() {
   var usuario = filtroAccesosUsuario
     ? filtroAccesosUsuario.value.trim().toLowerCase()
     : '';
-  var evento = filtroAccesosEvento ? filtroAccesosEvento.value : '';
+  var evento = filtroAccesosEvento
+    ? String(filtroAccesosEvento.value).trim().toLowerCase()
+    : '';
 
   accesosFiltradosActuales = datosAuditoriaActuales.accesos.filter(function (acceso) {
     var fecha = new Date(acceso.creado_en);
-    var identificador = String(acceso.identificador || '').toLowerCase();
-    var resultado = acceso.resultado || '';
+    var identificador = String(
+      acceso.identificador || acceso.actor_identificador || ''
+    )
+      .trim()
+      .toLowerCase();
+
+    var resultado = String(acceso.resultado || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
     if (desde) {
       var fechaDesde = new Date(desde + 'T00:00:00');
