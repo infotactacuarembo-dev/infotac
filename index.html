@@ -2766,14 +2766,15 @@ function descargarCSV(nombreArchivo, encabezados, filas) {
 }
 
 function exportarAccesosCSV() {
-  var origen = accesosFiltradosActuales.length || (
-  !filtroAccesosDesde.value &&
-  !filtroAccesosHasta.value &&
-  !filtroAccesosUsuario.value &&
-  !filtroAccesosEvento.value
-)
-  ? datosAuditoriaActuales.accesos
-  : accesosFiltradosActuales;
+  var hayFiltrosActivos =
+  (filtroAccesosDesde && filtroAccesosDesde.value) ||
+  (filtroAccesosHasta && filtroAccesosHasta.value) ||
+  (filtroAccesosUsuario && filtroAccesosUsuario.value.trim()) ||
+  (filtroAccesosEvento && filtroAccesosEvento.value);
+
+var origen = hayFiltrosActivos
+  ? accesosFiltradosActuales
+  : datosAuditoriaActuales.accesos;
 
 var filas = origen.map(function (a) {
     return [
