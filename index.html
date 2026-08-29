@@ -3177,7 +3177,11 @@ function aplicarFiltrosCambiosClave() {
     var identificador = String(
       cambio.identificador || cambio.usuario || ''
     ).toLowerCase();
-    var resultadoCambio = cambio.resultado || '';
+    var resultadoCambio = String(cambio.resultado || '')
+  .trim()
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '');
 
     if (desde) {
       var fechaDesde = new Date(desde + 'T00:00:00');
