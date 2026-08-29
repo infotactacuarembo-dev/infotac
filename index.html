@@ -3165,6 +3165,10 @@ if (btnPestanaAuditoria && btnPestanaUsuarios) {
 }
 
 function aplicarFiltrosCambiosClave() {
+  console.log('=== aplicarFiltrosCambiosClave ===');
+  console.log('datosAuditoriaActuales:', datosAuditoriaActuales);
+  console.log('cambiosClave total:', datosAuditoriaActuales.cambiosClave.length);
+
   var desde = filtroCambiosDesde ? filtroCambiosDesde.value : '';
   var hasta = filtroCambiosHasta ? filtroCambiosHasta.value : '';
   var ip = filtroCambiosIp
@@ -3174,15 +3178,25 @@ function aplicarFiltrosCambiosClave() {
     ? String(filtroCambiosResultado.value).trim().toLowerCase()
     : '';
 
-  cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.filter(function (cambio) {
+  console.log('Filtros:', { desde, hasta, ip, resultado });
+
+  cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.filter(function (cambio, index) {
     var fecha = new Date(cambio.cambiado_en);
     var ipCambio = String(cambio.ip || '').trim().toLowerCase();
-
     var resultadoCambio = String(cambio.resultado || '')
       .trim()
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
+
+    if (index < 3) {
+      console.log('Fila', index, ':', {
+        cambiado_en: cambio.cambiado_en,
+        ip: cambio.ip,
+        resultado_raw: cambio.resultado,
+        resultado_normalizado: resultadoCambio
+      });
+    }
 
     if (desde) {
       var fechaDesde = new Date(desde + 'T00:00:00');
@@ -3198,12 +3212,19 @@ function aplicarFiltrosCambiosClave() {
       return false;
     }
 
-    if (resultado && resultadoCambio !== resultado) {
-      return false;
+    if (resultado) {
+      if (resultado === 'exito') {
+        if (resultadoCambio !== 'exito') return false;
+      } else if (resultado === 'fallo') {
+        if (resultadoCambio === 'exito') return false;
+      }
     }
 
     return true;
   });
+
+  console.log('Filtrados:', cambiosClaveFiltradosActuales.length);
+  console.log('==============================');
 
   dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
 }
