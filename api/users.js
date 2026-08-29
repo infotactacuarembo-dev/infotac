@@ -247,7 +247,7 @@ module.exports = async function handler(req, res) {
       // Verificar que el usuario existe
       const { data: usuarioExistente } = await supabase
         .from('usuarios')
-        .select('id, rol')
+        .select('id, identificador, rol')
         .eq('id', id)
         .single();
 
@@ -273,14 +273,20 @@ module.exports = async function handler(req, res) {
         }
       }
 
+        await registrarAuditoriaUsuario(
+        supabase,
+        user.identificador,
+        'usuario_eliminado',
+        usuarioExistente.identificador,
+        'Usuario eliminado. Rol anterior: ' + usuarioExistente.rol
+      );
       const { error } = await supabase
         .from('usuarios')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      return res.status(200).json({
+        return res.status(200).json({
         ok: true
       });
     }
