@@ -1100,6 +1100,7 @@
     <div style="display:flex;gap:.5rem;padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0;">
       <button type="button" class="btn-sm primary" id="btn-pestana-auditoria">Auditoría</button>
       <button type="button" class="btn-sm" id="btn-pestana-usuarios">Usuarios</button>
+	  <button type="button" class="btn-sm" id="btn-pestana-metricas">Métricas</button>	
     </div>
     <div style="padding:1.25rem;">
       <div id="auditoria-contenido">
@@ -1172,7 +1173,81 @@
   </div>
 </section>   
 
+</section>
+
+<!-- ====== PANEL DE MÉTRICAS ====== -->
+<section id="metricas-panel" style="display:none; min-height:100vh; padding:1.5rem;">
+  <div style="background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 10px 30px rgba(0,0,0,.06);overflow:hidden;max-width:1400px;margin:0 auto;">
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+      <h2 style="font-size:1.2rem;font-weight:700;color:#1e293b;">Métricas de uso</h2>
+      <button type="button" class="btn-sm" id="btn-cerrar-metricas">Cerrar</button>
+    </div>
+
+    <div style="padding:1.25rem;">
+      <!-- Tarjetas de métricas -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+          <div style="font-size:14px;color:#64748b;">Usuarios activos</div>
+          <div id="metrica-usuarios-activos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+          <div style="font-size:14px;color:#64748b;">Usuarios inactivos</div>
+          <div id="metrica-usuarios-inactivos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+          <div style="font-size:14px;color:#64748b;">Accesos exitosos (7 días)</div>
+          <div id="metrica-accesos-exitosos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+          <div style="font-size:14px;color:#64748b;">Accesos fallidos (7 días)</div>
+          <div id="metrica-accesos-fallidos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+        </div>
+      </div>
+
+      <!-- Tablas -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px;">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+          <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos usuarios creados</h3>
+          <table id="tabla-ultimos-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+                <th style="padding:8px;">Usuario</th>
+                <th style="padding:8px;">Nombre</th>
+                <th style="padding:8px;">Rol</th>
+                <th style="padding:8px;">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+          <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos cambios de clave</h3>
+          <table id="tabla-ultimos-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+                <th style="padding:8px;">Usuario</th>
+                <th style="padding:8px;">Resultado</th>
+                <th style="padding:8px;">Detalle</th>
+                <th style="padding:8px;">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="padding:8px;color:#64748b;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script>
+	  
+
+	
       (function () {
         "use strict";
 
@@ -2564,6 +2639,7 @@ function eliminarUsuario(usuario) {
       alert('Error de red al eliminar usuario.');
     });
 }
+		  
 /* ===== AUDITORÍA ===== */
 var btnAdministracion = document.getElementById('btn-administracion');
 var auditoriaPanel = document.getElementById('auditoria-panel');
@@ -2575,9 +2651,19 @@ if (btnAdministracion) {
     if (auditoriaPanel) {
       auditoriaPanel.style.display = 'block';
       cargarAuditoria();
-    }
+    }  
   });
 }
+
+/* ===== MÉTRICAS ===== */
+var btnCerrarMetricas = document.getElementById('btn-cerrar-metricas');
+
+if (btnCerrarMetricas) {
+  btnCerrarMetricas.addEventListener('click', function () {
+    document.getElementById('metricas-panel').style.display = 'none';
+    appScreen.classList.remove('admin-bloqueado');
+  });
+}		  
 
 function fmtFechaAuditoria(fechaIso) {
   if (!fechaIso) return '';
@@ -2618,6 +2704,147 @@ function cargarAuditoria() {
     });
 }
 
+function cargarMetricas() {
+  // Usuarios activos / inactivos
+  fetch('/api/usuarios', {
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        console.error('Error cargando usuarios para métricas:', datos.error);
+        return;
+      }
+      var usuarios = datos.usuarios || [];
+      var activos = usuarios.filter(function (u) { return u.activo; }).length;
+      var inactivos = usuarios.length - activos;
+
+      document.getElementById('metrica-usuarios-activos').textContent = activos;
+      document.getElementById('metrica-usuarios-inactivos').textContent = inactivos;
+
+      // Últimos 5 usuarios creados
+      var ultimosUsuarios = usuarios
+        .slice()
+        .sort(function (a, b) { return new Date(b.creado_en) - new Date(a.creado_en); })
+        .slice(0, 5);
+
+      var tbodyUsuarios = document.querySelector('#tabla-ultimos-usuarios tbody');
+      tbodyUsuarios.innerHTML = '';
+
+      if (ultimosUsuarios.length === 0) {
+        tbodyUsuarios.innerHTML = '<tr><td colspan="4" style="padding:8px;color:#64748b;">Sin datos</td></tr>';
+      } else {
+        ultimosUsuarios.forEach(function (u) {
+          var tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f1f5f9';
+
+          var tdUsuario = document.createElement('td');
+          tdUsuario.style.padding = '8px';
+          tdUsuario.textContent = u.usuario;
+
+          var tdNombre = document.createElement('td');
+          tdNombre.style.padding = '8px';
+          tdNombre.textContent = u.nombre || '-';
+
+          var tdRol = document.createElement('td');
+          tdRol.style.padding = '8px';
+          tdRol.textContent = u.rol;
+
+          var tdCreado = document.createElement('td');
+          tdCreado.style.padding = '8px';
+          tdCreado.textContent = fmtFechaAuditoria(u.creado_en);
+
+          tr.appendChild(tdUsuario);
+          tr.appendChild(tdNombre);
+          tr.appendChild(tdRol);
+          tr.appendChild(tdCreado);
+          tbodyUsuarios.appendChild(tr);
+        });
+      }
+    })
+    .catch(function (e) {
+      console.error('Error cargando usuarios para métricas:', e);
+    });
+
+  // Accesos últimos 7 días
+  var ahora = new Date();
+  var hace7dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  fetch('/api/audit-log', {
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        console.error('Error cargando auditoría para métricas:', datos.error);
+        return;
+      }
+
+      var accesos = (datos.accesos || []).filter(function (a) {
+        return new Date(a.creado_en) >= hace7dias;
+      });
+
+      var exitosos7d = accesos.filter(function (a) { return a.resultado === 'exito'; }).length;
+      var fallidos7d = accesos.filter(function (a) { return a.resultado === 'fallo'; }).length;
+
+      document.getElementById('metrica-accesos-exitosos-7d').textContent = exitosos7d;
+      document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
+    })
+    .catch(function (e) {
+      console.error('Error cargando auditoría para métricas:', e);
+    });
+
+  // Últimos 5 cambios de clave
+  fetch('/api/password-changes', {
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        console.error('Error cargando cambios de clave para métricas:', datos.error);
+        return;
+      }
+
+      var cambios = datos.cambios || [];
+      var tbodyCambios = document.querySelector('#tabla-ultimos-cambios-clave tbody');
+      tbodyCambios.innerHTML = '';
+
+      if (!cambios || cambios.length === 0) {
+        tbodyCambios.innerHTML = '<tr><td colspan="4" style="padding:8px;color:#64748b;">Sin datos</td></tr>';
+      } else {
+        cambios.slice(0, 5).forEach(function (c) {
+          var tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f1f5f9';
+
+          var tdUsuario = document.createElement('td');
+          tdUsuario.style.padding = '8px';
+          tdUsuario.textContent = c.identificador;
+
+          var tdResultado = document.createElement('td');
+          tdResultado.style.padding = '8px';
+          tdResultado.textContent = c.resultado;
+
+          var tdDetalle = document.createElement('td');
+          tdDetalle.style.padding = '8px';
+          tdDetalle.textContent = c.detalle || '-';
+
+          var tdFecha = document.createElement('td');
+          tdFecha.style.padding = '8px';
+          tdFecha.textContent = fmtFechaAuditoria(c.cambiado_en);
+
+          tr.appendChild(tdUsuario);
+          tr.appendChild(tdResultado);
+          tr.appendChild(tdDetalle);
+          tr.appendChild(tdFecha);
+          tbodyCambios.appendChild(tr);
+        });
+      }
+    })
+    .catch(function (e) {
+      console.error('Error cargando cambios de clave para métricas:', e);
+    });
+}
+		  
 function dibujarTablaAccesos(accesos) {
   var tbody = document.querySelector('#tabla-accesos tbody');
   if (!tbody) return;
@@ -2717,6 +2944,7 @@ if (btnCerrarAuditoria && auditoriaPanel) {
 /* ===== GESTIÓN DE USUARIOS ===== */
 var btnPestanaAuditoria = document.getElementById('btn-pestana-auditoria');
 var btnPestanaUsuarios = document.getElementById('btn-pestana-usuarios');
+var btnPestanaMetricas = document.getElementById('btn-pestana-metricas');		  
 var auditoriaContenido = document.getElementById('auditoria-contenido');
 var usuariosContenido = document.getElementById('usuarios-contenido');
 var btnNuevoUsuario = document.getElementById('btn-nuevo-usuario');
@@ -2749,6 +2977,15 @@ if (btnPestanaAuditoria && btnPestanaUsuarios) {
     btnPestanaUsuarios.classList.add('primary');
     cargarUsuarios();
   });
+
+    btnPestanaMetricas.addEventListener('click', function () {
+    auditoriaContenido.style.display = 'none';
+    usuariosContenido.style.display = 'none';
+    btnPestanaAuditoria.classList.remove('primary');
+    btnPestanaUsuarios.classList.remove('primary');
+    btnPestanaMetricas.classList.add('primary');
+    cargarMetricas();
+  });	
 }
 
 // Cargar lista de usuarios
