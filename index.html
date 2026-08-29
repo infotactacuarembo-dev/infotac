@@ -1166,8 +1166,8 @@
   </div>
 
   <div style="min-width:180px;flex:1;">
-    <label for="filtro-cambios-usuario" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Usuario</label>
-    <input type="text" id="filtro-cambios-usuario" class="input-filtro" placeholder="Ej.: admin">
+  <label for="filtro-cambios-ip" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">IP</label>
+  <input type="text" id="filtro-cambios-ip" class="input-filtro" placeholder="Ej.: 181.44.10.25">
   </div>
 
   <div>
@@ -2825,7 +2825,7 @@ function exportarCambiosClaveCSV() {
   var hayFiltrosCambiosActivos =
   (filtroCambiosDesde && filtroCambiosDesde.value) ||
   (filtroCambiosHasta && filtroCambiosHasta.value) ||
-  (filtroCambiosUsuario && filtroCambiosUsuario.value.trim()) ||
+  (filtroCambiosIp && filtroCambiosIp.value.trim()) ||
   (filtroCambiosResultado && filtroCambiosResultado.value);
 
   var origen = hayFiltrosCambiosActivos
@@ -3167,21 +3167,22 @@ if (btnPestanaAuditoria && btnPestanaUsuarios) {
 function aplicarFiltrosCambiosClave() {
   var desde = filtroCambiosDesde ? filtroCambiosDesde.value : '';
   var hasta = filtroCambiosHasta ? filtroCambiosHasta.value : '';
-  var usuario = filtroCambiosUsuario
-    ? filtroCambiosUsuario.value.trim().toLowerCase()
+  var ip = filtroCambiosIp
+    ? filtroCambiosIp.value.trim().toLowerCase()
     : '';
-  var resultado = filtroCambiosResultado ? filtroCambiosResultado.value : '';
+  var resultado = filtroCambiosResultado
+    ? String(filtroCambiosResultado.value).trim().toLowerCase()
+    : '';
 
   cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.filter(function (cambio) {
-    var fecha = new Date(cambio.cambiado_en || cambio.creado_en);
-    var identificador = String(
-      cambio.identificador || cambio.usuario || ''
-    ).toLowerCase();
+    var fecha = new Date(cambio.cambiado_en);
+    var ipCambio = String(cambio.ip || '').trim().toLowerCase();
+
     var resultadoCambio = String(cambio.resultado || '')
-  .trim()
-  .toLowerCase()
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '');
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
     if (desde) {
       var fechaDesde = new Date(desde + 'T00:00:00');
@@ -3193,7 +3194,7 @@ function aplicarFiltrosCambiosClave() {
       if (fecha > fechaHasta) return false;
     }
 
-    if (usuario && identificador.indexOf(usuario) === -1) {
+    if (ip && ipCambio.indexOf(ip) === -1) {
       return false;
     }
 
@@ -3220,7 +3221,7 @@ var btnLimpiarFiltrosAccesos = document.getElementById('btn-limpiar-filtros-acce
 var accesosFiltradosActuales = [];
 var filtroCambiosDesde = document.getElementById('filtro-cambios-desde');
 var filtroCambiosHasta = document.getElementById('filtro-cambios-hasta');
-var filtroCambiosUsuario = document.getElementById('filtro-cambios-usuario');
+var filtroCambiosIp = document.getElementById('filtro-cambios-ip');
 var filtroCambiosResultado = document.getElementById('filtro-cambios-resultado');
 var btnAplicarFiltrosCambios = document.getElementById('btn-aplicar-filtros-cambios');
 var btnLimpiarFiltrosCambios = document.getElementById('btn-limpiar-filtros-cambios');
@@ -3273,7 +3274,7 @@ if (btnLimpiarFiltrosCambios) {
   btnLimpiarFiltrosCambios.addEventListener('click', function () {
     if (filtroCambiosDesde) filtroCambiosDesde.value = '';
     if (filtroCambiosHasta) filtroCambiosHasta.value = '';
-    if (filtroCambiosUsuario) filtroCambiosUsuario.value = '';
+    if (filtroCambiosIp) filtroCambiosIp.value = '';
     if (filtroCambiosResultado) filtroCambiosResultado.value = '';
 
     cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.slice();
