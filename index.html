@@ -2686,7 +2686,7 @@ function cargarAuditoria() {
 
 function cargarMetricas() {
   // Usuarios activos / inactivos
-  fetch('/api/usuarios', {
+  fetch('/api/users', {
     credentials: 'same-origin'
   })
     .then(function (r) { return r.json(); })
@@ -2774,8 +2774,8 @@ function cargarMetricas() {
       console.error('Error cargando auditoría para métricas:', e);
     });
 
-  // Últimos 5 cambios de clave
-  fetch('/api/password-changes', {
+    // Últimos 5 cambios de clave
+  fetch('/api/audit-log', {
     credentials: 'same-origin'
   })
     .then(function (r) { return r.json(); })
@@ -2785,43 +2785,51 @@ function cargarMetricas() {
         return;
       }
 
-      var cambios = datos.cambios || [];
+      var cambios = datos.cambiosClave || [];
       var tbodyCambios = document.querySelector('#tabla-ultimos-cambios-clave tbody');
       tbodyCambios.innerHTML = '';
 
-      if (!cambios || cambios.length === 0) {
-        tbodyCambios.innerHTML = '<tr><td colspan="4" style="padding:8px;color:#64748b;">Sin datos</td></tr>';
-      } else {
-        cambios.slice(0, 5).forEach(function (c) {
-          var tr = document.createElement('tr');
-          tr.style.borderBottom = '1px solid #f1f5f9';
-
-          var tdUsuario = document.createElement('td');
-          tdUsuario.style.padding = '8px';
-          tdUsuario.textContent = c.identificador;
-
-          var tdResultado = document.createElement('td');
-          tdResultado.style.padding = '8px';
-          tdResultado.textContent = c.resultado;
-
-          var tdDetalle = document.createElement('td');
-          tdDetalle.style.padding = '8px';
-          tdDetalle.textContent = c.detalle || '-';
-
-          var tdFecha = document.createElement('td');
-          tdFecha.style.padding = '8px';
-          tdFecha.textContent = fmtFechaAuditoria(c.cambiado_en);
-
-          tr.appendChild(tdUsuario);
-          tr.appendChild(tdResultado);
-          tr.appendChild(tdDetalle);
-          tr.appendChild(tdFecha);
-          tbodyCambios.appendChild(tr);
-        });
+      if (cambios.length === 0) {
+        tbodyCambios.innerHTML =
+          '<tr><td colspan="4" style="padding:8px;color:#64748b;">Sin datos</td></tr>';
+        return;
       }
+
+      cambios.slice(0, 5).forEach(function (c) {
+        var tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f1f5f9';
+
+        var tdUsuario = document.createElement('td');
+        tdUsuario.style.padding = '8px';
+        tdUsuario.textContent = c.identificador || c.usuario || '-';
+
+        var tdResultado = document.createElement('td');
+        tdResultado.style.padding = '8px';
+        tdResultado.textContent = c.resultado || '-';
+
+        var tdDetalle = document.createElement('td');
+        tdDetalle.style.padding = '8px';
+        tdDetalle.textContent = c.detalle || '-';
+
+        var tdFecha = document.createElement('td');
+        tdFecha.style.padding = '8px';
+        tdFecha.textContent = fmtFechaAuditoria(c.cambiado_en || c.creado_en);
+
+        tr.appendChild(tdUsuario);
+        tr.appendChild(tdResultado);
+        tr.appendChild(tdDetalle);
+        tr.appendChild(tdFecha);
+        tbodyCambios.appendChild(tr);
+      });
     })
     .catch(function (e) {
       console.error('Error cargando cambios de clave para métricas:', e);
+
+      var tbodyCambios = document.querySelector('#tabla-ultimos-cambios-clave tbody');
+      if (tbodyCambios) {
+        tbodyCambios.innerHTML =
+          '<tr><td colspan="4" style="padding:8px;color:#b91c1c;">No se pudieron cargar los cambios de clave</td></tr>';
+      }
     });
 }
 		  
