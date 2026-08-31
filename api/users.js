@@ -200,6 +200,11 @@ module.exports = async function handler(req, res) {
       // Actualizar
       const updateData = {};
       if (rol) updateData.rol = rol;
+
+      if (activo !== undefined) {
+        updateData.activo = activo;
+      }
+
       if (password && password.length >= 10) {
         updateData.password_hash = bcrypt.hashSync(password, 10);
       }
