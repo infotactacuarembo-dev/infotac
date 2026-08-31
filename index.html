@@ -3068,6 +3068,13 @@ function cargarMetricas() {
      }).length;
 
       document.getElementById('metrica-usuarios-activos').textContent = usuariosActivos;
+		
+      var administradores = usuarios.filter(function (u) {
+      return u.rol === 'admin';
+      }).length;
+
+      document.getElementById('metrica-usuarios-inactivos').textContent = administradores;
+		
 
       // Últimos 5 usuarios creados
       var ultimosUsuarios = usuarios
