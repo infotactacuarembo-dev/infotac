@@ -3171,103 +3171,102 @@ function cargarMetricas() {
 }
 
 function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
-  var contenedor = document.getElementById('grafico-accesos-dia');
-  if (!contenedor) return;
+  try {
+    var contenedor = document.getElementById('grafico-accesos-dia');
+    if (!contenedor) return;
 
-  contenedor.innerHTML = '';
+    contenedor.innerHTML = '';
 
-  // Agrupar accesos por día
-  var dias = [];
-  for (var i = 6; i >= 0; i--) {
-    var dia = new Date(fechaInicio.getTime() + i * 24 * 60 * 60 * 1000);
-    var fechaStr = dia.toISOString().slice(0, 10);
-    var diaSemana = dia.toLocaleDateString('es-AR', { weekday: 'short' });
-    dias.push({ fecha: fechaStr, dia: diaSemana, accesos: 0 });
+    var dias = [];
+    for (var i = 6; i >= 0; i--) {
+      var dia = new Date(fechaInicio.getTime() + i * 24 * 60 * 60 * 1000);
+      var fechaStr = dia.toISOString().slice(0, 10);
+      var diaSemana = dia.toLocaleDateString('es-AR', { weekday: 'short' });
+      dias.push({ fecha: fechaStr, dia: diaSemana, accesos: 0 });
+    }
+
+    accesos.forEach(function (acceso) {
+      var fechaAcceso = new Date(acceso.creado_en).toISOString().slice(0, 10);
+      var diaEncontrado = dias.find(function (d) { return d.fecha === fechaAcceso; });
+      if (diaEncontrado) diaEncontrado.accesos++;
+    });
+
+    var maxAccesos = Math.max.apply(null, dias.map(function (d) { return d.accesos; })) || 1;
+
+    dias.forEach(function (d, index) {
+      var alturaPorcentaje = (d.accesos / maxAccesos) * 100;
+      var barra = document.createElement('div');
+      barra.style.cssText = 'flex:1;background:#3b82f6;border-radius:4px 4px 0 0;min-width:30px;position:relative;';
+      barra.style.height = alturaPorcentaje + '%';
+
+      var contador = document.createElement('div');
+      contador.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:.7rem;font-weight:600;color:#1e293b;';
+      contador.textContent = d.accesos;
+
+      barra.appendChild(contador);
+      contenedor.appendChild(barra);
+
+      var label = document.getElementById('grafico-accesos-dia-label-' + index);
+      if (label) label.textContent = d.dia;
+    });
+  } catch (e) {
+    console.error('Error en dibujarGraficoAccesosPorDia:', e);
   }
-
-  accesos.forEach(function (acceso) {
-    var fechaAcceso = new Date(acceso.creado_en).toISOString().slice(0, 10);
-    var diaEncontrado = dias.find(function (d) { return d.fecha === fechaAcceso; });
-    if (diaEncontrado) diaEncontrado.accesos++;
-  });
-
-  // Encontrar el máximo para escalar las barras
-  var maxAccesos = Math.max.apply(null, dias.map(function (d) { return d.accesos; })) || 1;
-
-  // Crear barras
-  dias.forEach(function (d, index) {
-    var alturaPorcentaje = (d.accesos / maxAccesos) * 100;
-    var barra = document.createElement('div');
-    barra.style.cssText = 'flex:1;background:#3b82f6;border-radius:4px 4px 0 0;min-width:30px;transition:height 0.3s;position:relative;';
-    barra.style.height = alturaPorcentaje + '%';
-
-    var contador = document.createElement('div');
-    contador.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:.7rem;font-weight:600;color:#1e293b;';
-    contador.textContent = d.accesos;
-
-    barra.appendChild(contador);
-    contenedor.appendChild(barra);
-
-    // Etiqueta del día
-    var label = document.getElementById('grafico-accesos-dia-label-' + index);
-    if (label) label.textContent = d.dia;
-  });
 }
 
 function dibujarGraficoAccionesAuditoria(auditoriaUsuarios) {
-  // Contar acciones
-  var creados = 0;
-  var editados = 0;
-  var eliminados = 0;
+  try {
+    var creados = 0;
+    var editados = 0;
+    var eliminados = 0;
 
-  auditoriaUsuarios.forEach(function (fila) {
-    if (fila.accion === 'usuario_creado') creados++;
-    else if (fila.accion === 'usuario_editado') editados++;
-    else if (fila.accion === 'usuario_eliminado') eliminados++;
-  });
+    auditoriaUsuarios.forEach(function (fila) {
+      if (fila.accion === 'usuario_creado') creados++;
+      else if (fila.accion === 'usuario_editado') editados++;
+      else if (fila.accion === 'usuario_eliminado') eliminados++;
+    });
 
-  var total = creados + editados + eliminados || 1;
+    var total = creados + editados + eliminados || 1;
 
-  // Actualizar contadores
-  var elCreados = document.getElementById('grafico-auditoria-creados');
-  var elEditados = document.getElementById('grafico-auditoria-editados');
-  var elEliminados = document.getElementById('grafico-auditoria-eliminados');
+    var elCreados = document.getElementById('grafico-auditoria-creados');
+    var elEditados = document.getElementById('grafico-auditoria-editados');
+    var elEliminados = document.getElementById('grafico-auditoria-eliminados');
 
-  if (elCreados) elCreados.textContent = creados;
-  if (elEditados) elEditados.textContent = editados;
-  if (elEliminados) elEliminados.textContent = eliminados;
+    if (elCreados) elCreados.textContent = creados;
+    if (elEditados) elEditados.textContent = editados;
+    if (elEliminados) elEliminados.textContent = eliminados;
 
-  // Actualizar gráfico circular
-  var anguloCreados = (creados / total) * 360;
-  var anguloEditados = (editados / total) * 360;
+    var anguloCreados = (creados / total) * 360;
+    var anguloEditados = (editados / total) * 360;
 
-  // Buscar el gráfico circular por su estilo conic-gradient
-  var todosLosDivs = document.querySelectorAll('div');
-  var graficoCircular = null;
-  for (var i = 0; i < todosLosDivs.length; i++) {
-    var estilo = todosLosDivs[i].style.background || '';
-    if (estilo.indexOf('conic-gradient') !== -1) {
-      graficoCircular = todosLosDivs[i];
-      break;
+    var todosLosDivs = document.querySelectorAll('div');
+    var graficoCircular = null;
+    for (var i = 0; i < todosLosDivs.length; i++) {
+      var estilo = todosLosDivs[i].style.background || '';
+      if (estilo.indexOf('conic-gradient') !== -1) {
+        graficoCircular = todosLosDivs[i];
+        break;
+      }
     }
+
+    if (graficoCircular) {
+      graficoCircular.style.background = 'conic-gradient(' +
+        '#3b82f6 0deg ' + anguloCreados + 'deg, ' +
+        '#10b981 ' + anguloCreados + 'deg ' + (anguloCreados + anguloEditados) + 'deg, ' +
+        '#ef4444 ' + (anguloCreados + anguloEditados) + 'deg 360deg' +
+      ')';
+    }
+
+    var barraCreados = document.getElementById('grafico-auditoria-barra-creados');
+    var barraEditados = document.getElementById('grafico-auditoria-barra-editados');
+    var barraEliminados = document.getElementById('grafico-auditoria-barra-eliminados');
+
+    if (barraCreados) barraCreados.style.width = (creados / total * 100) + '%';
+    if (barraEditados) barraEditados.style.width = (editados / total * 100) + '%';
+    if (barraEliminados) barraEliminados.style.width = (eliminados / total * 100) + '%';
+  } catch (e) {
+    console.error('Error en dibujarGraficoAccionesAuditoria:', e);
   }
-
-  if (graficoCircular) {
-    graficoCircular.style.background = 'conic-gradient(' +
-      '#3b82f6 0deg ' + anguloCreados + 'deg, ' +
-      '#10b981 ' + anguloCreados + 'deg ' + (anguloCreados + anguloEditados) + 'deg, ' +
-      '#ef4444 ' + (anguloCreados + anguloEditados) + 'deg 360deg' +
-    ')';
-  }
-
-  // Actualizar barras de progreso
-  var barraCreados = document.getElementById('grafico-auditoria-barra-creados');
-  var barraEditados = document.getElementById('grafico-auditoria-barra-editados');
-  var barraEliminados = document.getElementById('grafico-auditoria-barra-eliminados');
-
-  if (barraCreados) barraCreados.style.width = (creados / total * 100) + '%';
-  if (barraEditados) barraEditados.style.width = (editados / total * 100) + '%';
-  if (barraEliminados) barraEliminados.style.width = (eliminados / total * 100) + '%';
 }
 		  
 function dibujarTablaAccesos(accesos) {
