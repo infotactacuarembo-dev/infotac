@@ -3033,8 +3033,11 @@ function cargarMetricas() {
         return;
       }
       var usuarios = datos.usuarios || [];
-      var activos = usuarios.filter(function (u) { return u.activo; }).length;
-      var inactivos = usuarios.length - activos;
+      var activos = usuarios.filter(function (u) {
+  	  return u.activo !== false;
+     }).length;
+
+    var inactivos = usuarios.length - activos;
 
       document.getElementById('metrica-usuarios-activos').textContent = activos;
       document.getElementById('metrica-usuarios-inactivos').textContent = inactivos;
