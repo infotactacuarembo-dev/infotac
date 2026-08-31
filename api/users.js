@@ -150,7 +150,7 @@ module.exports = async function handler(req, res) {
 
     // EDITAR USUARIO (PUT)
     if (req.method === 'PUT') {
-      const { id, password, rol } = req.body || {};
+      const { id, password, rol, activo } = req.body || {};
 
       if (!id || typeof id !== 'string') {
         return res.status(400).json({
