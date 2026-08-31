@@ -1278,14 +1278,36 @@
           </table>
         </div>
 		  
-            </div>
+      </div>
 
       <div id="usuarios-contenido" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
           <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
           <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
         </div>
+         //agregado
+		  <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+  		  <div style="min-width:220px;flex:1;">
+          <label for="filtro-buscar-usuarios" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">
+          Buscar usuario
+          </label>
+         <input
+         ype="text"
+         id="filtro-buscar-usuarios"
+        class="input-filtro"
+        placeholder="Buscar por identificador o rol"
+       >
+     </div>
 
+     <button
+       type="button"
+       class="btn-sm"
+       id="btn-limpiar-buscar-usuarios"
+     >
+    Limpiar
+    </button>
+    </div>
+		  
         <div style="overflow:auto;">
           <table id="tabla-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
             <thead>
