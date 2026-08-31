@@ -3864,7 +3864,7 @@ function dibujarTablaUsuarios(usuarios) {
   var trVacio = document.createElement('tr');
   var tdVacio = document.createElement('td');
 
-  tdVacio.colSpan = 4;
+  tdVacio.colSpan = 5;
   tdVacio.style.padding = '12px';
   tdVacio.style.color = '#64748b';
   tdVacio.textContent = 'No hay usuarios que coincidan con la búsqueda.';
@@ -3881,10 +3881,31 @@ function dibujarTablaUsuarios(usuarios) {
     tr.appendChild(tdId);
 
     var tdRol = document.createElement('td');
-    tdRol.textContent = usuario.rol || 'user';
-    tr.appendChild(tdRol);
+tdRol.textContent = usuario.rol || 'user';
+tr.appendChild(tdRol);
 
-    var tdCreado = document.createElement('td');
+var tdEstado = document.createElement('td');
+var badgeEstado = document.createElement('span');
+
+if (usuario.activo) {
+  badgeEstado.textContent = 'Activo';
+  badgeEstado.style.backgroundColor = '#dcfce7';
+  badgeEstado.style.color = '#166534';
+} else {
+  badgeEstado.textContent = 'Inactivo';
+  badgeEstado.style.backgroundColor = '#fee2e2';
+  badgeEstado.style.color = '#991b1b';
+}
+
+badgeEstado.style.padding = '2px 8px';
+badgeEstado.style.borderRadius = '9999px';
+badgeEstado.style.fontSize = '.75rem';
+badgeEstado.style.fontWeight = '600';
+
+tdEstado.appendChild(badgeEstado);
+tr.appendChild(tdEstado);
+
+var tdCreado = document.createElement('td');
     tdCreado.textContent = fmtFecha(usuario.creado_en) || '';
     tr.appendChild(tdCreado);
 
