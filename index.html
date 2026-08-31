@@ -2909,21 +2909,39 @@ function exportarCambiosClaveCSV() {
 }
 		  
 function exportarAuditoriaUsuariosCSV() {
-  var filas = datosAuditoriaActuales.auditoriaUsuarios.map(function (a) {
-    return [
-      fmtFechaAuditoria(a.creado_en),
-      a.realizado_por || a.identificador || '',
-      a.accion || '',
-      a.usuario_afectado || a.usuario || '',
-      a.detalle || ''
+  var filas = auditoriaUsuariosFiltradosActuales && auditoriaUsuariosFiltradosActuales.length > 0
+    ? auditoriaUsuariosFiltradosActuales
+    : (datosAuditoriaActuales && datosAuditoriaActuales.auditoriaUsuarios) || [];
+
+  if (!filas || filas.length === 0) {
+    alert('No hay datos de auditoría de usuarios para exportar.');
+    return;
+  }
+
+  var headers = ['Fecha', 'Realizado por', 'Acción', 'Usuario afectado', 'Detalle'];
+  var csvRows = [headers.join(',')];
+
+  filas.forEach(function (fila) {
+    var row = [
+      fmtFechaAuditoria(fila.creado_en) || '',
+      fila.actor_identificador || '',
+      fila.accion || '',
+      fila.usuario_afectado || '',
+      fila.detalle || ''
     ];
+    csvRows.push(row.join(','));
   });
 
-  descargarCSV(
-    'auditoria_usuarios.csv',
-    ['Fecha', 'Realizado por', 'Acción', 'Usuario afectado', 'Detalle'],
-    filas
-  );
+  var csvContent = csvRows.join('\n');
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'auditoria_usuarios_' + new Date().toISOString().slice(0, 10) + '.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 		  
 function cargarMetricas() {
