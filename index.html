@@ -1302,6 +1302,62 @@
           </div>
         </div>
 
+		<!-- Gráficos -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:24px; margin-bottom:24px;">
+  
+  <!-- Gráfico de accesos por día -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+    <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Accesos por día (últimos 7 días)</h3>
+    <div id="grafico-accesos-dia" style="display:flex;align-items:flex-end;gap:8px;height:200px;padding:16px 8px;">
+      <!-- Las barras se generan con JS -->
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:0 8px;margin-top:8px;font-size:.7rem;color:#64748b;">
+      <span id="grafico-accesos-dia-label-0"></span>
+      <span id="grafico-accesos-dia-label-1"></span>
+      <span id="grafico-accesos-dia-label-2"></span>
+      <span id="grafico-accesos-dia-label-3"></span>
+      <span id="grafico-accesos-dia-label-4"></span>
+      <span id="grafico-accesos-dia-label-5"></span>
+      <span id="grafico-accesos-dia-label-6"></span>
+    </div>
+  </div>
+
+  <!-- Gráfico de acciones de auditoría -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+    <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Acciones de auditoría</h3>
+    <div style="display:flex;gap:16px;margin-bottom:16px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:16px;height:16px;background:#3b82f6;border-radius:4px;"></div>
+          <span style="font-size:.85rem;color:#64748b;">Creados</span>
+          <span id="grafico-auditoria-creados" style="font-weight:600;color:#1e293b;">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:16px;height:16px;background:#10b981;border-radius:4px;"></div>
+          <span style="font-size:.85rem;color:#64748b;">Editados</span>
+          <span id="grafico-auditoria-editados" style="font-weight:600;color:#1e293b;">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:16px;height:16px;background:#ef4444;border-radius:4px;"></div>
+          <span style="font-size:.85rem;color:#64748b;">Eliminados</span>
+          <span id="grafico-auditoria-eliminados" style="font-weight:600;color:#1e293b;">0</span>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+        <div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(#3b82f6 0deg 0deg, #10b981 0deg 0deg, #ef4444 0deg 0deg);position:relative;">
+          <div style="position:absolute;inset:20px;background:#fff;border-radius:50%;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;height:8px;background:#3b82f6;border-radius:4px;" id="grafico-auditoria-barra-creados"></div>
+      <div style="flex:1;height:8px;background:#10b981;border-radius:4px;" id="grafico-auditoria-barra-editados"></div>
+      <div style="flex:1;height:8px;background:#ef4444;border-radius:4px;" id="grafico-auditoria-barra-eliminados"></div>
+    </div>
+  </div>
+
+</div>
+		  
         <!-- Tablas -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px;">
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
