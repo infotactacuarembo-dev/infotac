@@ -1241,25 +1241,87 @@
 		  
       </div>
             <div id="usuarios-contenido" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-          <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
-          <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
-        </div>
-        <div style="overflow:auto;">
-          <table id="tabla-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
-            <thead>
-              <tr>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Identificador</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Rol</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Creado</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem;gap:1rem;">
+  <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
+  <button type="button" class="btn-sm" id="btn-exportar-auditoria-usuarios">Exportar CSV</button>
+</div>
+
+<div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+
+  <div>
+    <label for="filtro-usuarios-desde" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Desde</label>
+    <input type="date" id="filtro-usuarios-desde" class="input-filtro">
+  </div>
+
+  <div>
+    <label for="filtro-usuarios-hasta" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Hasta</label>
+    <input type="date" id="filtro-usuarios-hasta" class="input-filtro">
+  </div>
+
+  <div style="min-width:150px;flex:1;">
+    <label for="filtro-usuarios-actor" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Realizado por</label>
+    <input
+      type="text"
+      id="filtro-usuarios-actor"
+      class="input-filtro"
+      placeholder="Ej.: admin"
+    >
+  </div>
+
+  <div>
+    <label for="filtro-usuarios-accion" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Acción</label>
+    <select id="filtro-usuarios-accion" class="input-filtro">
+      <option value="">Todas</option>
+      <option value="usuario_creado">Usuario creado</option>
+      <option value="usuario_editado">Usuario editado</option>
+      <option value="usuario_eliminado">Usuario eliminado</option>
+    </select>
+  </div>
+
+  <div style="min-width:150px;flex:1;">
+    <label for="filtro-usuarios-afectado" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Usuario afectado</label>
+    <input
+      type="text"
+      id="filtro-usuarios-afectado"
+      class="input-filtro"
+      placeholder="Ej.: prueba2"
+    >
+  </div>
+
+  <button
+    type="button"
+    class="btn-sm primary"
+    id="btn-aplicar-filtros-usuarios"
+  >
+    Aplicar filtros
+  </button>
+
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-limpiar-filtros-usuarios"
+  >
+    Limpiar
+  </button>
+</div>
+
+<div style="overflow:auto;">
+  <table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+    <thead>
+      <tr>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Fecha</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Realizado por</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Acción</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Usuario afectado</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Detalle</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
       </div>
       <div id="metricas-contenido" style="display:none;">
+		  
         <!-- Tarjetas de métricas -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
           <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
