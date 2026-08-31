@@ -3106,6 +3106,55 @@ function dibujarTablaCambiosClave(cambios) {
   });
 }
 
+function aplicarFiltrosCambiosClave() {
+  var desde = filtroCambiosDesde ? filtroCambiosDesde.value : '';
+  var hasta = filtroCambiosHasta ? filtroCambiosHasta.value : '';
+  var ip = filtroCambiosIp
+    ? filtroCambiosIp.value.trim().toLowerCase()
+    : '';
+  var resultado = filtroCambiosResultado
+    ? String(filtroCambiosResultado.value).trim().toLowerCase()
+    : '';
+
+  var origen = Array.isArray(datosAuditoriaActuales.cambiosClave)
+    ? datosAuditoriaActuales.cambiosClave
+    : [];
+
+  cambiosClaveFiltradosActuales = origen.filter(function (cambio) {
+    var fecha = new Date(cambio.cambiado_en);
+    var ipCambio = String(cambio.ip || '').trim().toLowerCase();
+
+    var resultadoCambio = String(cambio.resultado || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (desde) {
+      var fechaDesde = new Date(desde + 'T00:00:00');
+      if (fecha < fechaDesde) return false;
+    }
+
+    if (hasta) {
+      var fechaHasta = new Date(hasta + 'T23:59:59.999');
+      if (fecha > fechaHasta) return false;
+    }
+
+    if (ip && ipCambio.indexOf(ip) === -1) {
+      return false;
+    }
+
+    if (resultado && resultadoCambio !== resultado) {
+      return false;
+    }
+
+    return true;
+  });
+
+  dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
+}		  
+		  
+
 function dibujarTablaAuditoriaUsuarios(registros) {
   var tbody = document.querySelector('#tabla-auditoria-usuarios tbody');
   if (!tbody) return;
@@ -3261,6 +3310,15 @@ function aplicarFiltrosAccesos() {
 var btnExportarAccesos = document.getElementById('btn-exportar-accesos');
 var btnExportarCambiosClave = document.getElementById('btn-exportar-cambios-clave');
 var btnExportarAuditoriaUsuarios = document.getElementById('btn-exportar-auditoria-usuarios');
+var filtroCambiosDesde = document.getElementById('filtro-cambios-desde');
+var filtroCambiosHasta = document.getElementById('filtro-cambios-hasta');
+var filtroCambiosIp = document.getElementById('filtro-cambios-ip');
+var filtroCambiosResultado = document.getElementById('filtro-cambios-resultado');
+
+var btnAplicarFiltrosCambios = document.getElementById('btn-aplicar-filtros-cambios');
+var btnLimpiarFiltrosCambios = document.getElementById('btn-limpiar-filtros-cambios');
+
+var cambiosClaveFiltradosActuales = [];		  
 var filtroAccesosDesde = document.getElementById('filtro-accesos-desde');
 var filtroAccesosHasta = document.getElementById('filtro-accesos-hasta');
 var filtroAccesosUsuario = document.getElementById('filtro-accesos-usuario');
@@ -3281,6 +3339,12 @@ if (btnExportarCambiosClave) {
   });
 }
 
+if (btnAplicarFiltrosCambios) {
+  btnAplicarFiltrosCambios.addEventListener('click', function () {
+    aplicarFiltrosCambiosClave();
+  });
+}
+		  
 if (btnExportarAuditoriaUsuarios) {
   btnExportarAuditoriaUsuarios.addEventListener('click', function () {
     exportarAuditoriaUsuariosCSV();
