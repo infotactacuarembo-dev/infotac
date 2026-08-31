@@ -167,10 +167,10 @@ module.exports = async function handler(req, res) {
 
       // Verificar que el usuario existe
       const { data: usuarioExistente, error: fetchError } = await supabase
-        .from('usuarios')
-        .select('id, identificador, rol')
-        .eq('id', id)
-        .single();
+      .from('usuarios')
+      .select('id, identificador, rol, activo')
+      .eq('id', id)
+      .single();
 
       if (fetchError || !usuarioExistente) {
         return res.status(404).json({
