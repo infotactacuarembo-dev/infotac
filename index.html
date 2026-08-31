@@ -3972,6 +3972,62 @@ tr.appendChild(tdAcciones);
   });
 }
 
+function cambiarEstadoUsuario(usuario) {
+  var nuevoEstado = !usuario.activo;
+  var accion = nuevoEstado ? 'activar' : 'desactivar';
+
+  var confirmar = confirm(
+    '¿Querés ' + accion + ' al usuario "' + usuario.identificador + '"?'
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  fetch('/api/users', {
+    method: 'PUT',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: usuario.id,
+      activo: nuevoEstado
+    })
+  })
+    .then(function (respuesta) {
+      return respuesta.json().then(function (datos) {
+        return {
+          respuesta: respuesta,
+          datos: datos
+        };
+      });
+    })
+    .then(function (resultado) {
+      if (!resultado.respuesta.ok || !resultado.datos.ok) {
+        throw new Error(
+          resultado.datos.error ||
+          'No se pudo cambiar el estado del usuario.'
+        );
+      }
+
+      alert(
+        'Usuario ' +
+        (nuevoEstado ? 'activado' : 'desactivado') +
+        ' correctamente.'
+      );
+
+      cargarUsuarios();
+    })
+    .catch(function (error) {
+      console.error('Error al cambiar estado:', error);
+      alert(
+        error.message ||
+        'No se pudo cambiar el estado del usuario.'
+      );
+    });
+}
+		  
 // Nuevo usuario
 if (btnNuevoUsuario && modalUsuario) {
   btnNuevoUsuario.addEventListener('click', function () {
