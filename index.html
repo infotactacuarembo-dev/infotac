@@ -3085,12 +3085,33 @@ function cargarMetricas() {
 
       document.getElementById('metrica-accesos-exitosos-7d').textContent = exitosos7d;
       document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
+
+      // ===== GRÁFICO: ACCESOS POR DÍA =====
+      dibujarGraficoAccesosPorDia(accesos, hace7dias, ahora);
     })
     .catch(function (e) {
       console.error('Error cargando auditoría para métricas:', e);
     });
 
-    // Últimos 5 cambios de clave
+  // Auditoría de usuarios para gráfico de acciones
+  fetch('/api/audit-log', {
+    credentials: 'same-origin'
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (datos) {
+      if (!datos.ok) {
+        console.error('Error cargando auditoría de usuarios:', datos.error);
+        return;
+      }
+
+      var auditoriaUsuarios = datos.auditoriaUsuarios || [];
+      dibujarGraficoAccionesAuditoria(auditoriaUsuarios);
+    })
+    .catch(function (e) {
+      console.error('Error cargando auditoría de usuarios:', e);
+    });
+
+  // Últimos 5 cambios de clave
   fetch('/api/audit-log', {
     credentials: 'same-origin'
   })
@@ -3147,6 +3168,100 @@ function cargarMetricas() {
           '<tr><td colspan="4" style="padding:8px;color:#b91c1c;">No se pudieron cargar los cambios de clave</td></tr>';
       }
     });
+}
+
+function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
+  var contenedor = document.getElementById('grafico-accesos-dia');
+  if (!contenedor) return;
+
+  contenedor.innerHTML = '';
+
+  // Agrupar accesos por día
+  var dias = [];
+  for (var i = 6; i >= 0; i--) {
+    var dia = new Date(fechaInicio.getTime() + i * 24 * 60 * 60 * 1000);
+    var fechaStr = dia.toISOString().slice(0, 10);
+    var diaSemana = dia.toLocaleDateString('es-AR', { weekday: 'short' });
+    dias.push({ fecha: fechaStr, dia: diaSemana, accesos: 0 });
+  }
+
+  accesos.forEach(function (acceso) {
+    var fechaAcceso = new Date(acceso.creado_en).toISOString().slice(0, 10);
+    var diaEncontrado = dias.find(function (d) { return d.fecha === fechaAcceso; });
+    if (diaEncontrado) diaEncontrado.accesos++;
+  });
+
+  // Encontrar el máximo para escalar las barras
+  var maxAccesos = Math.max.apply(null, dias.map(function (d) { return d.accesos; })) || 1;
+
+  // Crear barras
+  dias.forEach(function (d, index) {
+    var alturaPorcentaje = (d.accesos / maxAccesos) * 100;
+    var barra = document.createElement('div');
+    barra.style.cssText = 'flex:1;background:#3b82f6;border-radius:4px 4px 0 0;min-width:30px;transition:height 0.3s;position:relative;';
+    barra.style.height = alturaPorcentaje + '%';
+
+    var contador = document.createElement('div');
+    contador.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:.7rem;font-weight:600;color:#1e293b;';
+    contador.textContent = d.accesos;
+
+    barra.appendChild(contador);
+    contenedor.appendChild(barra);
+
+    // Etiqueta del día
+    var label = document.getElementById('grafico-accesos-dia-label-' + index);
+    if (label) label.textContent = d.dia;
+  });
+}
+
+function dibujarGraficoAccionesAuditoria(auditoriaUsuarios) {
+  // Contar acciones
+  var creados = 0;
+  var editados = 0;
+  var eliminados = 0;
+
+  auditoriaUsuarios.forEach(function (fila) {
+    if (fila.accion === 'usuario_creado') creados++;
+    else if (fila.accion === 'usuario_editado') editados++;
+    else if (fila.accion === 'usuario_eliminado') eliminados++;
+  });
+
+  var total = creados + editados + eliminados || 1;
+
+  // Actualizar contadores
+  document.getElementById('grafico-auditoria-creados').textContent = creados;
+  document.getElementById('grafico-auditoria-editados').textContent = editados;
+  document.getElementById('grafico-auditoria-eliminados').textContent = eliminados;
+
+  // Actualizar gráfico circular
+  var anguloCreados = (creados / total) * 360;
+  var anguloEditados = (editados / total) * 360;
+
+  var graficos = document.querySelectorAll('div[style*="conic-gradient"]');
+  var graficoCircular = null;
+  for (var i = 0; i < graficos.length; i++) {
+    if (graficos[i].id === '' || graficos[i].id.indexOf('grafico') !== -1) {
+      graficoCircular = graficos[i];
+      break;
+    }
+  }
+
+  if (graficoCircular) {
+    graficoCircular.style.background = 'conic-gradient(' +
+      '#3b82f6 0deg ' + anguloCreados + 'deg, ' +
+      '#10b981 ' + anguloCreados + 'deg ' + (anguloCreados + anguloEditados) + 'deg, ' +
+      '#ef4444 ' + (anguloCreados + anguloEditados) + 'deg 360deg' +
+    ')';
+  }
+
+  // Actualizar barras de progreso
+  var barraCreados = document.getElementById('grafico-auditoria-barra-creados');
+  var barraEditados = document.getElementById('grafico-auditoria-barra-editados');
+  var barraEliminados = document.getElementById('grafico-auditoria-barra-eliminados');
+
+  if (barraCreados) barraCreados.style.width = (creados / total * 100) + '%';
+  if (barraEditados) barraEditados.style.width = (editados / total * 100) + '%';
+  if (barraEliminados) barraEliminados.style.width = (eliminados / total * 100) + '%';
 }
 		  
 function dibujarTablaAccesos(accesos) {
