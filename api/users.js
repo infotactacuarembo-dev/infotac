@@ -158,6 +158,12 @@ module.exports = async function handler(req, res) {
           error: 'ID de usuario inválido.'
         });
       }
+      if (activo !== undefined && typeof activo !== 'boolean') {
+        return res.status(400).json({
+        ok: false,
+        error: 'El estado activo debe ser true o false.'
+      });
+    }
 
       // Verificar que el usuario existe
       const { data: usuarioExistente, error: fetchError } = await supabase
