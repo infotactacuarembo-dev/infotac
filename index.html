@@ -1306,11 +1306,11 @@
         <!-- Tarjetas de métricas -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
           <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-            <div style="font-size:14px;color:#64748b;">Usuarios activos</div>
+            <div style="font-size:14px;color:#64748b;">Usuarios registrados</div>
             <div id="metrica-usuarios-activos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
           </div>
           <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-            <div style="font-size:14px;color:#64748b;">Usuarios inactivos</div>
+            <div style="font-size:14px;color:#64748b;">Administradores</div>
             <div id="metrica-usuarios-inactivos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
           </div>
           <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
@@ -3033,14 +3033,14 @@ function cargarMetricas() {
         return;
       }
       var usuarios = datos.usuarios || [];
-      var activos = usuarios.filter(function (u) {
-  	  return u.activo !== false;
-     }).length;
+      var usuariosRegistrados = usuarios.length;
 
-    var inactivos = usuarios.length - activos;
+	  var administradores = usuarios.filter(function (u) {
+      return u.rol === 'admin';
+      }).length;
 
-      document.getElementById('metrica-usuarios-activos').textContent = activos;
-      document.getElementById('metrica-usuarios-inactivos').textContent = inactivos;
+      document.getElementById('metrica-usuarios-activos').textContent = usuariosRegistrados;
+      document.getElementById('metrica-usuarios-inactivos').textContent = administradores;
 
       // Últimos 5 usuarios creados
       var ultimosUsuarios = usuarios
