@@ -1224,7 +1224,7 @@
 				<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
   				<button type="button" class="btn-sm" id="btn-exportar-auditoria-usuarios">Exportar CSV</button>
 				</div>
-		  // bloque agregado
+		  
 
 
 		<div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
@@ -3187,6 +3187,90 @@ function aplicarFiltrosCambiosClave() {
 }		  
 		  
 
+/* ===== FILTROS AUDITORÍA DE USUARIOS ===== */
+var filtroUsuariosDesde = document.getElementById('filtro-usuarios-desde');
+var filtroUsuariosHasta = document.getElementById('filtro-usuarios-hasta');
+var filtroUsuariosActor = document.getElementById('filtro-usuarios-actor');
+var filtroUsuariosAccion = document.getElementById('filtro-usuarios-accion');
+var filtroUsuariosAfectado = document.getElementById('filtro-usuarios-afectado');
+
+var btnAplicarFiltrosUsuarios = document.getElementById('btn-aplicar-filtros-usuarios');
+var btnLimpiarFiltrosUsuarios = document.getElementById('btn-limpiar-filtros-usuarios');
+
+var auditoriaUsuariosFiltradosActuales = [];
+
+if (btnAplicarFiltrosUsuarios) {
+  btnAplicarFiltrosUsuarios.addEventListener('click', function () {
+    aplicarFiltrosAuditoriaUsuarios();
+  });
+}
+
+if (btnLimpiarFiltrosUsuarios) {
+  btnLimpiarFiltrosUsuarios.addEventListener('click', function () {
+    if (filtroUsuariosDesde) filtroUsuariosDesde.value = '';
+    if (filtroUsuariosHasta) filtroUsuariosHasta.value = '';
+    if (filtroUsuariosActor) filtroUsuariosActor.value = '';
+    if (filtroUsuariosAccion) filtroUsuariosAccion.value = '';
+    if (filtroUsuariosAfectado) filtroUsuariosAfectado.value = '';
+
+    auditoriaUsuariosFiltradosActuales = datosAuditoriaActuales.auditoriaUsuarios.slice();
+    dibujarTablaAuditoriaUsuarios(auditoriaUsuariosFiltradosActuales);
+  });
+}
+
+function aplicarFiltrosAuditoriaUsuarios() {
+  if (!datosAuditoriaActuales || !datosAuditoriaActuales.auditoriaUsuarios) return;
+
+  var desde = filtroUsuariosDesde ? filtroUsuariosDesde.value : '';
+  var hasta = filtroUsuariosHasta ? filtroUsuariosHasta.value : '';
+  var actor = filtroUsuariosActor
+    ? filtroUsuariosActor.value.trim().toLowerCase()
+    : '';
+  var accion = filtroUsuariosAccion
+    ? String(filtroUsuariosAccion.value).trim()
+    : '';
+  var afectado = filtroUsuariosAfectado
+    ? filtroUsuariosAfectado.value.trim().toLowerCase()
+    : '';
+
+  var origen = Array.isArray(datosAuditoriaActuales.auditoriaUsuarios)
+    ? datosAuditoriaActuales.auditoriaUsuarios
+    : [];
+
+  auditoriaUsuariosFiltradosActuales = origen.filter(function (fila) {
+    var fechaFila = new Date(fila.creado_en);
+    var actorFila = String(fila.actor_identificador || '').trim().toLowerCase();
+    var accionFila = String(fila.accion || '').trim();
+    var afectadoFila = String(fila.usuario_afectado || '').trim().toLowerCase();
+
+    if (desde) {
+      var fechaDesde = new Date(desde + 'T00:00:00');
+      if (fechaFila < fechaDesde) return false;
+    }
+
+    if (hasta) {
+      var fechaHasta = new Date(hasta + 'T23:59:59.999');
+      if (fechaFila > fechaHasta) return false;
+    }
+
+    if (actor && actorFila.indexOf(actor) === -1) {
+      return false;
+    }
+
+    if (accion && accionFila !== accion) {
+      return false;
+    }
+
+    if (afectado && afectadoFila.indexOf(afectado) === -1) {
+      return false;
+    }
+
+    return true;
+  });
+
+  dibujarTablaAuditoriaUsuarios(auditoriaUsuariosFiltradosActuales);
+}
+		  
 function dibujarTablaAuditoriaUsuarios(registros) {
   var tbody = document.querySelector('#tabla-auditoria-usuarios tbody');
   if (!tbody) return;
@@ -3413,7 +3497,36 @@ if (btnLimpiarFiltrosAccesos) {
   });
 }
 
+/* ===== FILTROS AUDITORÍA DE USUARIOS ===== */
+var filtroUsuariosDesde = document.getElementById('filtro-usuarios-desde');
+var filtroUsuariosHasta = document.getElementById('filtro-usuarios-hasta');
+var filtroUsuariosActor = document.getElementById('filtro-usuarios-actor');
+var filtroUsuariosAccion = document.getElementById('filtro-usuarios-accion');
+var filtroUsuariosAfectado = document.getElementById('filtro-usuarios-afectado');
 
+var btnAplicarFiltrosUsuarios = document.getElementById('btn-aplicar-filtros-usuarios');
+var btnLimpiarFiltrosUsuarios = document.getElementById('btn-limpiar-filtros-usuarios');
+
+var auditoriaUsuariosFiltradosActuales = [];
+
+if (btnAplicarFiltrosUsuarios) {
+  btnAplicarFiltrosUsuarios.addEventListener('click', function () {
+    aplicarFiltrosAuditoriaUsuarios();
+  });
+}
+
+if (btnLimpiarFiltrosUsuarios) {
+  btnLimpiarFiltrosUsuarios.addEventListener('click', function () {
+    if (filtroUsuariosDesde) filtroUsuariosDesde.value = '';
+    if (filtroUsuariosHasta) filtroUsuariosHasta.value = '';
+    if (filtroUsuariosActor) filtroUsuariosActor.value = '';
+    if (filtroUsuariosAccion) filtroUsuariosAccion.value = '';
+    if (filtroUsuariosAfectado) filtroUsuariosAfectado.value = '';
+
+    auditoriaUsuariosFiltradosActuales = datosAuditoriaActuales.auditoriaUsuarios.slice();
+    dibujarTablaAuditoriaUsuarios(auditoriaUsuariosFiltradosActuales);
+  });
+}
 		  
 // Cargar lista de usuarios
 function cargarUsuarios() {
