@@ -189,6 +189,29 @@ module.exports = async function handler(req, res) {
       error: 'No podés desactivar el usuario con el que iniciaste sesión.'
     });
     }
+
+      if (
+  activo === false &&
+  usuarioExistente.rol === 'admin' &&
+  usuarioExistente.activo === true
+) {
+  const { count: cantidadAdminsActivos, error: errorAdminsActivos } = await supabase
+    .from('usuarios')
+    .select('id', { count: 'exact', head: true })
+    .eq('rol', 'admin')
+    .eq('activo', true);
+
+  if (errorAdminsActivos) {
+    throw errorAdminsActivos;
+  }
+
+  if (cantidadAdminsActivos <= 1) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Debe quedar al menos un administrador activo.'
+    });
+  }
+}
       
       // Validar que si cambia a rol, haya al menos otro admin
       if (rol && rol !== usuarioExistente.rol) {
