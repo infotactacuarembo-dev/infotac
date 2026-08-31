@@ -3073,7 +3073,8 @@ function cargarMetricas() {
       return u.rol === 'admin';
       }).length;
 
-      document.getElementById('metrica-usuarios-inactivos').textContent = administradores;
+      document.getElementById('metrica-usuarios-inactivos').textContent =
+  		'ADM: ' + administradores;
 		
 
       // Últimos 5 usuarios creados
