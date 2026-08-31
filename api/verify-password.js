@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
     // Buscar usuario en la tabla usuarios
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
-      .select('id, identificador, password_hash, rol')
+      .select('id, identificador, password_hash, rol, activo')
       .eq('identificador', identificadorNormalizado)
       .single();
 
