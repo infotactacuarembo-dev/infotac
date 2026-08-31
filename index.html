@@ -3344,6 +3344,18 @@ if (btnAplicarFiltrosCambios) {
     aplicarFiltrosCambiosClave();
   });
 }
+
+if (btnLimpiarFiltrosCambios) {
+  btnLimpiarFiltrosCambios.addEventListener('click', function () {
+    if (filtroCambiosDesde) filtroCambiosDesde.value = '';
+    if (filtroCambiosHasta) filtroCambiosHasta.value = '';
+    if (filtroCambiosIp) filtroCambiosIp.value = '';
+    if (filtroCambiosResultado) filtroCambiosResultado.value = '';
+
+    cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.slice();
+    dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
+  });
+}
 		  
 if (btnExportarAuditoriaUsuarios) {
   btnExportarAuditoriaUsuarios.addEventListener('click', function () {
@@ -3368,6 +3380,8 @@ if (btnLimpiarFiltrosAccesos) {
     dibujarTablaAccesos(accesosFiltradosActuales);
   });
 }
+
+
 		  
 // Cargar lista de usuarios
 function cargarUsuarios() {
