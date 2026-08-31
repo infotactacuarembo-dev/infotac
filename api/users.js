@@ -262,6 +262,15 @@ module.exports = async function handler(req, res) {
         cambios.push('Contraseña restablecida');
       }
 
+      if (activo !== undefined && activo !== usuarioExistente.activo) {
+        cambios.push(
+        'Estado: ' +
+        (usuarioExistente.activo ? 'Activo' : 'Inactivo') +
+        ' → ' +
+        (activo ? 'Activo' : 'Inactivo')
+        );
+      }
+
       if (cambios.length > 0) {
         await registrarAuditoriaUsuario(
         supabase,
