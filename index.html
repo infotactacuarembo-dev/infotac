@@ -3527,37 +3527,37 @@ var btnUsuarioCerrarX = document.getElementById('btn-usuario-cerrar-x');
 var tablaUsuarios = document.getElementById('tabla-usuarios');
 
 // Cambiar entre pestañas
-if (btnPestanaAuditoria && btnPestanaUsuarios) {
+// Cambiar entre pestañas
+if (btnPestanaAuditoria && btnPestanaUsuarios && btnPestanaMetricas) {
   btnPestanaAuditoria.addEventListener('click', function () {
-  auditoriaContenido.style.display = 'block';
-  usuariosContenido.style.display = 'none';
-  document.getElementById('metricas-contenido').style.display = 'none';
-  btnPestanaAuditoria.classList.add('primary');
-  btnPestanaUsuarios.classList.remove('primary');
-  btnPestanaMetricas.classList.remove('primary');
-});
+    auditoriaContenido.style.display = 'block';
+    usuariosContenido.style.display = 'none';
+    document.getElementById('metricas-contenido').style.display = 'none';
+    btnPestanaAuditoria.classList.add('primary');
+    btnPestanaUsuarios.classList.remove('primary');
+    btnPestanaMetricas.classList.remove('primary');
+  });
 
   btnPestanaUsuarios.addEventListener('click', function () {
-  auditoriaContenido.style.display = 'none';
-  usuariosContenido.style.display = 'block';
-  document.getElementById('metricas-contenido').style.display = 'none';
-  btnPestanaAuditoria.classList.remove('primary');
-  btnPestanaUsuarios.classList.add('primary');
-  btnPestanaMetricas.classList.remove('primary');
-  cargarUsuarios();
+    auditoriaContenido.style.display = 'none';
+    usuariosContenido.style.display = 'block';
+    document.getElementById('metricas-contenido').style.display = 'none';
+    btnPestanaAuditoria.classList.remove('primary');
+    btnPestanaUsuarios.classList.add('primary');
+    btnPestanaMetricas.classList.remove('primary');
+    cargarUsuarios();
   });
 
   btnPestanaMetricas.addEventListener('click', function () {
-  auditoriaContenido.style.display = 'none';
-  usuariosContenido.style.display = 'none';
-  document.getElementById('metricas-contenido').style.display = 'block';
-  btnPestanaAuditoria.classList.remove('primary');
-  btnPestanaUsuarios.classList.remove('primary');
-  btnPestanaMetricas.classList.add('primary');
-  cargarMetricas();
-});
+    auditoriaContenido.style.display = 'none';
+    usuariosContenido.style.display = 'none';
+    document.getElementById('metricas-contenido').style.display = 'block';
+    btnPestanaAuditoria.classList.remove('primary');
+    btnPestanaUsuarios.classList.remove('primary');
+    btnPestanaMetricas.classList.add('primary');
+    cargarMetricas();
+  });
 }
-
 function aplicarFiltrosAccesos() {
   var desde = filtroAccesosDesde ? filtroAccesosDesde.value : '';
   var hasta = filtroAccesosHasta ? filtroAccesosHasta.value : '';
