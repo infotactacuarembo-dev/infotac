@@ -102,6 +102,20 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    if (usuario.activo === false) {
+  await registrarAuditoria(
+    supabase,
+    identificadorNormalizado,
+    'fallo',
+    'Intento de acceso con usuario inactivo'
+  );
+
+  return res.status(403).json({
+    ok: false,
+    error: 'Este usuario está desactivado.'
+  });
+}
+    
     // Validar contraseña
     const valid = bcrypt.compareSync(password, usuario.password_hash);
 
