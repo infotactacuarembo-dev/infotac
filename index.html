@@ -1307,7 +1307,13 @@
     Limpiar
     </button>
     </div>
-		  
+		<div
+  		id="texto-resultados-usuarios"
+  		style="font-size:.8rem;color:#64748b;margin:-.35rem 0 .75rem;"
+  		aria-live="polite"
+		>
+  		Cargando usuarios...
+	</div>  
         <div style="overflow:auto;">
           <table id="tabla-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
             <thead>
@@ -3587,6 +3593,18 @@ function aplicarBusquedaUsuarios() {
   });
 
   dibujarTablaUsuarios(usuariosFiltrados);
+
+var textoResultados = document.getElementById('texto-resultados-usuarios');
+
+if (textoResultados) {
+  if (usuariosFiltrados.length === 0) {
+    textoResultados.textContent = 'No se encontraron usuarios';
+  } else if (usuariosFiltrados.length === 1) {
+    textoResultados.textContent = '1 usuario encontrado';
+  } else {
+    textoResultados.textContent = usuariosFiltrados.length + ' usuarios encontrados';
+  }
+}
 }
 
 if (filtroBuscarUsuarios) {
@@ -3838,7 +3856,21 @@ function dibujarTablaUsuarios(usuarios) {
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  usuarios.forEach(function (usuario) {
+
+  if (usuarios.length === 0) {
+  var trVacio = document.createElement('tr');
+  var tdVacio = document.createElement('td');
+
+  tdVacio.colSpan = 4;
+  tdVacio.style.padding = '12px';
+  tdVacio.style.color = '#64748b';
+  tdVacio.textContent = 'No hay usuarios que coincidan con la búsqueda.';
+
+  trVacio.appendChild(tdVacio);
+  tbody.appendChild(trVacio);
+  return;
+}
+    usuarios.forEach(function (usuario) {
     var tr = document.createElement('tr');
 
     var tdId = document.createElement('td');
