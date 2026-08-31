@@ -164,6 +164,7 @@ module.exports = async function handler(req, res) {
         error: 'El estado activo debe ser true o false.'
       });
     }
+      
 
       // Verificar que el usuario existe
       const { data: usuarioExistente, error: fetchError } = await supabase
@@ -179,6 +180,16 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      if (
+      activo === false &&
+      usuarioExistente.identificador.toLowerCase() === user.identificador.toLowerCase()
+    ) {
+      return res.status(400).json({
+      ok: false,
+      error: 'No podés desactivar el usuario con el que iniciaste sesión.'
+    });
+    }
+      
       // Validar que si cambia a rol, haya al menos otro admin
       if (rol && rol !== usuarioExistente.rol) {
         if (usuarioExistente.rol === 'admin') {
