@@ -3838,13 +3838,15 @@ function cargarUsuarios() {
   })
     .then(function (r) { return r.json(); })
     .then(function (datos) {
-      if (!datos.ok) {
-        alert('No se pudo cargar la lista de usuarios: ' + (datos.error || 'Error desconocido'));
-        return;
-      }
-      usuariosActuales = datos.usuarios || [];
-      aplicarBusquedaUsuarios();
-    })
+  console.log('USUARIOS API:', datos);
+
+  if (!datos.ok) {
+    alert('No se pudo cargar la lista de usuarios: ' + (datos.error || 'Error desconocido'));
+    return;
+  }
+  usuariosActuales = datos.usuarios || [];
+  aplicarBusquedaUsuarios();
+})
     .catch(function (e) {
       console.error(e);
       alert('Error de red al cargar usuarios.');
