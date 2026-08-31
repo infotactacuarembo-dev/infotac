@@ -1285,7 +1285,7 @@
           <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
           <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
         </div>
-         //agregado
+         
 		  <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
   		  <div style="min-width:220px;flex:1;">
           <label for="filtro-buscar-usuarios" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">
@@ -3570,7 +3570,41 @@ var btnUsuarioGuardar = document.getElementById('btn-usuario-guardar');
 var btnUsuarioCancelar = document.getElementById('btn-usuario-cancelar');
 var btnUsuarioCerrarX = document.getElementById('btn-usuario-cerrar-x');
 var tablaUsuarios = document.getElementById('tabla-usuarios');
+var filtroBuscarUsuarios = document.getElementById('filtro-buscar-usuarios');
+var btnLimpiarBuscarUsuarios = document.getElementById('btn-limpiar-buscar-usuarios');
+var usuariosActuales = [];
 
+function aplicarBusquedaUsuarios() {
+  var texto = filtroBuscarUsuarios
+    ? filtroBuscarUsuarios.value.trim().toLowerCase()
+    : '';
+
+  var usuariosFiltrados = usuariosActuales.filter(function (usuario) {
+    var identificador = String(usuario.identificador || '').toLowerCase();
+    var rol = String(usuario.rol || '').toLowerCase();
+
+    return identificador.indexOf(texto) !== -1 || rol.indexOf(texto) !== -1;
+  });
+
+  dibujarTablaUsuarios(usuariosFiltrados);
+}
+
+if (filtroBuscarUsuarios) {
+  filtroBuscarUsuarios.addEventListener('input', function () {
+    aplicarBusquedaUsuarios();
+  });
+}
+
+if (btnLimpiarBuscarUsuarios) {
+  btnLimpiarBuscarUsuarios.addEventListener('click', function () {
+    if (filtroBuscarUsuarios) {
+      filtroBuscarUsuarios.value = '';
+      filtroBuscarUsuarios.focus();
+    }
+
+    aplicarBusquedaUsuarios();
+  });
+}
 // Cambiar entre pestañas
 if (btnPestanaAuditoria && btnPestanaUsuarios && btnPestanaMetricas) {
   btnPestanaAuditoria.addEventListener('click', function () {
@@ -3790,7 +3824,8 @@ function cargarUsuarios() {
         alert('No se pudo cargar la lista de usuarios: ' + (datos.error || 'Error desconocido'));
         return;
       }
-      dibujarTablaUsuarios(datos.usuarios || []);
+      usuariosActuales = datos.usuarios || [];
+      aplicarBusquedaUsuarios();
     })
     .catch(function (e) {
       console.error(e);
