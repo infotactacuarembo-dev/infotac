@@ -3229,19 +3229,25 @@ function dibujarGraficoAccionesAuditoria(auditoriaUsuarios) {
   var total = creados + editados + eliminados || 1;
 
   // Actualizar contadores
-  document.getElementById('grafico-auditoria-creados').textContent = creados;
-  document.getElementById('grafico-auditoria-editados').textContent = editados;
-  document.getElementById('grafico-auditoria-eliminados').textContent = eliminados;
+  var elCreados = document.getElementById('grafico-auditoria-creados');
+  var elEditados = document.getElementById('grafico-auditoria-editados');
+  var elEliminados = document.getElementById('grafico-auditoria-eliminados');
+
+  if (elCreados) elCreados.textContent = creados;
+  if (elEditados) elEditados.textContent = editados;
+  if (elEliminados) elEliminados.textContent = eliminados;
 
   // Actualizar gráfico circular
   var anguloCreados = (creados / total) * 360;
   var anguloEditados = (editados / total) * 360;
 
-  var graficos = document.querySelectorAll('div[style*="conic-gradient"]');
+  // Buscar el gráfico circular por su estilo conic-gradient
+  var todosLosDivs = document.querySelectorAll('div');
   var graficoCircular = null;
-  for (var i = 0; i < graficos.length; i++) {
-    if (graficos[i].id === '' || graficos[i].id.indexOf('grafico') !== -1) {
-      graficoCircular = graficos[i];
+  for (var i = 0; i < todosLosDivs.length; i++) {
+    var estilo = todosLosDivs[i].style.background || '';
+    if (estilo.indexOf('conic-gradient') !== -1) {
+      graficoCircular = todosLosDivs[i];
       break;
     }
   }
