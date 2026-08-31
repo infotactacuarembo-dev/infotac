@@ -1278,8 +1278,29 @@
           </table>
         </div>
 		  
+            </div>
+
+      <div id="usuarios-contenido" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
+          <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
+        </div>
+
+        <div style="overflow:auto;">
+          <table id="tabla-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Identificador</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Rol</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Creado</th>
+                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-           
+
       <div id="metricas-contenido" style="display:none;">
 		  
         <!-- Tarjetas de métricas -->
@@ -3526,34 +3547,44 @@ var btnUsuarioCerrarX = document.getElementById('btn-usuario-cerrar-x');
 var tablaUsuarios = document.getElementById('tabla-usuarios');
 
 // Cambiar entre pestañas
-// Cambiar entre pestañas
 if (btnPestanaAuditoria && btnPestanaUsuarios && btnPestanaMetricas) {
   btnPestanaAuditoria.addEventListener('click', function () {
-    auditoriaContenido.style.display = 'block';
-    usuariosContenido.style.display = 'none';
-    document.getElementById('metricas-contenido').style.display = 'none';
+    var metricas = document.getElementById('metricas-contenido');
+
+    if (auditoriaContenido) auditoriaContenido.style.display = 'block';
+    if (usuariosContenido) usuariosContenido.style.display = 'none';
+    if (metricas) metricas.style.display = 'none';
+
     btnPestanaAuditoria.classList.add('primary');
     btnPestanaUsuarios.classList.remove('primary');
     btnPestanaMetricas.classList.remove('primary');
   });
 
   btnPestanaUsuarios.addEventListener('click', function () {
-    auditoriaContenido.style.display = 'none';
-    usuariosContenido.style.display = 'block';
-    document.getElementById('metricas-contenido').style.display = 'none';
+    var metricas = document.getElementById('metricas-contenido');
+
+    if (auditoriaContenido) auditoriaContenido.style.display = 'none';
+    if (usuariosContenido) usuariosContenido.style.display = 'block';
+    if (metricas) metricas.style.display = 'none';
+
     btnPestanaAuditoria.classList.remove('primary');
     btnPestanaUsuarios.classList.add('primary');
     btnPestanaMetricas.classList.remove('primary');
+
     cargarUsuarios();
   });
 
   btnPestanaMetricas.addEventListener('click', function () {
-    auditoriaContenido.style.display = 'none';
-    usuariosContenido.style.display = 'none';
-    document.getElementById('metricas-contenido').style.display = 'block';
+    var metricas = document.getElementById('metricas-contenido');
+
+    if (auditoriaContenido) auditoriaContenido.style.display = 'none';
+    if (usuariosContenido) usuariosContenido.style.display = 'none';
+    if (metricas) metricas.style.display = 'block';
+
     btnPestanaAuditoria.classList.remove('primary');
     btnPestanaUsuarios.classList.remove('primary');
     btnPestanaMetricas.classList.add('primary');
+
     cargarMetricas();
   });
 }
