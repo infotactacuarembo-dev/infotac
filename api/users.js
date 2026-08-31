@@ -67,7 +67,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, identificador, rol, creado_en')
+        .select('id, identificador, rol, activo, creado_en')
         .order('creado_en', { ascending: false });
 
       if (error) throw error;
