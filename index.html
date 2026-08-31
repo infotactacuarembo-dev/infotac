@@ -3962,7 +3962,13 @@ if (
   btnEstado.style.cursor = 'not-allowed';
 } else {
   btnEstado.disabled = false;
-  btnEstado.title = 'El cambio de estado se habilitará en el próximo paso.';
+  btnEstado.title = usuario.activo
+    ? 'Desactivar este usuario'
+    : 'Activar este usuario';
+
+  btnEstado.addEventListener('click', function () {
+    cambiarEstadoUsuario(usuario);
+  });
 }
 tdAcciones.appendChild(btnEstado);
 tdAcciones.appendChild(btnEliminar);
