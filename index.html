@@ -1154,22 +1154,71 @@
           </table>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem;gap:1rem;">
-  		<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Cambios de clave</h3>
-  		<button type="button" class="btn-sm" id="btn-exportar-cambios-clave">Exportar CSV</button>
-		</div>
-        <div style="overflow:auto;">
-          <table id="tabla-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
-            <thead>
-              <tr>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Fecha</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">IP</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Resultado</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Detalle</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+  <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Cambios de clave</h3>
+  <button type="button" class="btn-sm" id="btn-exportar-cambios-clave">Exportar CSV</button>
+</div>
+
+<div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+
+  <div>
+    <label for="filtro-cambios-desde" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Desde</label>
+    <input type="date" id="filtro-cambios-desde" class="input-filtro">
+  </div>
+
+  <div>
+    <label for="filtro-cambios-hasta" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Hasta</label>
+    <input type="date" id="filtro-cambios-hasta" class="input-filtro">
+  </div>
+
+  <div style="min-width:180px;flex:1;">
+    <label for="filtro-cambios-ip" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">IP</label>
+    <input
+      type="text"
+      id="filtro-cambios-ip"
+      class="input-filtro"
+      placeholder="Buscar por IP"
+    >
+  </div>
+
+  <div>
+    <label for="filtro-cambios-resultado" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Resultado</label>
+    <select id="filtro-cambios-resultado" class="input-filtro">
+      <option value="">Todos</option>
+      <option value="exito">Éxito</option>
+      <option value="fallo">Fallo</option>
+    </select>
+  </div>
+
+  <button
+    type="button"
+    class="btn-sm primary"
+    id="btn-aplicar-filtros-cambios"
+  >
+    Aplicar filtros
+  </button>
+
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-limpiar-filtros-cambios"
+  >
+    Limpiar
+  </button>
+</div>
+
+<div style="overflow:auto;">
+  <table id="tabla-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+    <thead>
+      <tr>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Fecha</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">IP</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Resultado</th>
+        <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Detalle</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
 		        <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem;gap:1rem;">
 				<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
