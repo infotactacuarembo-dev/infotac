@@ -3949,9 +3949,21 @@ btnEstado.type = 'button';
 btnEstado.className = 'btn-sm';
 btnEstado.textContent = usuario.activo ? 'Desactivar' : 'Activar';
 btnEstado.style.marginLeft = '6px';
-btnEstado.disabled = true;
-btnEstado.title = 'El cambio de estado se habilitará en el próximo paso.';
 
+var usuarioActual = sessionStorage.getItem('usuario') || '';
+
+if (
+  usuarioActual &&
+  usuario.identificador.toLowerCase() === usuarioActual.toLowerCase()
+) {
+  btnEstado.disabled = true;
+  btnEstado.title = 'No podés cambiar el estado del usuario con el que iniciaste sesión.';
+  btnEstado.style.opacity = '0.5';
+  btnEstado.style.cursor = 'not-allowed';
+} else {
+  btnEstado.disabled = false;
+  btnEstado.title = 'El cambio de estado se habilitará en el próximo paso.';
+}
 tdAcciones.appendChild(btnEstado);
 tdAcciones.appendChild(btnEliminar);
 tr.appendChild(tdAcciones);
