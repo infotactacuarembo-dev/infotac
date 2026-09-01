@@ -3767,6 +3767,33 @@ function dibujarTablaCambiosClave(cambios) {
     }
   }
 
+  var totalPaginas = Math.max(
+    1,
+    Math.ceil(cambios.length / filasPorPaginaCambios)
+  );
+
+  if (paginaActualCambios > totalPaginas) {
+    paginaActualCambios = totalPaginas;
+  }
+
+  var inicio = (paginaActualCambios - 1) * filasPorPaginaCambios;
+  var fin = inicio + filasPorPaginaCambios;
+  var cambiosPagina = cambios.slice(inicio, fin);
+
+  if (textoPaginaCambios) {
+    textoPaginaCambios.textContent =
+      'Página ' + paginaActualCambios + ' de ' + totalPaginas;
+  }
+
+  if (btnCambiosAnterior) {
+    btnCambiosAnterior.disabled = paginaActualCambios <= 1;
+  }
+
+  if (btnCambiosSiguiente) {
+    btnCambiosSiguiente.disabled =
+      paginaActualCambios >= totalPaginas;
+  }
+
   tbody.innerHTML = '';
 
   if (cambios.length === 0) {
@@ -3775,7 +3802,7 @@ function dibujarTablaCambiosClave(cambios) {
     return;
   }
 
-  cambios.forEach(function (fila) {
+  cambiosPagina.forEach(function (fila) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
@@ -3797,7 +3824,6 @@ function dibujarTablaCambiosClave(cambios) {
     tbody.appendChild(tr);
   });
 }
-
 function aplicarFiltrosCambiosClave() {
   var desde = filtroCambiosDesde ? filtroCambiosDesde.value : '';
   var hasta = filtroCambiosHasta ? filtroCambiosHasta.value : '';
