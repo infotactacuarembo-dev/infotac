@@ -4260,6 +4260,21 @@ if (btnCambiosSiguiente) {
     }
   });
 }
+
+var paginaActualAuditoriaUsuarios = 1;
+var filasPorPaginaAuditoriaUsuarios = 10;
+
+var btnAuditoriaUsuariosAnterior = document.getElementById(
+  'btn-auditoria-usuarios-anterior'
+);
+
+var btnAuditoriaUsuariosSiguiente = document.getElementById(
+  'btn-auditoria-usuarios-siguiente'
+);
+
+var textoPaginaAuditoriaUsuarios = document.getElementById(
+  'texto-pagina-auditoria-usuarios'
+);		  
 		  
 var filtroAccesosDesde = document.getElementById('filtro-accesos-desde');
 var filtroAccesosHasta = document.getElementById('filtro-accesos-hasta');
