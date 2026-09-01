@@ -4311,7 +4311,35 @@ var btnAuditoriaUsuariosSiguiente = document.getElementById(
 var textoPaginaAuditoriaUsuarios = document.getElementById(
   'texto-pagina-auditoria-usuarios'
 );		  
-		  
+
+if (btnAuditoriaUsuariosAnterior) {
+  btnAuditoriaUsuariosAnterior.addEventListener('click', function () {
+    if (paginaActualAuditoriaUsuarios > 1) {
+      paginaActualAuditoriaUsuarios--;
+
+      dibujarTablaAuditoriaUsuarios(
+        datosAuditoriaActuales.auditoriaUsuarios
+      );
+    }
+  });
+}
+
+if (btnAuditoriaUsuariosSiguiente) {
+  btnAuditoriaUsuariosSiguiente.addEventListener('click', function () {
+    var totalPaginas = Math.ceil(
+      datosAuditoriaActuales.auditoriaUsuarios.length /
+      filasPorPaginaAuditoriaUsuarios
+    );
+
+    if (paginaActualAuditoriaUsuarios < totalPaginas) {
+      paginaActualAuditoriaUsuarios++;
+
+      dibujarTablaAuditoriaUsuarios(
+        datosAuditoriaActuales.auditoriaUsuarios
+      );
+    }
+  });
+}		  
 var filtroAccesosDesde = document.getElementById('filtro-accesos-desde');
 var filtroAccesosHasta = document.getElementById('filtro-accesos-hasta');
 var filtroAccesosUsuario = document.getElementById('filtro-accesos-usuario');
