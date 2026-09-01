@@ -3045,11 +3045,19 @@ function cargarAuditoria() {
 	  datosAuditoriaActuales.cambiosClave = datos.cambiosClave || [];
 	  datosAuditoriaActuales.auditoriaUsuarios = datos.auditoriaUsuarios || [];
 
-	 dibujarTablaAccesos(datosAuditoriaActuales.accesos);
-     dibujarTablaCambiosClave(datosAuditoriaActuales.cambiosClave);
-     dibujarTablaAuditoriaUsuarios(datosAuditoriaActuales.auditoriaUsuarios);
+	 accesosFiltradosActuales = datosAuditoriaActuales.accesos.slice();
+	 cambiosClaveFiltradosActuales = datosAuditoriaActuales.cambiosClave.slice();
+	 auditoriaUsuariosFiltradosActuales =
+  	 datosAuditoriaActuales.auditoriaUsuarios.slice();
+
+	 paginaActualAccesos = 1;
+
+    dibujarTablaAccesos(accesosFiltradosActuales);
+    dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
+    dibujarTablaAuditoriaUsuarios(auditoriaUsuariosFiltradosActuales);
 		
     })
+	  
     .catch(function (e) {
       console.error(e);
       alert('Error de red al cargar la auditoría.');
