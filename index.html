@@ -1332,32 +1332,52 @@
 
       <div id="metricas-contenido" style="display:none;">
 		  
-        <!-- Tarjetas de métricas -->
-<div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; margin-bottom:24px;">
+      
+<!-- Tarjetas de métricas -->
+
+<!-- Grupo: Usuarios -->
+<div style="font-size:16px;font-weight:700;color:#0f172a;margin:0 0 12px 0;">
+  Usuarios
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:28px;">
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Usuarios activos</div>
     <div id="metrica-usuarios-activos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Usuarios inactivos</div>
     <div id="metrica-usuarios-inactivos" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Administradores</div>
     <div id="metrica-administradores" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Usuarios nuevos (7 días)</div>
     <div id="metrica-usuarios-nuevos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-  	<div style="font-size:14px;color:#64748b;">Usuarios creados hoy</div>
-  	<div id="metrica-usuarios-creados-hoy" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
+    <div style="font-size:14px;color:#64748b;">Usuarios creados hoy</div>
+    <div id="metrica-usuarios-creados-hoy" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+</div>
+
+<!-- Grupo: Sesiones -->
+<div style="font-size:16px;font-weight:700;color:#0f172a;margin:0 0 12px 0;">
+  Sesiones
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px;">
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Accesos exitosos (7 días)</div>
     <div id="metrica-accesos-exitosos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
   </div>
+
   <div style="background:#f8fafc;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
     <div style="font-size:14px;color:#64748b;">Accesos fallidos (7 días)</div>
     <div id="metrica-accesos-fallidos-7d" style="font-size:28px;font-weight:bold;margin-top:8px;color:#0f172a;">-</div>
@@ -1369,10 +1389,9 @@
   </div>
 
   <div style="grid-column:1 / -1;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);">
-  <div style="font-size:14px;color:#1d4ed8;">Total de eventos de sesión (7 días)</div>
-  <div id="metrica-total-eventos-sesion-7d" style="font-size:32px;font-weight:bold;margin-top:8px;color:#1e3a8a;">-</div>
-</div>
-	
+    <div style="font-size:14px;color:#1d4ed8;">Total de eventos de sesión (7 días)</div>
+    <div id="metrica-total-eventos-sesion-7d" style="font-size:32px;font-weight:bold;margin-top:8px;color:#1e3a8a;">-</div>
+  </div>
 </div>
   
   <!-- Gráfico de accesos por día -->
