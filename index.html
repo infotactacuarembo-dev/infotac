@@ -3246,37 +3246,92 @@ function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
 
     contenedor.innerHTML = '';
 
+    // Se trabaja con fechas locales a medianoche para evitar desfasajes UTC.
+    var hoy = new Date(fechaFin);
+    hoy.setHours(0, 0, 0, 0);
+
     var dias = [];
+
+    // Desde hace 6 días hasta hoy: exactamente 7 días visibles.
     for (var i = 6; i >= 0; i--) {
-      var dia = new Date(fechaInicio.getTime() + i * 24 * 60 * 60 * 1000);
-      var fechaStr = dia.toISOString().slice(0, 10);
-      var diaSemana = dia.toLocaleDateString('es-AR', { weekday: 'short' });
-      dias.push({ fecha: fechaStr, dia: diaSemana, accesos: 0 });
+      var dia = new Date(hoy);
+      dia.setDate(hoy.getDate() - i);
+
+      var fechaStr =
+        dia.getFullYear() + '-' +
+        String(dia.getMonth() + 1).padStart(2, '0') + '-' +
+        String(dia.getDate()).padStart(2, '0');
+
+      var diaSemana = dia.toLocaleDateString('es-AR', {
+        weekday: 'short'
+      });
+
+      dias.push({
+        fecha: fechaStr,
+        dia: diaSemana,
+        accesos: 0
+      });
     }
 
     accesos.forEach(function (acceso) {
-      var fechaAcceso = new Date(acceso.creado_en).toISOString().slice(0, 10);
-      var diaEncontrado = dias.find(function (d) { return d.fecha === fechaAcceso; });
-      if (diaEncontrado) diaEncontrado.accesos++;
+      if (!acceso.creado_en) return;
+
+      // La fecha se compara como día local, no como UTC.
+      var fecha = new Date(acceso.creado_en);
+
+      var fechaAcceso =
+        fecha.getFullYear() + '-' +
+        String(fecha.getMonth() + 1).padStart(2, '0') + '-' +
+        String(fecha.getDate()).padStart(2, '0');
+
+      var diaEncontrado = dias.find(function (d) {
+        return d.fecha === fechaAcceso;
+      });
+
+      if (diaEncontrado) {
+        diaEncontrado.accesos++;
+      }
     });
 
-    var maxAccesos = Math.max.apply(null, dias.map(function (d) { return d.accesos; })) || 1;
+    var maxAccesos = Math.max.apply(null, dias.map(function (d) {
+      return d.accesos;
+    })) || 1;
 
     dias.forEach(function (d, index) {
       var alturaPorcentaje = (d.accesos / maxAccesos) * 100;
+
       var barra = document.createElement('div');
-      barra.style.cssText = 'flex:1;background:#3b82f6;border-radius:4px 4px 0 0;min-width:30px;position:relative;';
-      barra.style.height = alturaPorcentaje + '%';
+      barra.style.cssText =
+        'flex:1;' +
+        'background:#3b82f6;' +
+        'border-radius:4px 4px 0 0;' +
+        'min-width:30px;' +
+        'position:relative;' +
+        'height:' + alturaPorcentaje + '%;';
 
       var contador = document.createElement('div');
-      contador.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;font-size:.7rem;font-weight:600;color:#1e293b;';
+      contador.style.cssText =
+        'position:absolute;' +
+        'bottom:100%;' +
+        'left:50%;' +
+        'transform:translateX(-50%);' +
+        'margin-bottom:4px;' +
+        'font-size:.7rem;' +
+        'font-weight:600;' +
+        'color:#1e293b;';
+
       contador.textContent = d.accesos;
 
       barra.appendChild(contador);
       contenedor.appendChild(barra);
 
-      var label = document.getElementById('grafico-accesos-dia-label-' + index);
-      if (label) label.textContent = d.dia;
+      var label = document.getElementById(
+        'grafico-accesos-dia-label-' + index
+      );
+
+      if (label) {
+        label.textContent = d.dia;
+      }
     });
   } catch (e) {
     console.error('Error en dibujarGraficoAccesosPorDia:', e);
