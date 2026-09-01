@@ -1186,6 +1186,15 @@
   <button type="button" class="btn-sm primary" id="btn-aplicar-filtros-accesos">Aplicar filtros</button>
   <button type="button" class="btn-sm" id="btn-limpiar-filtros-accesos">Limpiar</button>
 </div> 
+
+<div
+  id="texto-resultados-accesos"
+  style="font-size:.8rem;color:#64748b;margin:-.35rem 0 .75rem;"
+  aria-live="polite"
+>
+  Cargando accesos...
+</div>
+		  
         <div style="overflow:auto;margin-bottom:1.25rem;">
           <table id="tabla-accesos" style="width:100%;border-collapse:collapse;font-size:.85rem;">
             <thead>
@@ -3552,13 +3561,39 @@ function dibujarGraficoAccionesAuditoria(auditoriaUsuarios) {
 function dibujarTablaAccesos(accesos) {
   var tbody = document.querySelector('#tabla-accesos tbody');
   if (!tbody) return;
+
+  var textoResultados = document.getElementById(
+    'texto-resultados-accesos'
+  );
+
+  if (textoResultados) {
+    var totalAccesos = Array.isArray(datosAuditoriaActuales.accesos)
+      ? datosAuditoriaActuales.accesos.length
+      : accesos.length;
+
+    if (accesos.length === totalAccesos) {
+      textoResultados.textContent =
+        'Mostrando ' + totalAccesos + ' accesos';
+    } else {
+      textoResultados.textContent =
+        'Mostrando ' + accesos.length + ' de ' +
+        totalAccesos + ' accesos';
+    }
+  }
+
   tbody.innerHTML = '';
+
+  if (accesos.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="4" style="padding:1rem;text-align:center;color:#64748b;">No se encontraron accesos</td></tr>';
+    return;
+  }
 
   accesos.forEach(function (fila) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
-    tdFecha.textContent = fmtFechaAuditoria(fila.creado_en)
+    tdFecha.textContent = fmtFechaAuditoria(fila.creado_en);
     tr.appendChild(tdFecha);
 
     var tdId = document.createElement('td');
@@ -3567,15 +3602,15 @@ function dibujarTablaAccesos(accesos) {
 
     var tdRes = document.createElement('td');
 
-	var resultadoVisible = String(fila.resultado || '')
-  	.trim()
-  	.toLowerCase()
-  	.normalize('NFD')
-  	.replace(/[\u0300-\u036f]/g, '');
+    var resultadoVisible = String(fila.resultado || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
-	tdRes.textContent = resultadoVisible || '';
-	tr.appendChild(tdRes);
-	  
+    tdRes.textContent = resultadoVisible || '';
+    tr.appendChild(tdRes);
+
     var tdDet = document.createElement('td');
     tdDet.textContent = fila.detalle || '';
     tr.appendChild(tdDet);
@@ -3583,7 +3618,6 @@ function dibujarTablaAccesos(accesos) {
     tbody.appendChild(tr);
   });
 }
-
 function dibujarTablaCambiosClave(cambios) {
   var tbody = document.querySelector('#tabla-cambios-clave tbody');
   if (!tbody) return;
