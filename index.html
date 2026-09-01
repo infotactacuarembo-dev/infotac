@@ -3156,7 +3156,11 @@ function cargarMetricas() {
       document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
 
       // ===== GRÁFICO: ACCESOS POR DÍA =====
-      dibujarGraficoAccesosPorDia(accesos, hace7dias, ahora);
+      var accesosUltimos7Dias = accesos.filter(function (a) {
+  	  return new Date(a.creado_en) >= hace7dias;
+     });
+
+    dibujarGraficoAccesosPorDia(accesosUltimos7Dias, hace7dias, ahora);
     })
     .catch(function (e) {
       console.error('Error cargando auditoría para métricas:', e);
