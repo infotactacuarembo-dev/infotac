@@ -1261,6 +1261,14 @@
   </button>
 </div>
 
+<div
+  id="texto-resultados-cambios-clave"
+  style="font-size:.8rem;color:#64748b;margin:-.35rem 0 .75rem;"
+  aria-live="polite"
+>
+  Cargando cambios de clave...
+</div>
+		  
 <div style="overflow:auto;">
   <table id="tabla-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
     <thead>
@@ -3621,7 +3629,33 @@ function dibujarTablaAccesos(accesos) {
 function dibujarTablaCambiosClave(cambios) {
   var tbody = document.querySelector('#tabla-cambios-clave tbody');
   if (!tbody) return;
+
+  var textoResultados = document.getElementById(
+    'texto-resultados-cambios-clave'
+  );
+
+  if (textoResultados) {
+    var totalCambios = Array.isArray(datosAuditoriaActuales.cambiosClave)
+      ? datosAuditoriaActuales.cambiosClave.length
+      : cambios.length;
+
+    if (cambios.length === totalCambios) {
+      textoResultados.textContent =
+        'Mostrando ' + totalCambios + ' cambios de clave';
+    } else {
+      textoResultados.textContent =
+        'Mostrando ' + cambios.length + ' de ' +
+        totalCambios + ' cambios de clave';
+    }
+  }
+
   tbody.innerHTML = '';
+
+  if (cambios.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="4" style="padding:1rem;text-align:center;color:#64748b;">No se encontraron cambios de clave</td></tr>';
+    return;
+  }
 
   cambios.forEach(function (fila) {
     var tr = document.createElement('tr');
