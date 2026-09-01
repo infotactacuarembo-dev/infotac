@@ -221,6 +221,14 @@ if (importError) throw importError;
     }
 
     if (req.method === 'DELETE') {
+      const user = getSessionUser(req);
+
+      if (!user || user.rol !== 'admin') {
+        return res.status(403).json({
+          ok: false,
+          error: 'Solo un administrador puede eliminar órdenes.'
+        });
+      }
       const id = req.query && req.query.id;
 
       if (!validId(id)) {
