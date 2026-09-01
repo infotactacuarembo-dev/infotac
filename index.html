@@ -1405,11 +1405,39 @@
   </thead>
   <tbody></tbody>
 </table>
-        </div>
-		  
-      </div>
+        </div>  
 
-      <div id="usuarios-contenido" style="display:none;">
+		  <!-- PAGINACIÓN AUDITORÍA DE USUARIOS -->
+<div
+  id="paginacion-auditoria-usuarios"
+  style="display:flex;align-items:center;justify-content:flex-end;gap:.75rem;margin:2rem 0 1.5rem;padding-top:.5rem;"
+>
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-auditoria-usuarios-anterior"
+  >
+    Anterior
+  </button>
+
+  <span
+    id="texto-pagina-auditoria-usuarios"
+    style="font-size:.8rem;color:#64748b;min-width:105px;text-align:center;"
+    aria-live="polite"
+  >
+    Página 1 de 1
+  </span>
+
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-auditoria-usuarios-siguiente"
+  >
+    Siguiente
+  </button>
+</div>
+  </div>
+        <div id="usuarios-contenido" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
           <h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Gestión de Usuarios</h3>
           <button type="button" class="btn-sm primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
