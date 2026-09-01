@@ -1312,14 +1312,44 @@
   </table>
 </div>
 
-		        <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem;gap:1rem;">
-				<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
-  				<button type="button" class="btn-sm" id="btn-exportar-auditoria-usuarios">Exportar CSV</button>
-				</div>
+<!-- PAGINACIÓN CAMBIOS DE CLAVE -->
+<div
+  id="paginacion-cambios-clave"
+  style="display:flex;align-items:center;justify-content:flex-end;gap:.75rem;margin:-.5rem 0 1.25rem;"
+>
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-cambios-anterior"
+  >
+    Anterior
+  </button>
+
+  <span
+    id="texto-pagina-cambios"
+    style="font-size:.8rem;color:#64748b;min-width:105px;text-align:center;"
+    aria-live="polite"
+  >
+    Página 1 de 1
+  </span>
+
+  <button
+    type="button"
+    class="btn-sm"
+    id="btn-cambios-siguiente"
+  >
+    Siguiente
+  </button>
+</div>
+		  
+<div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem;gap:1rem;">
+	<h3 style="margin:0;font-size:1rem;font-weight:700;color:#1e293b;">Auditoría de usuarios</h3>
+	<button type="button" class="btn-sm" id="btn-exportar-auditoria-usuarios">Exportar CSV</button>
+</div>
 		  
 
 
-		<div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+  <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;padding:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
   <div>
     <label for="filtro-usuarios-desde" style="display:block;font-size:.75rem;color:#64748b;margin-bottom:.25rem;">Desde</label>
     <input type="date" id="filtro-usuarios-desde" class="input-filtro">
