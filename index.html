@@ -2951,13 +2951,14 @@ var btnActualizarAuditoria = document.getElementById('btn-actualizar-auditoria')
 if (btnAdministracion) {
   btnAdministracion.addEventListener('click', function () {
     appScreen.classList.add('admin-bloqueado');
+
     if (auditoriaPanel) {
       auditoriaPanel.style.display = 'block';
       cargarAuditoria();
-    }  
+      cargarMetricas();
+    }
   });
 }
-
   
 
 function fmtFechaAuditoria(fechaIso) {
