@@ -4160,7 +4160,30 @@ var filasPorPaginaAccesos = 10;
 
 var btnAccesosAnterior = document.getElementById('btn-accesos-anterior');
 var btnAccesosSiguiente = document.getElementById('btn-accesos-siguiente');
-var textoPaginaAccesos = document.getElementById('texto-pagina-accesos');		  
+var textoPaginaAccesos = document.getElementById('texto-pagina-accesos');
+
+if (btnAccesosAnterior) {
+  btnAccesosAnterior.addEventListener('click', function () {
+    if (paginaActualAccesos > 1) {
+      paginaActualAccesos--;
+      dibujarTablaAccesos(accesosFiltradosActuales);
+    }
+  });
+}
+
+if (btnAccesosSiguiente) {
+  btnAccesosSiguiente.addEventListener('click', function () {
+    var totalPaginas = Math.ceil(
+      accesosFiltradosActuales.length / filasPorPaginaAccesos
+    );
+
+    if (paginaActualAccesos < totalPaginas) {
+      paginaActualAccesos++;
+      dibujarTablaAccesos(accesosFiltradosActuales);
+    }
+  });
+}
+
 if (btnExportarAccesos) {
   btnExportarAccesos.addEventListener('click', function () {
     exportarAccesosCSV();
@@ -4211,7 +4234,8 @@ if (btnLimpiarFiltrosAccesos) {
     if (filtroAccesosEvento) filtroAccesosEvento.value = '';
 
     accesosFiltradosActuales = datosAuditoriaActuales.accesos.slice();
-    dibujarTablaAccesos(accesosFiltradosActuales);
+	paginaActualAccesos = 1;
+	dibujarTablaAccesos(accesosFiltradosActuales);
   });
 }
 
