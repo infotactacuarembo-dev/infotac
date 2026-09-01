@@ -2543,7 +2543,98 @@ html += "</div>";
         "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
     }
   }
-		cargarItemsOrden(o.id);
+  var botonAgregarItem = document.getElementById("btn-agregar-item");
+
+  if (botonAgregarItem) {
+      botonAgregarItem.addEventListener("click", function () {
+      var boton = botonAgregarItem;
+      var tipoEl = document.getElementById("item-tipo");
+      var descripcionEl = document.getElementById("item-descripcion");
+      var cantidadEl = document.getElementById("item-cantidad");
+      var precioEl = document.getElementById("item-precio");
+
+      var tipo = tipoEl ? tipoEl.value : "";
+      var descripcion = descripcionEl
+        ? descripcionEl.value.trim()
+        : "";
+      var cantidad = cantidadEl ? Number(cantidadEl.value) : 0;
+      var precioUnitario = precioEl ? Number(precioEl.value) : 0;
+
+      if (!descripcion) {
+        alert("Ingresá una descripción para el ítem.");
+
+        if (descripcionEl) {
+          descripcionEl.focus();
+        }
+
+        return;
+      }
+
+      if (!Number.isFinite(cantidad) || cantidad <= 0) {
+        alert("La cantidad debe ser mayor que cero.");
+
+        if (cantidadEl) {
+          cantidadEl.focus();
+        }
+
+        return;
+      }
+
+      if (!Number.isFinite(precioUnitario) || precioUnitario < 0) {
+        alert("El precio unitario no puede ser negativo.");
+
+        if (precioEl) {
+          precioEl.focus();
+        }
+
+        return;
+      }
+
+      var textoOriginal = boton.textContent;
+
+      boton.disabled = true;
+      boton.textContent = "Agregando...";
+
+      pedirApi(
+        "/api/orden-items",
+        {
+          orden_id: o.id,
+          tipo: tipo,
+          descripcion: descripcion,
+          cantidad: cantidad,
+          precio_unitario: precioUnitario
+        },
+        "POST"
+      )
+        .then(function (resultado) {
+          if (!resultado.ok) {
+            throw new Error(
+              resultado.error || "No se pudo agregar el ítem."
+            );
+          }
+
+          tipoEl.value = "servicio";
+          descripcionEl.value = "";
+          cantidadEl.value = "1";
+          precioEl.value = "0";
+
+          return cargarItemsOrden(o.id);
+        })
+        .catch(function (error) {
+          console.error("Error al agregar ítem:", error);
+
+          alert(
+            error.message || "No se pudo agregar el ítem."
+          );
+        })
+        .finally(function () {
+          boton.disabled = false;
+          boton.textContent = textoOriginal;
+        });
+    });
+  }
+
+  cargarItemsOrden(o.id);
 }
 
 function cargarHistorialCliente(clienteId, ordenActualId) {
