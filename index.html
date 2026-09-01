@@ -3145,7 +3145,11 @@ function cargarMetricas() {
       var accesos = (datos.accesos || []).filter(function (a) {
         return new Date(a.creado_en) >= hace7dias;
       });
-		
+
+	  console.log(
+  	  'Resultados de accesos últimos 7 días:',
+      accesos.map(function (a) { return a.resultado; })
+     );	
 	  
 		
       var exitosos7d = accesos.filter(function (a) { return a.resultado === 'exito'; }).length;
