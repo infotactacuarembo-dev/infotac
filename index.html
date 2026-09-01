@@ -3994,19 +3994,55 @@ function dibujarTablaAuditoriaUsuarios(registros) {
   );
 
   if (textoResultados) {
-  var totalEventos = Array.isArray(datosAuditoriaActuales.auditoriaUsuarios)
-    ? datosAuditoriaActuales.auditoriaUsuarios.length
-    : registros.length;
+    var totalEventos = Array.isArray(
+      datosAuditoriaActuales.auditoriaUsuarios
+    )
+      ? datosAuditoriaActuales.auditoriaUsuarios.length
+      : registros.length;
 
-  if (registros.length === totalEventos) {
-    textoResultados.textContent =
-      'Mostrando ' + totalEventos + ' eventos de auditoría';
-  } else {
-    textoResultados.textContent =
-      'Mostrando ' + registros.length + ' de ' +
-      totalEventos + ' eventos de auditoría';
+    if (registros.length === totalEventos) {
+      textoResultados.textContent =
+        'Mostrando ' + totalEventos + ' eventos de auditoría';
+    } else {
+      textoResultados.textContent =
+        'Mostrando ' + registros.length + ' de ' +
+        totalEventos + ' eventos de auditoría';
+    }
   }
-}
+
+  var totalPaginas = Math.max(
+    1,
+    Math.ceil(
+      registros.length / filasPorPaginaAuditoriaUsuarios
+    )
+  );
+
+  if (paginaActualAuditoriaUsuarios > totalPaginas) {
+    paginaActualAuditoriaUsuarios = totalPaginas;
+  }
+
+  var inicio =
+    (paginaActualAuditoriaUsuarios - 1) *
+    filasPorPaginaAuditoriaUsuarios;
+
+  var fin = inicio + filasPorPaginaAuditoriaUsuarios;
+  var registrosPagina = registros.slice(inicio, fin);
+
+  if (textoPaginaAuditoriaUsuarios) {
+    textoPaginaAuditoriaUsuarios.textContent =
+      'Página ' + paginaActualAuditoriaUsuarios +
+      ' de ' + totalPaginas;
+  }
+
+  if (btnAuditoriaUsuariosAnterior) {
+    btnAuditoriaUsuariosAnterior.disabled =
+      paginaActualAuditoriaUsuarios <= 1;
+  }
+
+  if (btnAuditoriaUsuariosSiguiente) {
+    btnAuditoriaUsuariosSiguiente.disabled =
+      paginaActualAuditoriaUsuarios >= totalPaginas;
+  }
 
   tbody.innerHTML = '';
 
@@ -4016,7 +4052,7 @@ function dibujarTablaAuditoriaUsuarios(registros) {
     return;
   }
 
-  registros.forEach(function (fila) {
+  registrosPagina.forEach(function (fila) {
     var tr = document.createElement('tr');
 
     var tdFecha = document.createElement('td');
