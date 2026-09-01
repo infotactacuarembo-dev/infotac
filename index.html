@@ -1308,9 +1308,16 @@
   <button type="button" class="btn-sm" id="btn-limpiar-filtros-usuarios">Limpiar</button>
 </div>  
 		  
-          <div style="overflow:auto;">  
-			
-  <table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+<div
+  id="texto-resultados-auditoria-usuarios"
+  style="font-size:.8rem;color:#64748b;margin:-.35rem 0 .75rem;"
+  aria-live="polite"
+>
+  Cargando auditoría...
+</div>
+
+<div style="overflow:auto;">
+<table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
   <thead>
     <tr>
       <th>Fecha</th>
