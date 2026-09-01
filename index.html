@@ -4211,7 +4211,28 @@ var filasPorPaginaCambios = 10;
 var btnCambiosAnterior = document.getElementById('btn-cambios-anterior');
 var btnCambiosSiguiente = document.getElementById('btn-cambios-siguiente');
 var textoPaginaCambios = document.getElementById('texto-pagina-cambios');
+if (btnCambiosAnterior) {
+  btnCambiosAnterior.addEventListener('click', function () {
+    if (paginaActualCambios > 1) {
+      paginaActualCambios--;
+      dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
+    }
+  });
+}
 
+if (btnCambiosSiguiente) {
+  btnCambiosSiguiente.addEventListener('click', function () {
+    var totalPaginas = Math.ceil(
+      cambiosClaveFiltradosActuales.length / filasPorPaginaCambios
+    );
+
+    if (paginaActualCambios < totalPaginas) {
+      paginaActualCambios++;
+      dibujarTablaCambiosClave(cambiosClaveFiltradosActuales);
+    }
+  });
+}
+		  
 var filtroAccesosDesde = document.getElementById('filtro-accesos-desde');
 var filtroAccesosHasta = document.getElementById('filtro-accesos-hasta');
 var filtroAccesosUsuario = document.getElementById('filtro-accesos-usuario');
