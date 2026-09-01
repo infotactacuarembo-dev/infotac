@@ -3754,9 +3754,19 @@ function dibujarTablaAuditoriaUsuarios(registros) {
   );
 
   if (textoResultados) {
+  var totalEventos = Array.isArray(datosAuditoriaActuales.auditoriaUsuarios)
+    ? datosAuditoriaActuales.auditoriaUsuarios.length
+    : registros.length;
+
+  if (registros.length === totalEventos) {
     textoResultados.textContent =
-      'Mostrando ' + registros.length + ' eventos de auditoría';
+      'Mostrando ' + totalEventos + ' eventos de auditoría';
+  } else {
+    textoResultados.textContent =
+      'Mostrando ' + registros.length + ' de ' +
+      totalEventos + ' eventos de auditoría';
   }
+}
 
   tbody.innerHTML = '';
 
