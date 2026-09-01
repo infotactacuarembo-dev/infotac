@@ -3148,20 +3148,29 @@ function cargarMetricas() {
         return;
       }
 
-      var accesos = (datos.accesos || []).filter(function (a) {
-  	  var fechaValida = new Date(a.creado_en) >= hace7dias;
-      var esAccesoLogin = a.resultado === 'exito' || a.resultado === 'fallo';
+      var eventosUltimos7Dias = (datos.accesos || []).filter(function (a) {
+  return new Date(a.creado_en) >= hace7dias;
+});
 
-      return fechaValida && esAccesoLogin;
-      });
+var accesos = eventosUltimos7Dias.filter(function (a) {
+  return a.resultado === 'exito' || a.resultado === 'fallo';
+});
 
-	  var resumenResultados = {}; 
-		
-      var exitosos7d = accesos.filter(function (a) { return a.resultado === 'exito'; }).length;
-      var fallidos7d = accesos.filter(function (a) { return a.resultado === 'fallo'; }).length;
+var exitosos7d = accesos.filter(function (a) {
+  return a.resultado === 'exito';
+}).length;
 
-      document.getElementById('metrica-accesos-exitosos-7d').textContent = exitosos7d;
-      document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
+var fallidos7d = accesos.filter(function (a) {
+  return a.resultado === 'fallo';
+}).length;
+
+var cierresSesion7d = eventosUltimos7Dias.filter(function (a) {
+  return a.resultado === 'logout';
+}).length;
+
+document.getElementById('metrica-accesos-exitosos-7d').textContent = exitosos7d;
+document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
+document.getElementById('metrica-cierres-sesion-7d').textContent = cierresSesion7d;
 
       // ===== GRÁFICO: ACCESOS POR DÍA =====
 	 dibujarGraficoAccesosPorDia(accesos, hace7dias, ahora);
