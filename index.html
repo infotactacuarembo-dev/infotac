@@ -2480,11 +2480,40 @@ function renderStats() {
   html += "</select>";
   html += "</div>";
   html += "<div class='historial-section'>";
-  html += "<div class='historial-title'>Servicios y repuestos</div>";
-  html += "<div id='orden-items-contenido'>";
-  html += "<div class='historial-loading'>Cargando servicios...</div>";
-  html += "</div>";
-  html += "</div>"; 			
+html += "<div class='historial-title'>Servicios y repuestos</div>";
+
+html += "<div class='form-group full'>";
+html += "<label for='item-tipo'>Tipo</label>";
+html += "<select id='item-tipo'>";
+html += "<option value='servicio'>Servicio</option>";
+html += "<option value='repuesto'>Repuesto</option>";
+html += "<option value='mano_obra'>Mano de obra</option>";
+html += "</select>";
+html += "</div>";
+
+html += "<div class='form-group full'>";
+html += "<label for='item-descripcion'>Descripción</label>";
+html += "<input type='text' id='item-descripcion' maxlength='300' placeholder='Ej.: Limpieza interna'>";
+html += "</div>";
+
+html += "<div class='form-group full'>";
+html += "<label for='item-cantidad'>Cantidad</label>";
+html += "<input type='number' id='item-cantidad' min='0.01' step='0.01' value='1'>";
+html += "</div>";
+
+html += "<div class='form-group full'>";
+html += "<label for='item-precio'>Precio unitario</label>";
+html += "<input type='number' id='item-precio' min='0' step='0.01' value='0'>";
+html += "</div>";
+
+html += "<button type='button' class='btn-sm' id='btn-agregar-item'>";
+html += "+ Agregar ítem";
+html += "</button>";
+
+html += "<div id='orden-items-contenido'>";
+html += "<div class='historial-loading'>Cargando servicios...</div>";
+html += "</div>";
+html += "</div>";			
    
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
