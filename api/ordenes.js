@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 
 const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
@@ -130,6 +130,14 @@ module.exports = async function handler(req, res) {
       const body = req.body || {};
 
       if (body.action === 'import') {
+        const user = getSessionUser(req);
+
+        if (!user || user.rol !== 'admin') {
+          return res.status(403).json({
+            ok: false,
+            error: 'Solo un administrador puede importar órdenes.'
+          });
+        }
         const rows = Array.isArray(body.ordenes) ? body.ordenes : [];
 
         if (rows.length > 500) {
