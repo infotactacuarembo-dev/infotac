@@ -3748,7 +3748,22 @@ function dibujarTablaAuditoriaUsuarios(registros) {
   var tbody = document.querySelector('#tabla-auditoria-usuarios tbody');
   if (!tbody) return;
 
+  var textoResultados = document.getElementById(
+    'texto-resultados-auditoria-usuarios'
+  );
+
+  if (textoResultados) {
+    textoResultados.textContent =
+      'Mostrando ' + registros.length + ' eventos de auditoría';
+  }
+
   tbody.innerHTML = '';
+
+  if (registros.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#64748b;">No se encontraron eventos de auditoría</td></tr>';
+    return;
+  }
 
   registros.forEach(function (fila) {
     var tr = document.createElement('tr');
