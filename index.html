@@ -2514,6 +2514,7 @@ function renderStats() {
         "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
     }
   }
+		cargarItemsOrden(o.id);
 }
 
 function cargarHistorialCliente(clienteId, ordenActualId) {
@@ -2582,6 +2583,95 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       }
     });
 }
+
+  function cargarItemsOrden(ordenId) {
+  pedirApi(
+    "/api/orden-items?orden_id=" + encodeURIComponent(ordenId)
+  )
+    .then(function (res) {
+      var itemsEl = document.getElementById("orden-items-contenido");
+
+      if (!itemsEl) return;
+
+      if (!res.ok) {
+        itemsEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar servicios y repuestos." +
+          "</div>";
+        return;
+      }
+
+      var items = res.data || [];
+
+      if (items.length === 0) {
+        itemsEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Aún no hay servicios ni repuestos cargados." +
+          "</div>";
+        return;
+      }
+
+      var total = 0;
+
+      var lista = items.map(function (item) {
+        var cantidad = Number(item.cantidad) || 0;
+        var precioUnitario = Number(item.precio_unitario) || 0;
+        var subtotal = cantidad * precioUnitario;
+
+        total += subtotal;
+
+        var tipo = item.tipo || "servicio";
+        var etiquetaTipo = "Servicio";
+
+        if (tipo === "repuesto") {
+          etiquetaTipo = "Repuesto";
+        } else if (tipo === "mano_obra") {
+          etiquetaTipo = "Mano de obra";
+        }
+
+        return (
+          "<li class='historial-item'>" +
+          "<span class='h-equipo'>" +
+          esc(item.descripcion || "—") +
+          "</span>" +
+          "<span class='status-badge'>" +
+          etiquetaTipo +
+          "</span>" +
+          "<span class='h-falla'>" +
+          cantidad +
+          " × $" +
+          precioUnitario.toFixed(2) +
+          " = $" +
+          subtotal.toFixed(2) +
+          "</span>" +
+          "</li>"
+        );
+      }).join("");
+
+      itemsEl.innerHTML =
+        "<ul class='historial-list'>" +
+        lista +
+        "</ul>" +
+        "<div class='historial-loading'>" +
+        "Total de ítems: $" +
+        total.toFixed(2) +
+        "</div>";
+    })
+    .catch(function (err) {
+      console.error("Error al cargar ítems de orden:", err);
+
+      var itemsEl = document.getElementById("orden-items-contenido");
+
+      if (itemsEl) {
+        itemsEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar servicios y repuestos." +
+          "</div>";
+      }
+    });
+}
+
+		  
         modalCerrar.addEventListener("click", function () { modalDetalle.classList.remove("visible"); });
         modalDetalle.addEventListener("click", function (e) {
           if (e.target === modalDetalle) modalDetalle.classList.remove("visible");
