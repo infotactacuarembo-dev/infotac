@@ -3146,10 +3146,19 @@ function cargarMetricas() {
         return new Date(a.creado_en) >= hace7dias;
       });
 
-	  console.log(
-  	  'Resultados de accesos últimos 7 días:',
-      accesos.map(function (a) { return a.resultado; })
-     );	
+	  var resumenResultados = {};
+
+	  accesos.forEach(function (a) {
+      var resultado = String(a.resultado || '(vacío)').trim().toLowerCase();
+
+      if (!resumenResultados[resultado]) {
+    	resumenResultados[resultado] = 0;
+      }
+
+      resumenResultados[resultado]++;
+     });
+
+     console.log('Resumen de resultados de acceso:', resumenResultados);
 	  
 		
       var exitosos7d = accesos.filter(function (a) { return a.resultado === 'exito'; }).length;
