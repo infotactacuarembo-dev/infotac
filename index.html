@@ -3146,8 +3146,7 @@ function cargarMetricas() {
         return new Date(a.creado_en) >= hace7dias;
       });
 		
-	  console.log('Accesos recibidos:', datos.accesos);
-	  console.log('Accesos últimos 7 días:', accesos);
+	  
 		
       var exitosos7d = accesos.filter(function (a) { return a.resultado === 'exito'; }).length;
       var fallidos7d = accesos.filter(function (a) { return a.resultado === 'fallo'; }).length;
@@ -3156,13 +3155,9 @@ function cargarMetricas() {
       document.getElementById('metrica-accesos-fallidos-7d').textContent = fallidos7d;
 
       // ===== GRÁFICO: ACCESOS POR DÍA =====
-      var accesosUltimos7Dias = accesos.filter(function (a) {
-  	  return new Date(a.creado_en) >= hace7dias;
-     });
-
-    dibujarGraficoAccesosPorDia(accesosUltimos7Dias, hace7dias, ahora);
-    })
-    .catch(function (e) {
+	 dibujarGraficoAccesosPorDia(accesos, hace7dias, ahora);
+	})
+     .catch(function (e) {
       console.error('Error cargando auditoría para métricas:', e);
     });
 
@@ -3250,46 +3245,52 @@ function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
 
     contenedor.innerHTML = '';
 
-    // Se trabaja con fechas locales a medianoche para evitar desfasajes UTC.
+    // Hoy y el inicio del período, ambos a medianoche local.
     var hoy = new Date(fechaFin);
     hoy.setHours(0, 0, 0, 0);
 
+    var inicio = new Date(hoy);
+    inicio.setDate(hoy.getDate() - 6);
+
     var dias = [];
 
-    // Desde hace 6 días hasta hoy: exactamente 7 días visibles.
-    for (var i = 6; i >= 0; i--) {
-      var dia = new Date(hoy);
-      dia.setDate(hoy.getDate() - i);
+    for (var i = 0; i < 7; i++) {
+      var dia = new Date(inicio);
+      dia.setDate(inicio.getDate() + i);
 
       var fechaStr =
         dia.getFullYear() + '-' +
         String(dia.getMonth() + 1).padStart(2, '0') + '-' +
         String(dia.getDate()).padStart(2, '0');
 
-      var diaSemana = dia.toLocaleDateString('es-AR', {
-        weekday: 'short'
-      });
-
       dias.push({
         fecha: fechaStr,
-        dia: diaSemana,
+        dia: dia.toLocaleDateString('es-AR', { weekday: 'short' }),
         accesos: 0
       });
     }
 
     accesos.forEach(function (acceso) {
-      if (!acceso.creado_en) return;
+      if (!acceso || !acceso.creado_en) return;
 
-      // La fecha se compara como día local, no como UTC.
-      var fecha = new Date(acceso.creado_en);
+      var fechaAcceso = new Date(acceso.creado_en);
 
-      var fechaAcceso =
-        fecha.getFullYear() + '-' +
-        String(fecha.getMonth() + 1).padStart(2, '0') + '-' +
-        String(fecha.getDate()).padStart(2, '0');
+      // Ignorar fechas inválidas.
+      if (isNaN(fechaAcceso.getTime())) return;
+
+      // El gráfico solo cuenta accesos desde hace 6 días hasta hoy.
+      var diaAcceso = new Date(fechaAcceso);
+      diaAcceso.setHours(0, 0, 0, 0);
+
+      if (diaAcceso < inicio || diaAcceso > hoy) return;
+
+      var clave =
+        diaAcceso.getFullYear() + '-' +
+        String(diaAcceso.getMonth() + 1).padStart(2, '0') + '-' +
+        String(diaAcceso.getDate()).padStart(2, '0');
 
       var diaEncontrado = dias.find(function (d) {
-        return d.fecha === fechaAcceso;
+        return d.fecha === clave;
       });
 
       if (diaEncontrado) {
@@ -3325,7 +3326,6 @@ function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
         'color:#1e293b;';
 
       contador.textContent = d.accesos;
-
       barra.appendChild(contador);
       contenedor.appendChild(barra);
 
