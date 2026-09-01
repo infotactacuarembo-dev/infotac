@@ -787,7 +787,48 @@
 .password-toggle:hover {
   background: var(--bg);
 }
-	</style>
+
+#tabla-auditoria-usuarios {
+  border-collapse: collapse;
+  width: 100%;
+  max-height: 60vh;
+  display: block;
+  overflow: auto;
+  font-size: .85rem;
+}
+
+#tabla-auditoria-usuarios thead {
+  display: table-header-group;
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  z-index: 1;
+}
+
+#tabla-auditoria-usuarios tbody {
+  display: table-row-group;
+}
+
+#tabla-auditoria-usuarios th,
+#tabla-auditoria-usuarios td {
+  padding: .6rem .75rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  color: #334155;
+  white-space: nowrap;
+}
+
+#tabla-auditoria-usuarios th {
+  font-weight: 600;
+  color: #64748b;
+  font-size: .75rem;
+  background: #f1f5f9;
+}
+
+#tabla-auditoria-usuarios tr:hover {
+  background: #f8fafc;
+}
+</style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -1269,18 +1310,18 @@
 		  
           <div style="overflow:auto;">  
 			
-          <table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
-            <thead>
-              <tr>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Fecha</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Realizado por</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Acción</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Usuario afectado</th>
-                <th style="background:#f1f5f9;text-align:left;padding:.6rem .75rem;font-weight:600;color:#64748b;font-size:.75rem;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Detalle</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+  <table id="tabla-auditoria-usuarios" style="width:100%;border-collapse:collapse;font-size:.85rem;">
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Realizado por</th>
+      <th>Acción</th>
+      <th>Usuario afectado</th>
+      <th>Detalle</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
         </div>
 		  
       </div>
