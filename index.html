@@ -3328,7 +3328,7 @@ document.getElementById('metrica-total-eventos-sesion-7d').textContent = totalEv
         tbodyCambios.appendChild(tr);
       });
     })
-    .catch(function (e) {
+        .catch(function (e) {
       console.error('Error cargando cambios de clave para métricas:', e);
 
       var tbodyCambios = document.querySelector('#tabla-ultimos-cambios-clave tbody');
@@ -3338,7 +3338,7 @@ document.getElementById('metrica-total-eventos-sesion-7d').textContent = totalEv
       }
     });
 
-	  actualizarTextoUltimaActualizacion();
+  actualizarTextoUltimaActualizacion();
 }
 
 function dibujarGraficoAccesosPorDia(accesos, fechaInicio, fechaFin) {
