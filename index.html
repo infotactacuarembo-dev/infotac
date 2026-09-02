@@ -2784,6 +2784,60 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         "Total de ítems: $" +
         total.toFixed(2) +
         "</div>";
+
+		var botonesEliminar = itemsEl.querySelectorAll(
+        ".btn-eliminar-item"
+      );
+
+        botonesEliminar.forEach(function (boton) {
+        boton.addEventListener("click", function () {
+          var itemId = boton.getAttribute("data-item-id");
+
+          if (!itemId) {
+            alert("No se encontró el identificador del ítem.");
+            return;
+          }
+
+          if (!confirm("¿Eliminar este ítem de la orden?")) {
+            return;
+          }
+
+          var textoOriginal = boton.textContent;
+
+          boton.disabled = true;
+          boton.textContent = "Eliminando...";
+
+          pedirApi(
+            "/api/orden-items?id=" +
+              encodeURIComponent(itemId),
+            undefined,
+            "DELETE"
+          )
+            .then(function (resultado) {
+              if (!resultado.ok) {
+                throw new Error(
+                  resultado.error || "No se pudo eliminar el ítem."
+                );
+              }
+
+              return cargarItemsOrden(ordenId);
+            })
+            .catch(function (error) {
+              console.error(
+                "Error al eliminar ítem:",
+                error
+              );
+
+              alert(
+                error.message ||
+                "No se pudo eliminar el ítem."
+              );
+
+              boton.disabled = false;
+              boton.textContent = textoOriginal;
+            });
+        });
+      });
     })
 	  
     .catch(function (err) {
