@@ -2750,23 +2750,31 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         }
 
         return (
-          "<li class='historial-item'>" +
-          "<span class='h-equipo'>" +
-          esc(item.descripcion || "—") +
-          "</span>" +
-          "<span class='status-badge'>" +
-          etiquetaTipo +
-          "</span>" +
-          "<span class='h-falla'>" +
-          cantidad +
-          " × $" +
-          precioUnitario.toFixed(2) +
-          " = $" +
-          subtotal.toFixed(2) +
-          "</span>" +
-          "</li>"
-        );
-      }).join("");
+  			"<li class='historial-item'>" +
+  			"<span class='h-equipo'>" +
+  			esc(item.descripcion || "—") +
+  			"</span>" +
+  			"<span class='status-badge'>" +
+  			etiquetaTipo +
+  			"</span>" +
+  			"<span class='h-falla'>" +
+  			cantidad +
+  			" × $" +
+  			precioUnitario.toFixed(2) +
+  			" = $" +
+  			subtotal.toFixed(2) +
+  			"</span>" +
+  			"<button type='button' class='btn-eliminar-item' " +
+  			"data-item-id='" +
+  			esc(item.id) +
+  			"'>" +
+  			"Eliminar" +
+  			"</button>" +
+  			"</li>"
+		);
+
+		  
+      	}).join("");
 
       itemsEl.innerHTML =
         "<ul class='historial-list'>" +
@@ -2777,6 +2785,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         total.toFixed(2) +
         "</div>";
     })
+	  
     .catch(function (err) {
       console.error("Error al cargar ítems de orden:", err);
 
