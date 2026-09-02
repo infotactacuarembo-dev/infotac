@@ -2733,7 +2733,8 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 
       var total = 0;
 
-      var lista = items.map(function (item) {
+	    window.itemsOrdenActuales = items;
+      	var lista = items.map(function (item) {
         var cantidad = Number(item.cantidad) || 0;
         var precioUnitario = Number(item.precio_unitario) || 0;
         var subtotal = cantidad * precioUnitario;
@@ -2828,6 +2829,64 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 
               return cargarItemsOrden(ordenId);
             })
+
+			      var botonesEditar = itemsEl.querySelectorAll(
+        ".btn-editar-item"
+      );
+
+      botonesEditar.forEach(function (boton) {
+        boton.addEventListener("click", function () {
+          var itemId = boton.getAttribute("data-item-id");
+
+          var item = (window.itemsOrdenActuales || []).find(
+            function (registro) {
+              return String(registro.id) === String(itemId);
+            }
+          );
+
+          if (!item) {
+            alert("No se encontró el ítem para editar.");
+            return;
+          }
+
+          var tipoEl = document.getElementById("item-tipo");
+          var descripcionEl = document.getElementById(
+            "item-descripcion"
+          );
+          var cantidadEl = document.getElementById(
+            "item-cantidad"
+          );
+          var precioEl = document.getElementById("item-precio");
+
+          if (tipoEl) {
+            tipoEl.value = item.tipo || "servicio";
+          }
+
+          if (descripcionEl) {
+            descripcionEl.value = item.descripcion || "";
+          }
+
+          if (cantidadEl) {
+            cantidadEl.value = item.cantidad || "1";
+          }
+
+          if (precioEl) {
+            precioEl.value = item.precio_unitario || "0";
+          }
+
+          var botonAgregar = document.getElementById(
+            "btn-agregar-item"
+          );
+
+          if (botonAgregar) {
+            botonAgregar.textContent = "Guardar cambios";
+            botonAgregar.dataset.editandoId = item.id;
+          }
+
+          descripcionEl.focus();
+        });
+      });
+			  
             .catch(function (error) {
               console.error(
                 "Error al eliminar ítem:",
