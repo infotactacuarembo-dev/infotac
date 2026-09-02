@@ -2523,7 +2523,7 @@ html += "</div>";
 
   html += "<div class='orden-resumen-fila'>";
   html += "<span>Total de ítems</span>";
-  html += "<strong id='orden-items-total'>$0.00</strong>";
+  html += "<strong id='orden-resumen-total-items'>$0.00</strong>";
   html += "</div>";
 
   html += "<div class='orden-resumen-fila'>";
@@ -2700,10 +2700,9 @@ html += "</div>";
 
   if (botonUsarTotal) {
     botonUsarTotal.addEventListener("click", function () {
-      var totalEl = document.getElementById(
-        "orden-items-total"
-      );
-
+    var totalEl = document.getElementById(
+   "orden-items-total"
+  );
       var presupuestoEl = document.getElementById(
         "modal-presupuesto"
       );
@@ -2806,9 +2805,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     "modal-sena"
   );
 
-  var totalEl = document.getElementById(
-    "orden-items-total"
-  );
+  
 
   var saldoEl = document.getElementById(
     "orden-resumen-saldo"
@@ -2854,10 +2851,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     sena - presupuesto
   );
 
-  totalEl.textContent =
-    "Total de servicios y repuestos: $" +
-    totalItems.toFixed(2);
-
+ 
   saldoEl.textContent =
     "$" + saldo.toFixed(2);
 
