@@ -3281,14 +3281,20 @@ pedirApi(
           html += "<div class='tk-val-block'><span class='tk-label'>Estético / Accesorios:</span><span class='tk-val'>" + esc(o.estetico) + "</span></div>";
 		            html += "<div class='tk-section-title'>Servicios y repuestos</div>";
 
+                    var totalItems = 0;
+
           if (items.length === 0) {
-            html += "<div class='tk-val'>Sin servicios ni repuestos cargados.</div>";
+            html += "<div class='tk-val'>";
+            html += "Sin servicios ni repuestos cargados.";
+            html += "</div>";
           } else {
             items.forEach(function (item) {
               var cantidad = Number(item.cantidad) || 0;
               var precioUnitario =
                 Number(item.precio_unitario) || 0;
               var subtotal = cantidad * precioUnitario;
+
+              totalItems += subtotal;
 
               var tipo = item.tipo || "servicio";
               var etiquetaTipo = "Servicio";
@@ -3315,6 +3321,13 @@ pedirApi(
             });
           }
 
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Total ítems:</span>";
+          html += "<span class='tk-val'>$" +
+            totalItems.toFixed(2) +
+            "</span>";
+          html += "</div>";
+		  	
           html += "<div class='tk-section-title'>Resumen Económico</div>";
           html += "<div class='tk-row'><span class='tk-label'>Presupuesto:</span><span class='tk-val'>$" + (o.presupuesto || "0.00") + "</span></div>";
           html += "<div class='tk-row'><span class='tk-label'>Seña:</span><span class='tk-val'>$" + (o.sena || "0.00") + "</span></div>";
