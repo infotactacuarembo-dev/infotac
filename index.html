@@ -2542,7 +2542,14 @@ html += "</div>";
 
   html += "<div class='orden-resumen-fila'>";
   html += "<span>Saldo pendiente</span>";
-  html += "<strong id='resumen-saldo'>$0.00</strong>";
+  html += "<strong id='resumen-saldo'>$" +
+  Math.max(
+    0,
+    Number(o.presupuesto || 0) -
+    Number(o.sena || 0)
+  ).toFixed(2) +
+  "</strong>";
+	  
   html += "</div>";
 
   html += "<div class='orden-resumen-fila excedente' id='resumen-excedente-fila' style='display:none;'>";
