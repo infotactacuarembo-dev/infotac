@@ -3358,10 +3358,14 @@ pedirApi(
             "</span>";
           html += "</div>";
           html += "<div class='tk-section-title'>Resumen Económico</div>";
-		            var aprobacion =
-            o.aprobacionPresupuesto || "pendiente";
+		  var aprobacion =
+          o.aprobacionPresupuesto ||
+          o.aprobacion_presupuesto ||
+          "pendiente";
 
           var etiquetaAprobacion = "Pendiente";
+
+          aprobacion = String(aprobacion).toLowerCase();
 
           if (aprobacion === "aprobado") {
             etiquetaAprobacion = "Aprobado";
