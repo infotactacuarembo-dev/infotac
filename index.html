@@ -3295,6 +3295,20 @@ pedirApi(
           html += "<div class='tk-section-title'>Estado de Recepción</div>";
           html += "<div class='tk-val-block'><span class='tk-label'>Falla reportada:</span><span class='tk-val'>" + esc(o.falla) + "</span></div>";
           html += "<div class='tk-val-block'><span class='tk-label'>Estético / Accesorios:</span><span class='tk-val'>" + esc(o.estetico) + "</span></div>";
+		  html += "<div class='tk-section-title'>Diagnóstico y trabajo</div>";
+          html += "<div class='tk-val-block'>";
+          html += "<span class='tk-label'>Diagnóstico:</span>";
+          html += "<span class='tk-val'>" +
+            esc(o.diagnostico || "Pendiente de diagnóstico.") +
+            "</span>";
+          html += "</div>";
+
+          html += "<div class='tk-val-block'>";
+          html += "<span class='tk-label'>Trabajo a realizar:</span>";
+          html += "<span class='tk-val'>" +
+            esc(o.trabajoRealizar || "Pendiente de definir.") +
+            "</span>";
+          html += "</div>";	
 		            html += "<div class='tk-section-title'>Servicios y repuestos</div>";
 
           var totalItems = 0;
