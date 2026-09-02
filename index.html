@@ -3358,6 +3358,23 @@ pedirApi(
             "</span>";
           html += "</div>";
           html += "<div class='tk-section-title'>Resumen Económico</div>";
+		            var aprobacion =
+            o.aprobacionPresupuesto || "pendiente";
+
+          var etiquetaAprobacion = "Pendiente";
+
+          if (aprobacion === "aprobado") {
+            etiquetaAprobacion = "Aprobado";
+          } else if (aprobacion === "rechazado") {
+            etiquetaAprobacion = "Rechazado";
+          }
+
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Aprobación:</span>";
+          html += "<span class='tk-val'>" +
+            esc(etiquetaAprobacion) +
+            "</span>";
+          html += "</div>";	
           html += "<div class='tk-row'>";
           html += "<span class='tk-label'>Total ítems:</span>";
           html += "<span class='tk-val'>$" +
