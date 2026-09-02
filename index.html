@@ -3425,17 +3425,48 @@ pedirApi(
         });
 
         /* ===== WHATSAPP ===== */
-        function enviarWhatsApp(id) {
-          var o = ordenes.find(function (x) { return x.id === id; });
-          if (!o) return;
-          var msg = construirMensajeWhatsApp(o);
-          var tel = (o.whatsapp || "").replace(/[^0-9]/g, "");
-          if (tel && tel.length < 2) tel = "";
-          var url = "https://wa.me/" + tel + "?text=" + encodeURIComponent(msg);
-          window.open(url, "_blank");
-        }
+        async function enviarWhatsApp(id) {
+  var o = ordenes.find(function (x) {
+    return x.id === id;
+  });
 
-        function construirMensajeWhatsApp(o) {
+  if (!o) return;
+
+  var items = [];
+
+  try {
+    var respuestaItems = await pedirApi(
+      "/api/orden-items?orden_id=" +
+        encodeURIComponent(o.id)
+    );
+
+    if (respuestaItems && respuestaItems.ok) {
+      items = respuestaItems.data || [];
+    }
+  } catch (error) {
+    console.error(
+      "Error al cargar ítems para WhatsApp:",
+      error
+    );
+  }
+
+  var msg = construirMensajeWhatsApp(o, items);
+  var tel = (o.whatsapp || "").replace(/[^0-9]/g, "");
+
+  if (tel && tel.length < 2) {
+    tel = "";
+  }
+
+  var url =
+    "https://wa.me/" +
+    tel +
+    "?text=" +
+    encodeURIComponent(msg);
+
+  window.open(url, "_blank");
+}
+
+  function construirMensajeWhatsApp(o, items) {
   var nombre = o.nombre || "Cliente";
   var equipo = o.equipo || "equipo";
   var idOrden = String(o.id)
@@ -3448,6 +3479,42 @@ pedirApi(
   var presupuesto = parseFloat(o.presupuesto) || 0;
   var sena = parseFloat(o.sena) || 0;
   var saldo = (presupuesto - sena).toFixed(2);
+    items = items || [];
+
+  var textoItems = "";
+
+  if (items.length > 0) {
+    textoItems = "\nServicios y repuestos:\n";
+
+    items.forEach(function (item) {
+      var cantidad = Number(item.cantidad) || 0;
+      var precioUnitario =
+        Number(item.precio_unitario) || 0;
+      var subtotal = cantidad * precioUnitario;
+
+      var tipo = item.tipo || "servicio";
+      var etiquetaTipo = "Servicio";
+
+      if (tipo === "repuesto") {
+        etiquetaTipo = "Repuesto";
+      } else if (tipo === "mano_obra") {
+        etiquetaTipo = "Mano de obra";
+      }
+
+      textoItems +=
+        "- " +
+        etiquetaTipo +
+        ": " +
+        (item.descripcion || "—") +
+        " | " +
+        cantidad +
+        " x $" +
+        precioUnitario.toFixed(2) +
+        " = $" +
+        subtotal.toFixed(2) +
+        "\n";
+    });
+  }	  
 
   switch (o.estado) {
     case "ingresado":
@@ -3475,7 +3542,10 @@ pedirApi(
         "Nro. de orden: " + idOrden + "\n\n" +
         "Diagnóstico:\n" + diagnostico + "\n\n" +
         "Trabajo a realizar:\n" + trabajo + "\n\n" +
-        "Presupuesto: $" + presupuesto.toFixed(2) + "\n" +
+        textoItems +
+        "\nPresupuesto: $" +
+        presupuesto.toFixed(2) +
+        "\n" +
         "Seña registrada: $" + sena.toFixed(2) + "\n" +
         "Saldo estimado: $" + saldo + "\n\n" +
         "Por favor, confirmán si aprobás el trabajo para que podamos avanzar.\n\n" +
