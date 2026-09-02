@@ -3254,7 +3254,7 @@ pedirApi(
           var est = ESTADOS[o.estado] || ESTADOS.ingresado;
           var p = parseFloat(o.presupuesto) || 0;
           var s = parseFloat(o.sena) || 0;
-          var saldo = (p - s).toFixed(2);
+          var saldo = Math.max(0, p - s).toFixed(2);
 
           var html = "";
 		            var items = [];
@@ -3478,7 +3478,10 @@ pedirApi(
   var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";
   var presupuesto = parseFloat(o.presupuesto) || 0;
   var sena = parseFloat(o.sena) || 0;
-  var saldo = (presupuesto - sena).toFixed(2);
+    var saldo = Math.max(
+    0,
+    presupuesto - sena
+  ).toFixed(2);
     items = items || [];
 
   var textoItems = "";
