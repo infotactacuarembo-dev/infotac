@@ -2879,12 +2879,21 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       if (!itemsEl) return;
 
       if (!res.ok) {
-        itemsEl.innerHTML =
-          "<div class='historial-loading'>" +
-          "Error al cargar servicios y repuestos." +
-          "</div>";
-        return;
-      }
+  console.error(
+    "Error de API al cargar ítems:",
+    res
+  );
+
+  itemsEl.innerHTML =
+    "<div class='historial-loading'>" +
+    "Error al cargar servicios y repuestos." +
+    "<br><small>" +
+    esc(res.error || "Error desconocido") +
+    "</small>" +
+    "</div>";
+
+  return;
+}
 
       var items = res.data || [];
 
