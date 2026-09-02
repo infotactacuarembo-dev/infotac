@@ -2797,6 +2797,81 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     });
 }
 
+  function actualizarResumenEconomico(items) {
+  var presupuestoEl = document.getElementById(
+    "modal-presupuesto"
+  );
+
+  var senaEl = document.getElementById(
+    "modal-sena"
+  );
+
+  var totalEl = document.getElementById(
+    "orden-items-total"
+  );
+
+  var saldoEl = document.getElementById(
+    "orden-resumen-saldo"
+  );
+
+  var excedenteFila = document.getElementById(
+    "orden-resumen-excedente-fila"
+  );
+
+  var excedenteEl = document.getElementById(
+    "orden-resumen-excedente"
+  );
+
+  if (!presupuestoEl || !senaEl || !totalEl) {
+    return;
+  }
+
+  var totalItems = (items || []).reduce(
+    function (total, item) {
+      var cantidad = Number(item.cantidad) || 0;
+      var precio = Number(item.precio_unitario) || 0;
+
+      return total + cantidad * precio;
+    },
+    0
+  );
+
+  var presupuesto = Number(
+    presupuestoEl.value || 0
+  );
+
+  var sena = Number(
+    senaEl.value || 0
+  );
+
+  var saldo = Math.max(
+    0,
+    presupuesto - sena
+  );
+
+  var excedente = Math.max(
+    0,
+    sena - presupuesto
+  );
+
+  totalEl.textContent =
+    "Total de servicios y repuestos: $" +
+    totalItems.toFixed(2);
+
+  saldoEl.textContent =
+    "$" + saldo.toFixed(2);
+
+  if (excedente > 0) {
+    excedenteEl.textContent =
+      "$" + excedente.toFixed(2);
+
+    excedenteFila.style.display = "flex";
+  } else {
+    excedenteEl.textContent = "$0.00";
+    excedenteFila.style.display = "none";
+  }
+}
+		  
  function cargarItemsOrden(ordenId) {
   pedirApi(
     "/api/orden-items?orden_id=" +
