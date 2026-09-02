@@ -3297,7 +3297,7 @@ pedirApi(
           html += "<div class='tk-val-block'><span class='tk-label'>Estético / Accesorios:</span><span class='tk-val'>" + esc(o.estetico) + "</span></div>";
 		            html += "<div class='tk-section-title'>Servicios y repuestos</div>";
 
-                    var totalItems = 0;
+          var totalItems = 0;
 
           if (items.length === 0) {
             html += "<div class='tk-val'>";
@@ -3343,12 +3343,34 @@ pedirApi(
             totalItems.toFixed(2) +
             "</span>";
           html += "</div>";
-		  	
           html += "<div class='tk-section-title'>Resumen Económico</div>";
-          html += "<div class='tk-row'><span class='tk-label'>Presupuesto:</span><span class='tk-val'>$" + (o.presupuesto || "0.00") + "</span></div>";
-          html += "<div class='tk-row'><span class='tk-label'>Seña:</span><span class='tk-val'>$" + (o.sena || "0.00") + "</span></div>";
-          html += "<div class='tk-row'><span class='tk-label'>Saldo pendiente:</span><span class='tk-val tk-saldo'>$" + saldo + "</span></div>";
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Total ítems:</span>";
+          html += "<span class='tk-val'>$" +
+            totalItems.toFixed(2) +
+            "</span>";
+          html += "</div>";
 
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Presupuesto:</span>";
+          html += "<span class='tk-val'>$" +
+            p.toFixed(2) +
+            "</span>";
+          html += "</div>";
+
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Seña:</span>";
+          html += "<span class='tk-val'>$" +
+            s.toFixed(2) +
+            "</span>";
+          html += "</div>";
+
+          html += "<div class='tk-row'>";
+          html += "<span class='tk-label'>Saldo pendiente:</span>";
+          html += "<span class='tk-val tk-saldo'>$" +
+            saldo +
+            "</span>";
+          html += "</div>";
           html += "<div class='tk-divider'></div>";
           html += "<div class='tk-footer'>Nota: Los presupuestos tienen validez por 15 días. Todo equipo no retirado luego de los 90 días se considerará en abandono, perdiendo derecho a reclamo.</div>";
           html += "<div class='tk-thanks'>¡Gracias por confiar en Infotac!</div>";
