@@ -2739,14 +2739,14 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       if (!histEl) return;
 
       if (!res.ok) {
-  		itemsEl.innerHTML =
+  		histEl.innerHTML =
     	"<div class='historial-loading'>" +
     	"ERROR API: " +
     	(res.error || "sin detalle") +
     	"</div>";
 
-  		return;
-	   }
+    	return;
+   		}
 
       var otras = (res.data || []).filter(function (r) {
         return r.id !== ordenActualId;
