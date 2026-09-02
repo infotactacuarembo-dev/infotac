@@ -3257,6 +3257,7 @@ pedirApi(
           var saldo = (p - s).toFixed(2);
 
           var html = "";
+		  var items = window.itemsOrdenActuales || [];	
           html += "<div class='tk-center'>";
           html += "<div class='tk-header'>💻 SERVICIO TÉCNICO INFOTAC</div>";
           html += "<div class='tk-sub'>Fecha: " + fmtFecha(o.fecha) + "</div>";
@@ -3278,6 +3279,41 @@ pedirApi(
           html += "<div class='tk-section-title'>Estado de Recepción</div>";
           html += "<div class='tk-val-block'><span class='tk-label'>Falla reportada:</span><span class='tk-val'>" + esc(o.falla) + "</span></div>";
           html += "<div class='tk-val-block'><span class='tk-label'>Estético / Accesorios:</span><span class='tk-val'>" + esc(o.estetico) + "</span></div>";
+		            html += "<div class='tk-section-title'>Servicios y repuestos</div>";
+
+          if (items.length === 0) {
+            html += "<div class='tk-val'>Sin servicios ni repuestos cargados.</div>";
+          } else {
+            items.forEach(function (item) {
+              var cantidad = Number(item.cantidad) || 0;
+              var precioUnitario =
+                Number(item.precio_unitario) || 0;
+              var subtotal = cantidad * precioUnitario;
+
+              var tipo = item.tipo || "servicio";
+              var etiquetaTipo = "Servicio";
+
+              if (tipo === "repuesto") {
+                etiquetaTipo = "Repuesto";
+              } else if (tipo === "mano_obra") {
+                etiquetaTipo = "Mano de obra";
+              }
+
+              html += "<div class='tk-val-block'>";
+              html += "<span class='tk-label'>" +
+                esc(etiquetaTipo) + ":</span>";
+              html += "<span class='tk-val'>" +
+                esc(item.descripcion || "—") +
+                " | " +
+                cantidad +
+                " × $" +
+                precioUnitario.toFixed(2) +
+                " = $" +
+                subtotal.toFixed(2) +
+                "</span>";
+              html += "</div>";
+            });
+          }
 
           html += "<div class='tk-section-title'>Resumen Económico</div>";
           html += "<div class='tk-row'><span class='tk-label'>Presupuesto:</span><span class='tk-val'>$" + (o.presupuesto || "0.00") + "</span></div>";
