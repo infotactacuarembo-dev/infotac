@@ -3107,22 +3107,27 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       });
     })
     .catch(function (err) {
-      console.error(
-        "Error al cargar ítems de orden:",
-        err
-      );
+  console.error(
+    "Error al cargar ítems de orden:",
+    err
+  );
 
-      var itemsEl = document.getElementById(
-        "orden-items-contenido"
-      );
+  var itemsEl = document.getElementById(
+    "orden-items-contenido"
+  );
 
-      if (itemsEl) {
-        itemsEl.innerHTML =
-          "<div class='historial-loading'>" +
-          "Error al cargar servicios y repuestos." +
-          "</div>";
-      }
-    });
+  if (itemsEl) {
+    itemsEl.innerHTML =
+      "<div class='historial-loading'>" +
+      "ERROR DE CONEXIÓN: " +
+      esc(
+        err && err.message
+          ? err.message
+          : String(err)
+      ) +
+      "</div>";
+  }
+});
 }
 
 		  
