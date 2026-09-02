@@ -2764,13 +2764,19 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
   			" = $" +
   			subtotal.toFixed(2) +
   			"</span>" +
-  			"<button type='button' class='btn-eliminar-item' " +
-  			"data-item-id='" +
-  			esc(item.id) +
-  			"'>" +
-  			"Eliminar" +
-  			"</button>" +
-  			"</li>"
+  			"<button type='button' class='btn-editar-item' " +
+			"data-item-id='" +
+			esc(item.id) +
+			"'>" +
+			"Editar" +
+			"</button>" +
+			"<button type='button' class='btn-eliminar-item' " +
+			"data-item-id='" +
+			esc(item.id) +
+			"'>" +
+			"Eliminar" +
+			"</button>" +
+			"</li>"
 		);
 
 		  
