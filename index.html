@@ -2889,6 +2889,14 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 		"Total de servicios y repuestos: $" +
 		total.toFixed(2) +
 		"</div>";
+		var resumenTotal = document.getElementById(
+  		"resumen-total-items"
+		);
+
+		if (resumenTotal) {
+  			resumenTotal.textContent =
+    		"$" + total.toFixed(2);
+		}
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
