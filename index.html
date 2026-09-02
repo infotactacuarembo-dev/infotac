@@ -2516,41 +2516,7 @@ html += "</button>";
 html += "<div id='orden-items-contenido'>";
 html += "<div class='historial-loading'>Cargando servicios...</div>";
 html += "</div>";
-html += "</div>";		
-
-  html += "<div class='orden-resumen-economico'>";
-  html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
-
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Total de ítems</span>";
-  html += "<strong id='orden-resumen-total-items'>$0.00</strong>";
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Presupuesto</span>";
-  html += "<strong id='orden-resumen-presupuesto'>$" +
-    Number(o.presupuesto || 0).toFixed(2) +
-    "</strong>";
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Seña</span>";
-  html += "<strong id='orden-resumen-sena'>$" +
-    Number(o.sena || 0).toFixed(2) +
-    "</strong>";
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Saldo pendiente</span>";
-  html += "<strong id='orden-resumen-saldo'>$0.00</strong>";
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila excedente' id='orden-resumen-excedente-fila' style='display:none;'>";
-  html += "<span>Excedente</span>";
-  html += "<strong id='orden-resumen-excedente'>$0.00</strong>";
-  html += "</div>";
-
-  html += "</div>";	  
+html += "</div>";			
    
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
@@ -2700,9 +2666,10 @@ html += "</div>";
 
   if (botonUsarTotal) {
     botonUsarTotal.addEventListener("click", function () {
-    var totalEl = document.getElementById(
-   "orden-items-total"
-  );
+      var totalEl = document.getElementById(
+        "orden-items-total"
+      );
+
       var presupuestoEl = document.getElementById(
         "modal-presupuesto"
       );
@@ -2739,14 +2706,10 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       if (!histEl) return;
 
       if (!res.ok) {
-  		histEl.innerHTML =
-    	"<div class='historial-loading'>" +
-    	"ERROR API: " +
-    	(res.error || "sin detalle") +
-    	"</div>";
-
-    	return;
-   		}
+        histEl.innerHTML =
+          "<div class='historial-loading'>Error al cargar historial.</div>";
+        return;
+      }
 
       var otras = (res.data || []).filter(function (r) {
         return r.id !== ordenActualId;
@@ -2800,76 +2763,6 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     });
 }
 
-  function actualizarResumenEconomico(items) {
-  var presupuestoEl = document.getElementById(
-    "modal-presupuesto"
-  );
-
-  var senaEl = document.getElementById(
-    "modal-sena"
-  );
-
-  
-
-  var saldoEl = document.getElementById(
-    "orden-resumen-saldo"
-  );
-
-  var excedenteFila = document.getElementById(
-    "orden-resumen-excedente-fila"
-  );
-
-  var excedenteEl = document.getElementById(
-    "orden-resumen-excedente"
-  );
-
-  if (!presupuestoEl || !senaEl || !totalEl) {
-    return;
-  }
-
-  var totalItems = (items || []).reduce(
-    function (total, item) {
-      var cantidad = Number(item.cantidad) || 0;
-      var precio = Number(item.precio_unitario) || 0;
-
-      return total + cantidad * precio;
-    },
-    0
-  );
-
-  var presupuesto = Number(
-    presupuestoEl.value || 0
-  );
-
-  var sena = Number(
-    senaEl.value || 0
-  );
-
-  var saldo = Math.max(
-    0,
-    presupuesto - sena
-  );
-
-  var excedente = Math.max(
-    0,
-    sena - presupuesto
-  );
-
- 
-  saldoEl.textContent =
-    "$" + saldo.toFixed(2);
-
-  if (excedente > 0) {
-    excedenteEl.textContent =
-      "$" + excedente.toFixed(2);
-
-    excedenteFila.style.display = "flex";
-  } else {
-    excedenteEl.textContent = "$0.00";
-    excedenteFila.style.display = "none";
-  }
-}
-		  
  function cargarItemsOrden(ordenId) {
   pedirApi(
     "/api/orden-items?orden_id=" +
@@ -2883,21 +2776,12 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       if (!itemsEl) return;
 
       if (!res.ok) {
-  console.error(
-    "Error de API al cargar ítems:",
-    res
-  );
-
-  itemsEl.innerHTML =
-    "<div class='historial-loading'>" +
-    "Error al cargar servicios y repuestos." +
-    "<br><small>" +
-    esc(res.error || "Error desconocido") +
-    "</small>" +
-    "</div>";
-
-  return;
-}
+        itemsEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar servicios y repuestos." +
+          "</div>";
+        return;
+      }
 
       var items = res.data || [];
 
@@ -2963,16 +2847,14 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         );
       }).join("");
 
-            itemsEl.innerHTML =
+      itemsEl.innerHTML =
         "<ul class='historial-list'>" +
         lista +
         "</ul>" +
         "<div class='historial-loading' id='orden-items-total'>" +
-        "Total de servicios y repuestos: $" +
-        total.toFixed(2) +
-        "</div>";
-
-      actualizarResumenEconomico(items);
+		"Total de servicios y repuestos: $" +
+		total.toFixed(2) +
+		"</div>";
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
@@ -3107,27 +2989,22 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       });
     })
     .catch(function (err) {
-  console.error(
-    "Error al cargar ítems de orden:",
-    err
-  );
+      console.error(
+        "Error al cargar ítems de orden:",
+        err
+      );
 
-  var itemsEl = document.getElementById(
-    "orden-items-contenido"
-  );
+      var itemsEl = document.getElementById(
+        "orden-items-contenido"
+      );
 
-  if (itemsEl) {
-    itemsEl.innerHTML =
-      "<div class='historial-loading'>" +
-      "ERROR DE CONEXIÓN: " +
-      esc(
-        err && err.message
-          ? err.message
-          : String(err)
-      ) +
-      "</div>";
-  }
-});
+      if (itemsEl) {
+        itemsEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar servicios y repuestos." +
+          "</div>";
+      }
+    });
 }
 
 		  
