@@ -3482,7 +3482,8 @@ pedirApi(
     items = items || [];
 
   var textoItems = "";
-
+  var totalItems = 0;	
+	  
   if (items.length > 0) {
     textoItems = "\nServicios y repuestos:\n";
 
@@ -3491,6 +3492,7 @@ pedirApi(
       var precioUnitario =
         Number(item.precio_unitario) || 0;
       var subtotal = cantidad * precioUnitario;
+	    totalItems += subtotal; 	
 
       var tipo = item.tipo || "servicio";
       var etiquetaTipo = "Servicio";
@@ -3514,6 +3516,13 @@ pedirApi(
         subtotal.toFixed(2) +
         "\n";
     });
+  }	  
+
+    if (items.length > 0) {
+    textoItems +=
+      "Total de servicios y repuestos: $" +
+      totalItems.toFixed(2) +
+      "\n";
   }	  
 
   switch (o.estado) {
