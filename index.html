@@ -3247,7 +3247,7 @@ pedirApi(
         var ticketImprimir = document.getElementById("ticket-imprimir");
         var ticketCerrar = document.getElementById("ticket-cerrar");
 
-        function imprimirTicket(id) {
+        async function imprimirTicket(id) {
           var o = ordenes.find(function (x) { return x.id === id; });
           if (!o) return;
           var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
@@ -3257,7 +3257,23 @@ pedirApi(
           var saldo = (p - s).toFixed(2);
 
           var html = "";
-		  var items = window.itemsOrdenActuales || [];	
+		            var items = [];
+
+          try {
+            var respuestaItems = await pedirApi(
+              "/api/orden-items?orden_id=" +
+                encodeURIComponent(o.id)
+            );
+
+            if (respuestaItems && respuestaItems.ok) {
+              items = respuestaItems.data || [];
+            }
+          } catch (error) {
+            console.error(
+              "Error al cargar ítems para el ticket:",
+              error
+            );
+          }
           html += "<div class='tk-center'>";
           html += "<div class='tk-header'>💻 SERVICIO TÉCNICO INFOTAC</div>";
           html += "<div class='tk-sub'>Fecha: " + fmtFecha(o.fecha) + "</div>";
