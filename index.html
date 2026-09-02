@@ -2516,7 +2516,41 @@ html += "</button>";
 html += "<div id='orden-items-contenido'>";
 html += "<div class='historial-loading'>Cargando servicios...</div>";
 html += "</div>";
-html += "</div>";			
+html += "</div>";		
+
+  html += "<div class='orden-resumen-economico'>";
+  html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
+
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Total de ítems</span>";
+  html += "<strong id='orden-items-total'>$0.00</strong>";
+  html += "</div>";
+
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Presupuesto</span>";
+  html += "<strong id='orden-resumen-presupuesto'>$" +
+    Number(o.presupuesto || 0).toFixed(2) +
+    "</strong>";
+  html += "</div>";
+
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Seña</span>";
+  html += "<strong id='orden-resumen-sena'>$" +
+    Number(o.sena || 0).toFixed(2) +
+    "</strong>";
+  html += "</div>";
+
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Saldo pendiente</span>";
+  html += "<strong id='orden-resumen-saldo'>$0.00</strong>";
+  html += "</div>";
+
+  html += "<div class='orden-resumen-fila excedente' id='orden-resumen-excedente-fila' style='display:none;'>";
+  html += "<span>Excedente</span>";
+  html += "<strong id='orden-resumen-excedente'>$0.00</strong>";
+  html += "</div>";
+
+  html += "</div>";	  
    
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
@@ -2847,14 +2881,16 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         );
       }).join("");
 
-      itemsEl.innerHTML =
+            itemsEl.innerHTML =
         "<ul class='historial-list'>" +
         lista +
         "</ul>" +
         "<div class='historial-loading' id='orden-items-total'>" +
-		"Total de servicios y repuestos: $" +
-		total.toFixed(2) +
-		"</div>";
+        "Total de servicios y repuestos: $" +
+        total.toFixed(2) +
+        "</div>";
+
+      actualizarResumenEconomico(items);
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
