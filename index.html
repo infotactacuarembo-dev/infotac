@@ -2543,10 +2543,10 @@ html += "</div>";
         "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
     }
   }
-  var botonAgregarItem = document.getElementById("btn-agregar-item");
+   var botonAgregarItem = document.getElementById("btn-agregar-item");
 
   if (botonAgregarItem) {
-      botonAgregarItem.addEventListener("click", function () {
+    botonAgregarItem.addEventListener("click", function () {
       var boton = botonAgregarItem;
       var tipoEl = document.getElementById("item-tipo");
       var descripcionEl = document.getElementById("item-descripcion");
@@ -2559,6 +2559,7 @@ html += "</div>";
         : "";
       var cantidad = cantidadEl ? Number(cantidadEl.value) : 0;
       var precioUnitario = precioEl ? Number(precioEl.value) : 0;
+      var editandoId = boton.dataset.editandoId || "";
 
       if (!descripcion) {
         alert("Ingresá una descripción para el ítem.");
@@ -2591,49 +2592,71 @@ html += "</div>";
       }
 
       var textoOriginal = boton.textContent;
+      var metodo = editandoId ? "PATCH" : "POST";
 
       boton.disabled = true;
-      boton.textContent = "Agregando...";
+      boton.textContent = editandoId
+        ? "Guardando..."
+        : "Agregando...";
+
+      var datos = {
+        tipo: tipo,
+        descripcion: descripcion,
+        cantidad: cantidad,
+        precio_unitario: precioUnitario
+      };
+
+      if (editandoId) {
+        datos.id = editandoId;
+      } else {
+        datos.orden_id = o.id;
+      }
 
       pedirApi(
         "/api/orden-items",
-        {
-          orden_id: o.id,
-          tipo: tipo,
-          descripcion: descripcion,
-          cantidad: cantidad,
-          precio_unitario: precioUnitario
-        },
-        "POST"
+        datos,
+        metodo
       )
         .then(function (resultado) {
           if (!resultado.ok) {
             throw new Error(
-              resultado.error || "No se pudo agregar el ítem."
+              resultado.error ||
+              "No se pudo guardar el ítem."
             );
           }
+
+          delete boton.dataset.editandoId;
 
           tipoEl.value = "servicio";
           descripcionEl.value = "";
           cantidadEl.value = "1";
           precioEl.value = "0";
+          boton.textContent = "+ Agregar ítem";
 
           return cargarItemsOrden(o.id);
         })
         .catch(function (error) {
-          console.error("Error al agregar ítem:", error);
+          console.error(
+            "Error al guardar ítem:",
+            error
+          );
 
           alert(
-            error.message || "No se pudo agregar el ítem."
+            error.message ||
+            "No se pudo guardar el ítem."
           );
         })
         .finally(function () {
           boton.disabled = false;
-          boton.textContent = textoOriginal;
+
+          if (!boton.dataset.editandoId) {
+            boton.textContent = "+ Agregar ítem";
+          } else {
+            boton.textContent = textoOriginal;
+          }
         });
     });
   }
-
   cargarItemsOrden(o.id);
 }
 
