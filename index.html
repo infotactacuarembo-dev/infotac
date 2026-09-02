@@ -3255,6 +3255,10 @@ pedirApi(
           var p = parseFloat(o.presupuesto) || 0;
           var s = parseFloat(o.sena) || 0;
           var saldo = Math.max(0, p - s).toFixed(2);
+		            var excedente = Math.max(
+            0,
+            s - p
+          ).toFixed(2);	
 
           var html = "";
 		            var items = [];
@@ -3406,6 +3410,14 @@ pedirApi(
             saldo +
             "</span>";
           html += "</div>";
+		            if (excedente > 0) {
+            html += "<div class='tk-row'>";
+            html += "<span class='tk-label'>Excedente:</span>";
+            html += "<span class='tk-val'>$" +
+              excedente +
+              "</span>";
+            html += "</div>";
+          }	
           html += "<div class='tk-divider'></div>";
           html += "<div class='tk-footer'>Nota: Los presupuestos tienen validez por 15 días. Todo equipo no retirado luego de los 90 días se considerará en abandono, perdiendo derecho a reclamo.</div>";
           html += "<div class='tk-thanks'>¡Gracias por confiar en Infotac!</div>";
@@ -3478,10 +3490,15 @@ pedirApi(
   var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";
   var presupuesto = parseFloat(o.presupuesto) || 0;
   var sena = parseFloat(o.sena) || 0;
-    var saldo = Math.max(
+  var saldo = Math.max(
     0,
     presupuesto - sena
   ).toFixed(2);
+    var excedente = Math.max(
+    0,
+    sena - presupuesto
+  ).toFixed(2);
+	  
     items = items || [];
 
   var textoItems = "";
@@ -3559,7 +3576,12 @@ pedirApi(
         presupuesto.toFixed(2) +
         "\n" +
         "Seña registrada: $" + sena.toFixed(2) + "\n" +
-        "Saldo estimado: $" + saldo + "\n\n" +
+        "Saldo estimado: $" + saldo + "\n" +
+        (excedente > 0
+          ? "Excedente registrado: $" +
+            excedente +
+            "\n\n"
+          : "\n") +
         "Por favor, confirmán si aprobás el trabajo para que podamos avanzar.\n\n" +
         "Saludos, Infotac."
       );
