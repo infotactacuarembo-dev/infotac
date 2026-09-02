@@ -2815,10 +2815,10 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         "<ul class='historial-list'>" +
         lista +
         "</ul>" +
-        "<div class='historial-loading'>" +
-        "Total de ítems: $" +
-        total.toFixed(2) +
-        "</div>";
+        "<div class='historial-loading' id='orden-items-total'>" +
+		"Total de servicios y repuestos: $" +
+		total.toFixed(2) +
+		"</div>";
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
