@@ -2408,8 +2408,8 @@ function renderStats() {
     .join("");
 }
 
-        /* ===== DETAIL MODAL ===== */
-        function abrirDetalle(id) {
+ /* ===== DETAIL MODAL ===== */
+  function abrirDetalle(id) {
   var o = ordenes.find(function (x) {
     return x.id === id;
   });
@@ -2660,6 +2660,39 @@ html += "</div>";
         });
     });
   }
+    var botonUsarTotal = document.getElementById(
+    "btn-usar-total-items"
+  );
+
+  if (botonUsarTotal) {
+    botonUsarTotal.addEventListener("click", function () {
+      var totalEl = document.getElementById(
+        "orden-items-total"
+      );
+
+      var presupuestoEl = document.getElementById(
+        "modal-presupuesto"
+      );
+
+      if (!totalEl || !presupuestoEl) {
+        alert("No se encontró el total de ítems.");
+        return;
+      }
+
+      var textoTotal = totalEl.textContent || "";
+      var coincidencia = textoTotal.match(
+        /([0-9]+(?:\.[0-9]+)?)\s*$/
+      );
+
+      if (!coincidencia) {
+        alert("Todavía no hay un total de ítems disponible.");
+        return;
+      }
+
+      presupuestoEl.value = coincidencia[1];
+    });
+  }
+
   cargarItemsOrden(o.id);
 }
 
