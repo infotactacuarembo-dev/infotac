@@ -2217,6 +2217,15 @@ restaurarSesion();
           e.preventDefault();
           var senaNum = parseFloat(val("f-sena")) || 0;
           var presupNum = parseFloat(val("f-presupuesto")) || 0;
+		  if (senaNum > presupNum) {
+          alert(
+          "La seña no puede ser mayor que el presupuesto."
+         );
+
+  document.getElementById("f-sena").focus();
+
+  return;
+}	
           var nombreCliente = val("f-nombre");
           var telCliente = val("f-whatsapp");
 
@@ -3062,7 +3071,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
           if (e.target === modalDetalle) modalDetalle.classList.remove("visible");
         });
 
-        modalGuardar.addEventListener("click", function () {
+  modalGuardar.addEventListener("click", function () {
   if (!ordenActivaId) return;
 
   var o = ordenes.find(function (x) {
@@ -3082,6 +3091,25 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
   var presupuestoEl = document.getElementById("modal-presupuesto");
   var aprobacionEl = document.getElementById("modal-aprobacion");
 
+  var senaValidacion = senaEl
+  ? parseFloat(senaEl.value) || 0
+  : 0;
+
+var presupuestoValidacion = presupuestoEl
+  ? parseFloat(presupuestoEl.value) || 0
+  : 0;
+
+if (senaValidacion > presupuestoValidacion) {
+  alert(
+    "La seña no puede ser mayor que el presupuesto."
+  );
+
+  if (senaEl) {
+    senaEl.focus();
+  }
+
+  return;
+}
   var update = {
     estado: nuevoEstado,
     diagnostico: diagnosticoEl ? diagnosticoEl.value.trim() : "",
