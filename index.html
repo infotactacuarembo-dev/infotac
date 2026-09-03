@@ -2591,6 +2591,18 @@ html += "</div>";
   modalContenido.innerHTML = html;
   modalDetalle.classList.add("visible");
 
+  var senaInput = document.getElementById("modal-sena");
+  var resumenSena = document.getElementById("resumen-sena");
+
+  if (senaInput && resumenSena) {
+  senaInput.addEventListener("input", function () {
+    var sena = Number(senaInput.value) || 0;
+
+    resumenSena.textContent =
+      "$" + sena.toFixed(2);
+  });
+}	  
+
   var selEstado = document.getElementById("modal-estado");
 
   if (selEstado) {
