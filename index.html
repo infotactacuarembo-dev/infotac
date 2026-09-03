@@ -2637,6 +2637,23 @@ html += "</div>";
     }
   });
 
+
+ var idsSaldo = [
+  "modal-sena",
+  "modal-pago-final",
+  "modal-presupuesto"
+];
+
+idsSaldo.forEach(function (id) {
+  var input = document.getElementById(id);
+
+  if (input) {
+    input.addEventListener("input", function () {
+      actualizarSaldoPendiente();
+    });
+  }
+});
+
 actualizarSaldoPendiente();	  
 
   var selEstado = document.getElementById("modal-estado");
