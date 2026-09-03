@@ -2225,16 +2225,17 @@ restaurarSesion();
         formIngreso.addEventListener("submit", function (e) {
           e.preventDefault();
           var senaNum = parseFloat(val("f-sena")) || 0;
-          var presupNum = parseFloat(val("f-presupuesto")) || 0;
-		  if (senaNum > presupNum) {
-          alert(
-          "La seña no puede ser mayor que el presupuesto."
-         );
 
-  document.getElementById("f-sena").focus();
+		// Leer el total de ítems desde el resumen económico
+		var totalItemsEl = document.getElementById("resumen-total-items");
+		var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
+		var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
 
-  return;
-}	
+		if (senaNum > totalItemsNum) {
+  			alert("La seña no puede ser mayor que el total de servicios y repuestos.");
+  			document.getElementById("f-sena").focus();
+  			return;
+		}
           var nombreCliente = val("f-nombre");
           var telCliente = val("f-whatsapp");
 
