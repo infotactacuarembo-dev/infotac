@@ -2929,22 +2929,62 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 		total.toFixed(2) +
 		"</div>";
 		var resumenTotal = document.getElementById(
-  		"resumen-total-items"
-		);
+  "resumen-total-items"
+);
 
-		if (resumenTotal) {
-  			resumenTotal.textContent =
-    		"$" + total.toFixed(2);
-		}
+if (resumenTotal) {
+  resumenTotal.textContent =
+    "$" + total.toFixed(2);
+}
 
-		var presupuestoVisual = document.getElementById(
-  		"modal-presupuesto"
-		);
+var presupuestoVisual = document.getElementById(
+  "modal-presupuesto"
+);
 
-		if (presupuestoVisual) {
-  		presupuestoVisual.textContent =
-    	"$" + total.toFixed(2);
-		}
+if (presupuestoVisual) {
+  presupuestoVisual.textContent =
+    "$" + total.toFixed(2);
+}
+
+var resumenPresupuesto = document.getElementById(
+  "resumen-presupuesto"
+);
+
+if (resumenPresupuesto) {
+  resumenPresupuesto.textContent =
+    "$" + total.toFixed(2);
+}
+
+var senaInput = document.getElementById(
+  "modal-sena"
+);
+
+var resumenSena = document.getElementById(
+  "resumen-sena"
+);
+
+var sena = senaInput
+  ? Number(senaInput.value) || 0
+  : 0;
+
+if (resumenSena) {
+  resumenSena.textContent =
+    "$" + sena.toFixed(2);
+}
+
+var resumenSaldo = document.getElementById(
+  "resumen-saldo"
+);
+
+var saldo = Math.max(
+  0,
+  total - sena
+);
+
+if (resumenSaldo) {
+  resumenSaldo.textContent =
+    "$" + saldo.toFixed(2);
+}
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
