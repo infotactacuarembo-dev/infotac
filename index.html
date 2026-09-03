@@ -922,6 +922,10 @@
                   <label for="f-presupuesto">Presupuesto</label>
                   <input type="number" id="f-presupuesto" min="0" step="0.01" placeholder="0.00" />
                 </div>
+				 html += "<div class='form-group full'>";
+				 html += "<label>Saldo pendiente</label>";
+				 html += "<div id='modal-saldo-pendiente' class='saldo-pendiente'>$0</div>";
+				 html += "</div>"; 
                 <div class="form-group full">
                   <label for="f-falla">Falla declarada</label>
                   <textarea id="f-falla" placeholder="Describe la falla reportada por el cliente"></textarea>
@@ -2067,7 +2071,8 @@ restaurarSesion();
     		serie: row.serie,
     		pin: row.pass,
     		sena: row.sena,
-    		presupuesto: row.presupuesto,
+			pagoFinal: row.pago_final || 0,
+			presupuesto: row.presupuesto,
 			pagoFinal: row.pago_final || "0",	
     		presupuesta: row.presupuesta,
     		diagnostico: row.diagnostico || "",
@@ -2465,6 +2470,11 @@ function renderStats() {
   html += "Usar total de ítems";
   html += "</button>";
   html += "</div>";
+
+  html += "<div class='form-group full'>";
+  html += "<label>Saldo pendiente</label>";
+  html += "<div id='modal-saldo-pendiente'>$0</div>";
+  html += "</div>";	  
 			
   html += "<div class='form-group full'>";
   html += "<label for='modal-falla'>Falla declarada</label>";
@@ -2593,6 +2603,28 @@ html += "</div>";
 
   modalContenido.innerHTML = html;
   modalDetalle.classList.add("visible");
+
+  function actualizarSaldoPendiente() {
+  var senaEl = document.getElementById("modal-sena");
+  var pagoFinalEl = document.getElementById("modal-pago-final");
+  var presupuestoEl = document.getElementById("modal-presupuesto");
+  var saldoEl = document.getElementById("modal-saldo-pendiente");
+
+  if (!senaEl || !pagoFinalEl || !presupuestoEl || !saldoEl) {
+    return;
+  }
+
+  var sena = parseFloat(senaEl.value) || 0;
+  var pagoFinal = parseFloat(pagoFinalEl.value) || 0;
+  var presupuesto = parseFloat(presupuestoEl.value) || 0;
+
+  var saldo = Math.max(
+    0,
+    presupuesto - sena - pagoFinal
+  );
+
+  saldoEl.textContent = "$" + saldo.toLocaleString("es-AR");
+}	  
 
   var selEstado = document.getElementById("modal-estado");
 
