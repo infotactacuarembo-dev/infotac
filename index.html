@@ -2630,6 +2630,24 @@ html += "</div>";
   resumenSaldoEl.textContent =
   "$" + saldo.toLocaleString("es-AR");
 }
+
+  var resumenPresupuestoEl = document.getElementById(
+  "resumen-presupuesto"
+);
+
+var resumenSenaEl = document.getElementById(
+  "resumen-sena"
+);
+
+if (resumenPresupuestoEl) {
+  resumenPresupuestoEl.textContent =
+    "$" + presupuesto.toFixed(2);
+}
+
+if (resumenSenaEl) {
+  resumenSenaEl.textContent =
+    "$" + sena.toFixed(2);
+}	  
 	  
 }	  
 
@@ -2645,23 +2663,6 @@ html += "</div>";
       );
     }
   });
-
-
- var idsSaldo = [
-  "modal-sena",
-  "modal-pago-final",
-  "modal-presupuesto"
-];
-
-idsSaldo.forEach(function (id) {
-  var input = document.getElementById(id);
-
-  if (input) {
-    input.addEventListener("input", function () {
-      actualizarSaldoPendiente();
-    });
-  }
-});
 
 actualizarSaldoPendiente();	  
 
@@ -2831,8 +2832,9 @@ actualizarSaldoPendiente();
       }
 
       presupuestoEl.value = coincidencia[1];
-    });
-  }
+      actualizarSaldoPendiente();
+      });
+    }
 
   cargarItemsOrden(o.id);
 }
