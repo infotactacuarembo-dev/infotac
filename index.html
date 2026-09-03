@@ -2590,17 +2590,41 @@ html += "</div>";
   modalContenido.innerHTML = html;
   modalDetalle.classList.add("visible");
 
-  var senaInput = document.getElementById("modal-sena");
-  var resumenSena = document.getElementById("resumen-sena");
+var senaInput = document.getElementById("modal-sena");
+var resumenSena = document.getElementById("resumen-sena");
+var resumenSaldo = document.getElementById("resumen-saldo");
 
-  if (senaInput && resumenSena) {
+if (senaInput && resumenSena) {
   senaInput.addEventListener("input", function () {
     var sena = Number(senaInput.value) || 0;
 
-    resumenSena.textContent =
-      "$" + sena.toFixed(2);
+    resumenSena.textContent = "$" + sena.toFixed(2);
+
+    // Actualizar saldo pendiente
+    var totalItemsEl = document.getElementById("resumen-total-items");
+    var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
+    var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+
+    var saldo = Math.max(0, totalItemsNum - sena);
+
+    if (resumenSaldo) {
+      resumenSaldo.textContent = "$" + saldo.toFixed(2);
+    }
   });
-}	  
+}
+
+    // Actualizar saldo pendiente
+    var totalItemsEl = document.getElementById("resumen-total-items");
+    var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
+    var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+
+    var saldo = Math.max(0, totalItemsNum - sena);
+
+    if (resumenSaldo) {
+      resumenSaldo.textContent = "$" + saldo.toFixed(2);
+    }
+  });
+}
 
   var selEstado = document.getElementById("modal-estado");
 
@@ -3168,14 +3192,13 @@ if (resumenSaldo) {
   ? parseFloat(senaEl.value) || 0
   : 0;
 
-var presupuestoValidacion = presupuestoEl
-  ? parseFloat(presupuestoEl.value) || 0
-  : 0;
+// Leer el total de ítems desde el resumen económico del modal
+var totalItemsEl = document.getElementById("resumen-total-items");
+var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
+var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
 
-if (senaValidacion > presupuestoValidacion) {
-  alert(
-    "La seña no puede ser mayor que el presupuesto."
-  );
+if (senaValidacion > totalItemsNum) {
+  alert("La seña no puede ser mayor que el total de servicios y repuestos.");
 
   if (senaEl) {
     senaEl.focus();
