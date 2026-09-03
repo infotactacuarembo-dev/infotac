@@ -2579,7 +2579,8 @@ html += "</div>";
   Math.max(
     0,
     Number(o.presupuesto || 0) -
-    Number(o.sena || 0)
+    Number(o.sena || 0) -
+    Number(o.pagoFinal || 0)
   ).toFixed(2) +
   "</strong>";
 	  
@@ -2622,6 +2623,14 @@ html += "</div>";
   );
 
   saldoEl.textContent = "$" + saldo.toLocaleString("es-AR");
+	  
+  var resumenSaldoEl = document.getElementById("resumen-saldo");
+
+  if (resumenSaldoEl) {
+  resumenSaldoEl.textContent =
+  "$" + saldo.toLocaleString("es-AR");
+}
+	  
 }	  
 
 
