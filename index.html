@@ -2574,6 +2574,7 @@ html += "</div>";
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
+cargarPagosOrden(o.id);	  
 
 var senaInput = document.getElementById("modal-sena");
 var resumenSena = document.getElementById("resumen-sena");
@@ -3164,20 +3165,21 @@ if (resumenSaldo) {
 }
 
  function cargarPagosOrden(ordenId) {
+  var pagosEl = document.getElementById("pagos-contenido");
+
+  if (!pagosEl) return;
+
+  pagosEl.innerHTML =
+    "<div class='historial-loading'>" +
+    "Cargando pagos..." +
+    "</div>";
+
   pedirApi(
     "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
   )
     .then(function (res) {
-      var pagosEl = document.getElementById("pagos-contenido");
-
-      if (!pagosEl) return;
-
       if (!res.ok) {
-        pagosEl.innerHTML =
-          "<div class='historial-loading'>" +
-          "Error al cargar pagos." +
-          "</div>";
-        return;
+        throw new Error(res.error || "Error al cargar pagos.");
       }
 
       var pagos = res.data || [];
@@ -3187,6 +3189,8 @@ if (resumenSaldo) {
           "<div class='historial-loading'>" +
           "Aún no hay pagos registrados." +
           "</div>";
+
+        calcularSaldoDesdeResumen();
         return;
       }
 
@@ -3199,8 +3203,8 @@ if (resumenSaldo) {
             fmtFecha(p.fecha) +
             "</span>" +
             "<span class='h-monto pago-monto'>$" +
-			Number(p.monto || 0).toFixed(2) +
-			"</span>" +
+            Number(p.monto || 0).toFixed(2) +
+            "</span>" +
             "<span class='h-notas'>" +
             (p.notas ? esc(p.notas) : "") +
             "</span>" +
@@ -3208,21 +3212,19 @@ if (resumenSaldo) {
           );
         }).join("") +
         "</ul>";
-		      calcularSaldoDesdeResumen();
+
+      calcularSaldoDesdeResumen();
     })
     .catch(function (err) {
       console.error("Error al cargar pagos:", err);
 
-      var pagosEl = document.getElementById("pagos-contenido");
-
-      if (pagosEl) {
-        pagosEl.innerHTML =
-          "<div class='historial-loading'>" +
-          "Error al cargar pagos." +
-          "</div>";
-      }
+      pagosEl.innerHTML =
+        "<div class='historial-loading'>" +
+        "Error al cargar pagos." +
+        "</div>";
     });
 }
+
 
  function calcularSaldoDesdeResumen() {
   var totalEl = document.getElementById("resumen-total-items");
