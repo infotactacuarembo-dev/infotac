@@ -2585,7 +2585,7 @@ if (senaInput && resumenSena) {
     var sena = Number(senaInput.value) || 0;
 
     resumenSena.textContent = "$" + sena.toFixed(2);
-	calcularSaldoDesdeResumen();  
+	calcularSaldoDesdeResumen();
 
   });
 }
@@ -3213,7 +3213,7 @@ if (resumenSaldo) {
         }).join("") +
         "</ul>";
 
-      calcularSaldoDesdeResumen();
+            calcularSaldoDesdeResumen(pagos);
     })
     .catch(function (err) {
       console.error("Error al cargar pagos:", err);
@@ -3226,7 +3226,7 @@ if (resumenSaldo) {
 }
 
 
- function calcularSaldoDesdeResumen() {
+ function calcularSaldoDesdeResumen(pagos) {
   var totalEl = document.getElementById("resumen-total-items");
   var senaEl = document.getElementById("resumen-sena");
   var saldoEl = document.getElementById("resumen-saldo");
@@ -3246,13 +3246,13 @@ if (resumenSaldo) {
 
   var total = leerMonto(totalEl.textContent);
   var sena = leerMonto(senaEl ? senaEl.textContent : "0");
-  var pagos = 0;
+  var totalPagos = 0;
 
   document.querySelectorAll(".pago-monto").forEach(function (pagoEl) {
-    pagos += leerMonto(pagoEl.textContent);
+    totalPagos += leerMonto(pagoEl.textContent);
   });
 
-  var saldo = Math.max(0, total - sena - pagos);
+ var saldo = Math.max(0, total - sena - totalPagos);
 
   saldoEl.textContent = "$" + saldo.toFixed(2);
 }
