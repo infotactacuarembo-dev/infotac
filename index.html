@@ -2603,20 +2603,16 @@ html += "</div>";
   function actualizarSaldoPendiente() {
   var senaEl = document.getElementById("modal-sena");
   var pagoFinalEl = document.getElementById("modal-pago-final");
-  var totalItemsEl = document.getElementById("resumen-total-items");
   var saldoEl = document.getElementById("modal-saldo-pendiente");
+  var resumenSaldoEl = document.getElementById("resumen-saldo");
 
-  if (!senaEl || !pagoFinalEl || !totalItemsEl || !saldoEl) {
+  if (!senaEl || !pagoFinalEl || !saldoEl) {
     return;
   }
 
-  var sena = parseFloat(senaEl.value) || 0;
-  var pagoFinal = parseFloat(pagoFinalEl.value) || 0;
-  var totalItems = parseFloat(
-    totalItemsEl.textContent.replace(/[^0-9.,-]/g, "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-  ) || 0;
+  var sena = Number(senaEl.value) || 0;
+  var pagoFinal = Number(pagoFinalEl.value) || 0;
+  var totalItems = Number(window.totalItemsOrdenActual) || 0;
 
   var saldo = Math.max(
     0,
@@ -2625,9 +2621,6 @@ html += "</div>";
 
   saldoEl.textContent =
     "$" + saldo.toLocaleString("es-AR");
-
-  var resumenSaldoEl =
-    document.getElementById("resumen-saldo");
 
   if (resumenSaldoEl) {
     resumenSaldoEl.textContent =
@@ -2641,8 +2634,7 @@ html += "</div>";
     resumenSenaEl.textContent =
       "$" + sena.toFixed(2);
   }
-} 
-
+}
 
   ["modal-sena", "modal-pago-final", "modal-presupuesto"]
   .forEach(function (id) {
@@ -2895,6 +2887,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       }
 
       var total = 0;
+	  window.totalItemsOrdenActual = 0;	
 
       var lista = items.map(function (item) {
         var cantidad = Number(item.cantidad) || 0;
@@ -2903,6 +2896,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         var subtotal = cantidad * precioUnitario;
 
         total += subtotal;
+		window.totalItemsOrdenActual = total;  
 
         var tipo = item.tipo || "servicio";
         var etiquetaTipo = "Servicio";
@@ -2964,6 +2958,21 @@ if (resumenTotal) {
 }
 
 var presupuestoVisual =
+  document.getElementById("modal-presupuesto");
+
+if (presupuestoVisual) {
+  presupuestoVisual.textContent =
+    "$" + total.toFixed(2);
+}
+
+var saldoEl =
+  document.getElementById("modal-saldo-pendiente");
+
+if (saldoEl) {
+  actualizarSaldoPendiente();
+}		
+
+var presupuestoVisual =
 document.getElementById("modal-presupuesto");
 
 if (presupuestoVisual) {
@@ -2971,7 +2980,7 @@ if (presupuestoVisual) {
     "$" + total.toFixed(2);
 }
 
-actualizarSaldoPendiente();
+
 		
 var presupuestoEl = document.getElementById(
   "modal-presupuesto"
