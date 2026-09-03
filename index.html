@@ -2587,8 +2587,8 @@ html += "</div>";
   html += "</div>";
   html += "</div>";
 
-  modalContenido.innerHTML = html;
-  modalDetalle.classList.add("visible");
+modalContenido.innerHTML = html;
+modalDetalle.classList.add("visible");
 
 var senaInput = document.getElementById("modal-sena");
 var resumenSena = document.getElementById("resumen-sena");
@@ -2599,19 +2599,6 @@ if (senaInput && resumenSena) {
     var sena = Number(senaInput.value) || 0;
 
     resumenSena.textContent = "$" + sena.toFixed(2);
-
-    // Actualizar saldo pendiente
-    var totalItemsEl = document.getElementById("resumen-total-items");
-    var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
-    var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
-
-    var saldo = Math.max(0, totalItemsNum - sena);
-
-    if (resumenSaldo) {
-      resumenSaldo.textContent = "$" + saldo.toFixed(2);
-    }
-  });
-}
 
     // Actualizar saldo pendiente
     var totalItemsEl = document.getElementById("resumen-total-items");
