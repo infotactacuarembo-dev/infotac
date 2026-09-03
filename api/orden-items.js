@@ -5,7 +5,6 @@ const INFOTAC_EMPRESA_ID =
   'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
 
 const TIPOS_PERMITIDOS = new Set([
-  'servicio',
   'repuesto',
   'mano_obra'
 ]);
