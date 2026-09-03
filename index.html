@@ -3198,9 +3198,9 @@ if (resumenSaldo) {
             "<span class='h-fecha'>" +
             fmtFecha(p.fecha) +
             "</span>" +
-            "<span class='h-monto'>$" +
-            Number(p.monto || 0).toFixed(2) +
-            "</span>" +
+            "<span class='h-monto pago-monto'>$" +
+			Number(p.monto || 0).toFixed(2) +
+			"</span>" +
             "<span class='h-notas'>" +
             (p.notas ? esc(p.notas) : "") +
             "</span>" +
@@ -3208,6 +3208,7 @@ if (resumenSaldo) {
           );
         }).join("") +
         "</ul>";
+		      calcularSaldoDesdeResumen();
     })
     .catch(function (err) {
       console.error("Error al cargar pagos:", err);
@@ -3221,38 +3222,36 @@ if (resumenSaldo) {
           "</div>";
       }
     });
-
-	 // Calcular saldo después de cargar pagos
-    calcularSaldoDesdeResumen();
 }
 
  function calcularSaldoDesdeResumen() {
-  var totalItemsEl = document.getElementById("resumen-total-items");
+  var totalEl = document.getElementById("resumen-total-items");
   var senaEl = document.getElementById("resumen-sena");
   var saldoEl = document.getElementById("resumen-saldo");
-  var pagosEl = document.getElementById("pagos-contenido");
 
-  if (!totalItemsEl || !senaEl || !saldoEl) return;
-
-  var totalTexto = totalItemsEl.textContent || "0";
-  var senaTexto = senaEl.textContent || "0";
-
-  var total = parseFloat(totalTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
-  var sena = parseFloat(senaTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
-
-  // Sumar pagos registrados
-  var totalPagos = 0;
-
-  if (pagosEl) {
-    var montos = pagosEl.querySelectorAll(".h-monto");
-    montos.forEach(function (m) {
-      var texto = m.textContent || "0";
-      var monto = parseFloat(texto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
-      totalPagos += monto;
-    });
+  if (!totalEl || !saldoEl) {
+    return;
   }
 
-  var saldo = Math.max(0, total - sena - totalPagos);
+  function leerMonto(texto) {
+    var limpio = String(texto || "")
+      .replace("$", "")
+      .replace(/,/g, "")
+      .trim();
+
+    return Number(limpio) || 0;
+  }
+
+  var total = leerMonto(totalEl.textContent);
+  var sena = leerMonto(senaEl ? senaEl.textContent : "0");
+  var pagos = 0;
+
+  document.querySelectorAll(".pago-monto").forEach(function (pagoEl) {
+    pagos += leerMonto(pagoEl.textContent);
+  });
+
+  var saldo = Math.max(0, total - sena - pagos);
+
   saldoEl.textContent = "$" + saldo.toFixed(2);
 }
 		  
