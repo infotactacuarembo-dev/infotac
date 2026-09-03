@@ -2462,17 +2462,14 @@ function renderStats() {
   html += "</div>"; 
 
   html += "<div class='form-group full'>";
-  html += "<label for='modal-presupuesto'>Presupuesto</label>";
-  html += "<input type='number' id='modal-presupuesto' min='0' step='0.01' value='" + (o.presupuesto || "") + "'>";
-  html += "<button type='button' class='btn-sm' id='btn-usar-total-items'>";
-  html += "Usar total de ítems";
-  html += "</button>";
+  html += "<label>Total de ítems = Presupuesto</label>";
+  html += "<div id='modal-presupuesto' class='total-presupuesto'>$0.00</div>";
   html += "</div>";
 
   html += "<div class='form-group full'>";
   html += "<label>Saldo pendiente</label>";
-  html += "<div id='modal-saldo-pendiente'>$0</div>";
-  html += "</div>";	  
+  html += "<div id='modal-saldo-pendiente'>$0.00</div>";
+  html += "</div>";
 			
   html += "<div class='form-group full'>";
   html += "<label for='modal-falla'>Falla declarada</label>";
@@ -2606,50 +2603,45 @@ html += "</div>";
   function actualizarSaldoPendiente() {
   var senaEl = document.getElementById("modal-sena");
   var pagoFinalEl = document.getElementById("modal-pago-final");
-  var presupuestoEl = document.getElementById("modal-presupuesto");
+  var totalItemsEl = document.getElementById("resumen-total-items");
   var saldoEl = document.getElementById("modal-saldo-pendiente");
 
-  if (!senaEl || !pagoFinalEl || !presupuestoEl || !saldoEl) {
+  if (!senaEl || !pagoFinalEl || !totalItemsEl || !saldoEl) {
     return;
   }
 
   var sena = parseFloat(senaEl.value) || 0;
   var pagoFinal = parseFloat(pagoFinalEl.value) || 0;
-  var presupuesto = parseFloat(presupuestoEl.value) || 0;
+  var totalItems = parseFloat(
+    totalItemsEl.textContent.replace(/[^0-9.,-]/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".")
+  ) || 0;
 
   var saldo = Math.max(
     0,
-    presupuesto - sena - pagoFinal
+    totalItems - sena - pagoFinal
   );
 
-  saldoEl.textContent = "$" + saldo.toLocaleString("es-AR");
-	  
-  var resumenSaldoEl = document.getElementById("resumen-saldo");
+  saldoEl.textContent =
+    "$" + saldo.toLocaleString("es-AR");
+
+  var resumenSaldoEl =
+    document.getElementById("resumen-saldo");
 
   if (resumenSaldoEl) {
-  resumenSaldoEl.textContent =
-  "$" + saldo.toLocaleString("es-AR");
-}
+    resumenSaldoEl.textContent =
+      "$" + saldo.toFixed(2);
+  }
 
-  var resumenPresupuestoEl = document.getElementById(
-  "resumen-presupuesto"
-);
+  var resumenSenaEl =
+    document.getElementById("resumen-sena");
 
-var resumenSenaEl = document.getElementById(
-  "resumen-sena"
-);
-
-if (resumenPresupuestoEl) {
-  resumenPresupuestoEl.textContent =
-    "$" + presupuesto.toFixed(2);
-}
-
-if (resumenSenaEl) {
-  resumenSenaEl.textContent =
-    "$" + sena.toFixed(2);
-}	  
-	  
-}	  
+  if (resumenSenaEl) {
+    resumenSenaEl.textContent =
+      "$" + sena.toFixed(2);
+  }
+} 
 
 
   ["modal-sena", "modal-pago-final", "modal-presupuesto"]
@@ -2798,43 +2790,7 @@ actualizarSaldoPendiente();
         });
     });
   }
-    var botonUsarTotal = document.getElementById(
-    "btn-usar-total-items"
-  );
-
-  if (botonUsarTotal) {
-    botonUsarTotal.addEventListener("click", function () {
-      var totalEl = document.getElementById(
-        "orden-items-total"
-      );
-
-      var presupuestoEl = document.getElementById(
-        "modal-presupuesto"
-      );
-
-	  var pagoFinalEl = document.getElementById(
-  		"modal-pago-final"
-		);	
-
-      if (!totalEl || !presupuestoEl) {
-        alert("No se encontró el total de ítems.");
-        return;
-      }
-
-      var textoTotal = totalEl.textContent || "";
-      var coincidencia = textoTotal.match(
-        /([0-9]+(?:\.[0-9]+)?)\s*$/
-      );
-
-      if (!coincidencia) {
-        alert("Todavía no hay un total de ítems disponible.");
-        return;
-      }
-
-      presupuestoEl.value = coincidencia[1];
-      actualizarSaldoPendiente();
-      });
-    }
+    
 
   cargarItemsOrden(o.id);
 }
@@ -3007,6 +2963,16 @@ if (resumenTotal) {
     "$" + total.toFixed(2);
 }
 
+var presupuestoVisual =
+document.getElementById("modal-presupuesto");
+
+if (presupuestoVisual) {
+  presupuestoVisual.textContent =
+    "$" + total.toFixed(2);
+}
+
+actualizarSaldoPendiente();
+		
 var presupuestoEl = document.getElementById(
   "modal-presupuesto"
 );
