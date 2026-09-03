@@ -2068,6 +2068,7 @@ restaurarSesion();
     		pin: row.pass,
     		sena: row.sena,
     		presupuesto: row.presupuesto,
+			pagoFinal: row.pago_final || "0",	
     		presupuesta: row.presupuesta,
     		diagnostico: row.diagnostico || "",
     		trabajoRealizar: row.trabajo_realizar || "",
@@ -2451,6 +2452,13 @@ function renderStats() {
   html += "</div>";
 
   html += "<div class='form-group full'>";
+  html += "<label for='modal-pago-final'>Pago final</label>";
+  html += "<input type='number' id='modal-pago-final' min='0' step='0.01' value='" +
+    (o.pagoFinal || "0") +
+    "'>";
+  html += "</div>";	  
+
+  html += "<div class='form-group full'>";
   html += "<label for='modal-presupuesto'>Presupuesto</label>";
   html += "<input type='number' id='modal-presupuesto' min='0' step='0.01' value='" + (o.presupuesto || "") + "'>";
   html += "<button type='button' class='btn-sm' id='btn-usar-total-items'>";
@@ -2731,6 +2739,10 @@ html += "</div>";
       var presupuestoEl = document.getElementById(
         "modal-presupuesto"
       );
+
+	  var pagoFinalEl = document.getElementById(
+  		"modal-pago-final"
+		);	
 
       if (!totalEl || !presupuestoEl) {
         alert("No se encontró el total de ítems.");
@@ -3123,6 +3135,9 @@ if (senaValidacion > presupuestoValidacion) {
     diagnostico: diagnosticoEl ? diagnosticoEl.value.trim() : "",
     trabajo_realizar: trabajoEl ? trabajoEl.value.trim() : "",
     sena: senaEl ? parseFloat(senaEl.value) || 0 : 0,
+	pago_final: pagoFinalEl
+    ? parseFloat(pagoFinalEl.value) || 0
+    : 0,  
     presupuesto: presupuestoEl ? parseFloat(presupuestoEl.value) || 0 : 0,
     aprobacion_presupuesto: aprobacionEl
       ? aprobacionEl.value
