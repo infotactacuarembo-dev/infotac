@@ -2626,6 +2626,21 @@ html += "</div>";
   saldoEl.textContent = "$" + saldo.toLocaleString("es-AR");
 }	  
 
+
+  ["modal-sena", "modal-pago-final", "modal-presupuesto"]
+  .forEach(function (id) {
+    var input = document.getElementById(id);
+
+    if (input) {
+      input.addEventListener(
+        "input",
+        actualizarSaldoPendiente
+      );
+    }
+  });
+
+actualizarSaldoPendiente();	  
+
   var selEstado = document.getElementById("modal-estado");
 
   if (selEstado) {
