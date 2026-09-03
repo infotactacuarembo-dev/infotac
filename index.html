@@ -2997,13 +2997,69 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 		total.toFixed(2) +
 		"</div>";
 		var resumenTotal = document.getElementById(
-  		"resumen-total-items"
-		);
+  "resumen-total-items"
+);
 
-		if (resumenTotal) {
-  			resumenTotal.textContent =
-    		"$" + total.toFixed(2);
-		}
+if (resumenTotal) {
+  resumenTotal.textContent =
+    "$" + total.toFixed(2);
+}
+
+var presupuestoEl = document.getElementById(
+  "modal-presupuesto"
+);
+
+var senaEl = document.getElementById(
+  "modal-sena"
+);
+
+var pagoFinalEl = document.getElementById(
+  "modal-pago-final"
+);
+
+var resumenPresupuesto = document.getElementById(
+  "resumen-presupuesto"
+);
+
+var resumenSena = document.getElementById(
+  "resumen-sena"
+);
+
+var resumenSaldo = document.getElementById(
+  "resumen-saldo"
+);
+
+var presupuesto = presupuestoEl
+  ? Number(presupuestoEl.value) || 0
+  : 0;
+
+var sena = senaEl
+  ? Number(senaEl.value) || 0
+  : 0;
+
+var pagoFinal = pagoFinalEl
+  ? Number(pagoFinalEl.value) || 0
+  : 0;
+
+var saldo = Math.max(
+  0,
+  presupuesto - sena - pagoFinal
+);
+
+if (resumenPresupuesto) {
+  resumenPresupuesto.textContent =
+    "$" + presupuesto.toFixed(2);
+}
+
+if (resumenSena) {
+  resumenSena.textContent =
+    "$" + sena.toFixed(2);
+}
+
+if (resumenSaldo) {
+  resumenSaldo.textContent =
+    "$" + saldo.toFixed(2);
+}
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
