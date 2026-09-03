@@ -2532,41 +2532,39 @@ html += "<div class='historial-loading'>Cargando servicios...</div>";
 html += "</div>";
 html += "</div>";
 
-  html += "<div class='orden-resumen-economico'>";
-  html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
+html += "<div class='orden-resumen-economico'>";
+html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
 
- 
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Presupuesto</span>";
-  html += "<strong id='resumen-presupuesto'>$0.00</strong>";
-  html += "</div>";
+html += "<div class='orden-resumen-fila'>";
+html += "<span>Total de ítems</span>";
+html += "<strong id='resumen-total-items'>$0.00</strong>";
+html += "</div>";
 
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Seña</span>";
-  html += "<strong id='resumen-sena'>$" +
-    Number(o.sena || 0).toFixed(2) +
-    "</strong>";
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila'>";
-  html += "<span>Saldo pendiente</span>";
-  html += "<strong id='resumen-saldo'>$" +
-  Math.max(
-    0,
-    Number(o.presupuesto || 0) -
-    Number(o.sena || 0)
-  ).toFixed(2) +
+html += "<div class='orden-resumen-fila'>";
+html += "<span>Seña</span>";
+html += "<strong id='resumen-sena'>$" +
+  Number(o.sena || 0).toFixed(2) +
   "</strong>";
+html += "</div>";
+
+html += "<div class='orden-resumen-fila'>";
+html += "<span>Saldo pendiente</span>";
+html += "<strong id='resumen-saldo'>$0.00</strong>";
+html += "</div>";
+
+html += "</div>";
+
+// Sección de pagos
+html += "<div class='historial-section'>";
+html += "<div class='historial-title'>Pagos registrados</div>";
+html += "<div id='pagos-contenido'>";
+html += "<div class='historial-loading'>Cargando pagos...</div>";
+html += "</div>";
+html += "<button type='button' class='btn-sm' id='btn-registrar-pago'>";
+html += "+ Registrar pago";
+html += "</button>";
+html += "</div>";	  
 	  
-  html += "</div>";
-
-  html += "<div class='orden-resumen-fila excedente' id='resumen-excedente-fila' style='display:none;'>";
-  html += "<span>Excedente</span>";
-  html += "<strong id='resumen-excedente'>$0.00</strong>";
-  html += "</div>";
-
-  html += "</div>";	  
-   
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
   html += "<div id='historial-contenido'>";
@@ -2586,19 +2584,11 @@ if (senaInput && resumenSena) {
     var sena = Number(senaInput.value) || 0;
 
     resumenSena.textContent = "$" + sena.toFixed(2);
+	calcularSaldoDesdeResumen();  
 
-    // Actualizar saldo pendiente
-    var totalItemsEl = document.getElementById("resumen-total-items");
-    var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
-    var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
-
-    var saldo = Math.max(0, totalItemsNum - sena);
-
-    if (resumenSaldo) {
-      resumenSaldo.textContent = "$" + saldo.toFixed(2);
-    }
   });
 }
+
 
   var selEstado = document.getElementById("modal-estado");
 
@@ -2732,6 +2722,43 @@ if (senaInput && resumenSena) {
         });
     });
   }
+
+      var btnRegistrarPago = document.getElementById("btn-registrar-pago");
+
+  if (btnRegistrarPago) {
+    btnRegistrarPago.addEventListener("click", function () {
+      var monto = prompt("Monto del pago:");
+      if (!monto) return;
+
+      var montoNum = parseFloat(monto.replace(",", "."));
+      if (!montoNum || montoNum <= 0) {
+        alert("Monto inválido.");
+        return;
+      }
+
+      var notas = prompt("Notas (opcional):") || "";
+
+      pedirApi("/api/pagos", {
+        orden_id: o.id,
+        monto: montoNum,
+        notas: notas
+      }, "POST")
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error(res.error || "No se pudo registrar el pago");
+          }
+          return cargarPagosOrden(o.id);
+        })
+        .then(function () {
+          calcularSaldoDesdeResumen();
+        })
+        .catch(function (err) {
+          console.error("Error al registrar pago:", err);
+          alert(err.message || "No se pudo registrar el pago");
+        });
+    });
+  }
+	  
     var botonUsarTotal = document.getElementById(
     "btn-usar-total-items"
   );
@@ -3136,6 +3163,99 @@ if (resumenSaldo) {
     });
 }
 
+ function cargarPagosOrden(ordenId) {
+  pedirApi(
+    "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
+  )
+    .then(function (res) {
+      var pagosEl = document.getElementById("pagos-contenido");
+
+      if (!pagosEl) return;
+
+      if (!res.ok) {
+        pagosEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar pagos." +
+          "</div>";
+        return;
+      }
+
+      var pagos = res.data || [];
+
+      if (pagos.length === 0) {
+        pagosEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Aún no hay pagos registrados." +
+          "</div>";
+        return;
+      }
+
+      pagosEl.innerHTML =
+        "<ul class='historial-list'>" +
+        pagos.map(function (p) {
+          return (
+            "<li class='historial-item'>" +
+            "<span class='h-fecha'>" +
+            fmtFecha(p.fecha) +
+            "</span>" +
+            "<span class='h-monto'>$" +
+            Number(p.monto || 0).toFixed(2) +
+            "</span>" +
+            "<span class='h-notas'>" +
+            (p.notas ? esc(p.notas) : "") +
+            "</span>" +
+            "</li>"
+          );
+        }).join("") +
+        "</ul>";
+    })
+    .catch(function (err) {
+      console.error("Error al cargar pagos:", err);
+
+      var pagosEl = document.getElementById("pagos-contenido");
+
+      if (pagosEl) {
+        pagosEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Error al cargar pagos." +
+          "</div>";
+      }
+    });
+
+	 // Calcular saldo después de cargar pagos
+    calcularSaldoDesdeResumen();
+}
+
+ function calcularSaldoDesdeResumen() {
+  var totalItemsEl = document.getElementById("resumen-total-items");
+  var senaEl = document.getElementById("resumen-sena");
+  var saldoEl = document.getElementById("resumen-saldo");
+  var pagosEl = document.getElementById("pagos-contenido");
+
+  if (!totalItemsEl || !senaEl || !saldoEl) return;
+
+  var totalTexto = totalItemsEl.textContent || "0";
+  var senaTexto = senaEl.textContent || "0";
+
+  var total = parseFloat(totalTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+  var sena = parseFloat(senaTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+
+  // Sumar pagos registrados
+  var totalPagos = 0;
+
+  if (pagosEl) {
+    var montos = pagosEl.querySelectorAll(".h-monto");
+    montos.forEach(function (m) {
+      var texto = m.textContent || "0";
+      var monto = parseFloat(texto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+      totalPagos += monto;
+    });
+  }
+
+  var saldo = Math.max(0, total - sena - totalPagos);
+  saldoEl.textContent = "$" + saldo.toFixed(2);
+}
+		  
 		  
         modalCerrar.addEventListener("click", function () { modalDetalle.classList.remove("visible"); });
         modalDetalle.addEventListener("click", function (e) {
