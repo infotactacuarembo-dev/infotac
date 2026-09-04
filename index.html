@@ -3829,7 +3829,7 @@ if (senaValidacion > totalItemsNum) {
     /* ===== SEARCH ===== */		  
 function reiniciarPaginaYRenderizar() {
   paginaActual = 1;
-  cargarOrdenes().then(renderizarTablaOrdenes);
+  cargarOrdenes().then(renderizar);
 }
 
 buscador.addEventListener("input", reiniciarPaginaYRenderizar);
@@ -3853,7 +3853,7 @@ if (btnPaginaAnterior) {
   btnPaginaAnterior.addEventListener("click", function () {
     if (paginaActual > 1) {
       paginaActual--;
-      cargarOrdenes().then(renderizarTablaOrdenes);
+      cargarOrdenes().then(renderizar);
     }
   });
 }
@@ -3863,7 +3863,7 @@ if (btnPaginaSiguiente) {
     var totalPaginas = Math.ceil(totalOrdenes / ordenesPorPagina) || 1;
     if (paginaActual < totalPaginas) {
       paginaActual++;
-      cargarOrdenes().then(renderizarTablaOrdenes);
+      cargarOrdenes().then(renderizar);
     }
   });
 }
@@ -3878,7 +3878,7 @@ if (btnLimpiarFiltros) {
     if (filtroSaldo) filtroSaldo.value = "";
 
     paginaActual = 1;
-    cargarOrdenes().then(renderizarTablaOrdenes);
+    cargarOrdenes().then(renderizar);
   });
 }
         /* ===== EXPORT / IMPORT ===== */
