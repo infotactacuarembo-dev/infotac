@@ -2737,6 +2737,25 @@ if (senaInput && resumenSena) {
         return;
       }
 
+	  var saldoEl = document.getElementById("resumen-saldo");
+
+	  var saldoPendiente = saldoEl
+  		? Number(
+      	(saldoEl.textContent || "0")
+        .replace("$", "")
+        .replace(/,/g, "")
+        .trim()
+    	) || 0
+  		: 0;
+
+	if (montoNum > saldoPendiente) {
+  		alert(
+    	"El pago no puede ser mayor al saldo pendiente de $" +
+    	saldoPendiente.toFixed(2) + "."
+  	);
+  return;
+}	
+
       var notas = prompt("Notas (opcional):") || "";
 
       pedirApi("/api/pagos", {
