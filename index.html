@@ -1840,7 +1840,7 @@
 
 /* ===== CLAVE DE ADMINISTRACIÓN =====
    La contraseña online se valida mediante Vercel (/api).
-   CLAVE_CORRECTA solo queda como fallback cuando no hay conexión. */
+   CLAVE_CORRECTA solo queda como fallback cuando no hay conexión.
 
 function solicitarJSON(url, datos) {
   return fetch(url, {
@@ -1857,6 +1857,8 @@ function solicitarJSON(url, datos) {
     });
   });
 }
+ */
+
 
 /* Botón y modal de cambio de clave */
 var btnCambiarClave = document.getElementById('btn-cambiar-clave');
@@ -1988,7 +1990,8 @@ if (btnClaveGuardar) {
 		var btnPaginaSiguiente = document.getElementById("btn-pagina-siguiente");
 
 		var paginaActual = 1;
-		var ordenesPorPagina = 25;  
+		var ordenesPorPagina = 25;
+		var totalOrdenes = 0;
 
         var btnExportar = document.getElementById("btn-exportar");
         var btnImportar = document.getElementById("btn-importar");
@@ -2043,7 +2046,7 @@ if (btnClaveGuardar) {
   }
 };
 
-               /* ===== SESIÓN, LOGIN Y LOGOUT ===== */
+        /* ===== SESIÓN, LOGIN Y LOGOUT ===== */
         function solicitarJSON(url, datos, metodo) {
           return fetch(url, {
             method: metodo || "POST",
@@ -2059,6 +2062,37 @@ if (btnClaveGuardar) {
             });
           });
         }
+
+
+  function solicitarGet(url, params) {
+  var urlConParams = url;
+  if (params && Object.keys(params).length > 0) {
+    var query = Object.keys(params)
+      .filter(function (k) {
+        return params[k] !== null && params[k] !== undefined && params[k] !== '';
+      })
+      .map(function (k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      })
+      .join('&');
+    if (query) {
+      urlConParams = url + (url.indexOf('?') === -1 ? '?' : '&') + query;
+    }
+  }
+  return fetch(urlConParams, {
+    method: 'GET',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' }
+  }).then(function (respuesta) {
+    return respuesta.json().catch(function () {
+      return {
+        ok: false,
+        error: 'Respuesta inválida del servidor.'
+      };
+    });
+  });
+}		  
+  
 
         function mostrarAplicacion() {
   		loginScreen.classList.add("admin-bloqueado");
@@ -2276,11 +2310,60 @@ restaurarSesion();
   };
 }
 
-        function cargarOrdenes() {
-          return pedirApi("/api/ordenes").then(function (resultado) {
-            ordenes = (resultado.data || []).map(mapearFila);
-          });
-        }
+ function cargarOrdenes() {
+  var params = {
+    empresa_id: empresaId,
+    pagina: paginaActual,
+    limite: ordenesPorPagina
+  };
+
+  // Leer valores actuales de los filtros
+  var desdeVal = filtroDesde ? filtroDesde.value.trim() : "";
+  var hastaVal = filtroHasta ? filtroHasta.value.trim() : "";
+  var estadoVal = filtroEstado ? filtroEstado.value.trim() : "";
+  var saldoVal = filtroSaldo ? filtroSaldo.value.trim() : "";
+  var buscarVal = buscador ? buscador.value.trim() : "";
+
+  if (desdeVal) params.desde = desdeVal;
+  if (hastaVal) params.hasta = hastaVal;
+  if (estadoVal) params.estado = estadoVal;
+  if (saldoVal) params.saldo = saldoVal;
+  if (buscarVal) params.buscar = buscarVal;
+
+  return solicitarGet('/api/ordenes', params)
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(resultado.error || 'Error al cargar órdenes');
+      }
+      ordenes = (resultado.data || []).map(mapearFila);
+      totalOrdenes = resultado.total || 0;
+      actualizarContadorPaginacion();
+      return resultado;
+    });
+}
+
+
+  function actualizarContadorPaginacion() {
+  var totalPaginas = Math.ceil(totalOrdenes / ordenesPorPagina) || 1;
+  var inicio = totalOrdenes === 0 ? 0 : (paginaActual - 1) * ordenesPorPagina + 1;
+  var fin = Math.min(paginaActual * ordenesPorPagina, totalOrdenes);
+
+  if (contadorOrdenes) {
+    contadorOrdenes.textContent = 'Mostrando ' + inicio + '–' + fin + ' de ' + totalOrdenes + ' órdenes';
+  }
+
+  if (btnPaginaAnterior) {
+    btnPaginaAnterior.disabled = paginaActual <= 1;
+  }
+  if (btnPaginaSiguiente) {
+    btnPaginaSiguiente.disabled = paginaActual >= totalPaginas;
+  }
+
+  // Opcional: mostrar número de página
+  if (paginationInfo) {
+    paginationInfo.textContent = 'Página ' + paginaActual + ' de ' + totalPaginas;
+  }
+}  
 
         function cargarClientes() {
           return pedirApi("/api/clientes").then(function (resultado) {
@@ -3820,12 +3903,10 @@ if (senaValidacion > totalItemsNum) {
 
    
 
-        /* ===== SEARCH ===== */
-        buscador.addEventListener("input", renderizar);
-		  
-		function reiniciarPaginaYRenderizar() {
+    /* ===== SEARCH ===== */		  
+function reiniciarPaginaYRenderizar() {
   paginaActual = 1;
-  renderizar();
+  cargarOrdenes().then(renderizarTablaOrdenes);
 }
 
 buscador.addEventListener("input", reiniciarPaginaYRenderizar);
@@ -3845,36 +3926,38 @@ if (filtroEstado) {
 if (filtroSaldo) {
   filtroSaldo.addEventListener("change", reiniciarPaginaYRenderizar);
 }
-
 if (btnPaginaAnterior) {
   btnPaginaAnterior.addEventListener("click", function () {
     if (paginaActual > 1) {
       paginaActual--;
-      renderizar();
+      cargarOrdenes().then(renderizarTablaOrdenes);
     }
   });
 }
 
 if (btnPaginaSiguiente) {
   btnPaginaSiguiente.addEventListener("click", function () {
-    paginaActual++;
-    renderizar();
+    var totalPaginas = Math.ceil(totalOrdenes / ordenesPorPagina) || 1;
+    if (paginaActual < totalPaginas) {
+      paginaActual++;
+      cargarOrdenes().then(renderizarTablaOrdenes);
+    }
   });
 }
-		if (btnLimpiarFiltros) {
-  			btnLimpiarFiltros.addEventListener("click", function () {
-    		buscador.value = "";
+
+if (btnLimpiarFiltros) {
+  btnLimpiarFiltros.addEventListener("click", function () {
+    buscador.value = "";
 
     if (filtroDesde) filtroDesde.value = "";
     if (filtroHasta) filtroHasta.value = "";
     if (filtroEstado) filtroEstado.value = "";
     if (filtroSaldo) filtroSaldo.value = "";
-				
-    paginaActual = 1;
-    renderizar();
-  });
-}  
 
+    paginaActual = 1;
+    cargarOrdenes().then(renderizarTablaOrdenes);
+  });
+}
         /* ===== EXPORT / IMPORT ===== */
         function exportarDatos() {
           var data = JSON.stringify({ exportado: new Date().toISOString(), ordenes: ordenes }, null, 2);
