@@ -115,58 +115,18 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ ok: true, data: data || [] });
   }
-      const { data: ordenes, error } = await supabase
-  .from('ordenes')
-  .select(ORDER_FIELDS)
+      const { data, error } = await supabase
+  .from('ordenes_resumen')
+  .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
   .eq('empresa_id', INFOTAC_EMPRESA_ID)
   .order('fecha', { ascending: false })
   .limit(1000);
 
 if (error) throw error;
 
-const ordenesConTotales = await Promise.all(
-  (ordenes || []).map(async function (orden) {
-    const { data: items, error: itemsError } = await supabase
-      .from('orden_items')
-      .select('cantidad, precio_unitario')
-      .eq('orden_id', orden.id);
-
-    if (itemsError) throw itemsError;
-
-    const { data: pagos, error: pagosError } = await supabase
-      .from('pagos')
-      .select('monto')
-      .eq('orden_id', orden.id);
-
-    if (pagosError) throw pagosError;
-
-    const totalItems = (items || []).reduce(function (acumulado, item) {
-      return acumulado +
-        (Number(item.cantidad) || 0) *
-        (Number(item.precio_unitario) || 0);
-    }, 0);
-
-    const totalPagos = (pagos || []).reduce(function (acumulado, pago) {
-      return acumulado + (Number(pago.monto) || 0);
-    }, 0);
-
-    const saldoReal = Math.max(
-      0,
-      totalItems - (Number(orden.sena) || 0) - totalPagos
-    );
-
-    return {
-      ...orden,
-      total_items: totalItems,
-      total_pagos: totalPagos,
-      saldo_real: saldoReal
-    };
-  })
-);
-
 return res.status(200).json({
   ok: true,
-  data: ordenesConTotales
+  data: data || []
 });
     }
 
