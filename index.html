@@ -393,6 +393,52 @@
         background: #eef2f7;
       }
 
+		      /* ====== PAGINACIÓN ====== */
+      .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
+
+      .pagination-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn-pagination {
+        height: 34px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .btn-pagination:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .btn-pagination:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      #pagination-pages {
+        min-width: 54px;
+        text-align: center;
+        font-weight: 600;
+        color: var(--text);
+      }
+
       /* ====== TABLE ====== */
       .table-wrap {
         overflow-x: auto;
@@ -1078,6 +1124,30 @@
               <div id="empty-state" class="empty-state hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M20.25 7.5l-.625 10.632A2.25 2.25 0 0117.378 20.4H6.622a2.25 2.25 0 01-2.247-2.268L3.75 7.5M10 11.25h4M3.75 7.5h16.5"/></svg>
                 <p>No hay órdenes registradas. Usa el formulario para registrar el primer ingreso.</p>
+              </div>
+            </div>
+
+			              <div class="pagination-bar" id="pagination-bar">
+              <span id="pagination-info"></span>
+
+              <div class="pagination-actions">
+                <button
+                  type="button"
+                  id="btn-pagina-anterior"
+                  class="btn-pagination"
+                >
+                  Anterior
+                </button>
+
+                <span id="pagination-pages"></span>
+
+                <button
+                  type="button"
+                  id="btn-pagina-siguiente"
+                  class="btn-pagination"
+                >
+                  Siguiente
+                </button>
               </div>
             </div>
           </div>
