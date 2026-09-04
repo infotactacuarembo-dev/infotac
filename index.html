@@ -2999,19 +2999,7 @@ if (resumenSena) {
     "$" + sena.toFixed(2);
 }
 
-var resumenSaldo = document.getElementById(
-  "resumen-saldo"
-);
-
-var saldo = Math.max(
-  0,
-  total - sena
-);
-
-if (resumenSaldo) {
-  resumenSaldo.textContent =
-    "$" + saldo.toFixed(2);
-}
+calcularSaldoDesdeResumen();
 
       var botonesEliminar = itemsEl.querySelectorAll(
         ".btn-eliminar-item"
