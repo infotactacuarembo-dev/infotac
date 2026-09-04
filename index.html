@@ -1905,6 +1905,12 @@ if (btnClaveGuardar) {
         var contadorOrdenes = document.getElementById("contador-ordenes");
         var statsRow = document.getElementById("stats-row");
 
+		var filtroDesde = document.getElementById("filtro-desde");
+		var filtroHasta = document.getElementById("filtro-hasta");
+		var filtroEstado = document.getElementById("filtro-estado");
+		var filtroSaldo = document.getElementById("filtro-saldo");
+		var btnLimpiarFiltros = document.getElementById("btn-limpiar-filtros");  
+
         var btnExportar = document.getElementById("btn-exportar");
         var btnImportar = document.getElementById("btn-importar");
         var fileImportar = document.getElementById("file-importar");
@@ -2446,11 +2452,40 @@ function crearClienteYInsertar() {
         /* ===== RENDER TABLE ===== */
         function renderizar() {
           var query = buscador.value.toLowerCase().trim();
-          var filtradas = ordenes.filter(function (o) {
-            if (!query) return true;
-            return [o.nombre, o.equipo, o.serie, o.falla, o.whatsapp]
-              .join(" ").toLowerCase().indexOf(query) !== -1;
-          });
+var desde = filtroDesde ? filtroDesde.value : "";
+var hasta = filtroHasta ? filtroHasta.value : "";
+var estadoSeleccionado = filtroEstado ? filtroEstado.value : "";
+var saldoSeleccionado = filtroSaldo ? filtroSaldo.value : "";
+
+var filtradas = ordenes.filter(function (o) {
+  var coincideBusqueda =
+    !query ||
+    [o.nombre, o.equipo, o.serie, o.falla, o.whatsapp]
+      .join(" ")
+      .toLowerCase()
+      .indexOf(query) !== -1;
+
+  var fechaOrden = o.fecha ? String(o.fecha).slice(0, 10) : "";
+  var coincideDesde = !desde || fechaOrden >= desde;
+  var coincideHasta = !hasta || fechaOrden <= hasta;
+
+  var coincideEstado =
+    !estadoSeleccionado || o.estado === estadoSeleccionado;
+
+  var saldo = Number(o.saldo_real || 0);
+  var coincideSaldo =
+    !saldoSeleccionado ||
+    (saldoSeleccionado === "pendiente" && saldo > 0) ||
+    (saldoSeleccionado === "cero" && saldo <= 0);
+
+  return (
+    coincideBusqueda &&
+    coincideDesde &&
+    coincideHasta &&
+    coincideEstado &&
+    coincideSaldo
+  );
+});
 
           contadorOrdenes.textContent = filtradas.length + " / " + ordenes.length + " órdenes";
           renderStats();
@@ -3664,6 +3699,24 @@ if (senaValidacion > totalItemsNum) {
 
         /* ===== SEARCH ===== */
         buscador.addEventListener("input", renderizar);
+		  
+		if (filtroDesde) filtroDesde.addEventListener("change", renderizar);
+		if (filtroHasta) filtroHasta.addEventListener("change", renderizar);
+		if (filtroEstado) filtroEstado.addEventListener("change", renderizar);
+		if (filtroSaldo) filtroSaldo.addEventListener("change", renderizar);
+
+		if (btnLimpiarFiltros) {
+  			btnLimpiarFiltros.addEventListener("click", function () {
+    		buscador.value = "";
+
+    if (filtroDesde) filtroDesde.value = "";
+    if (filtroHasta) filtroHasta.value = "";
+    if (filtroEstado) filtroEstado.value = "";
+    if (filtroSaldo) filtroSaldo.value = "";
+
+    renderizar();
+  });
+}  
 
         /* ===== EXPORT / IMPORT ===== */
         function exportarDatos() {
