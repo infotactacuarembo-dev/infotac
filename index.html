@@ -3171,15 +3171,15 @@ calcularSaldoDesdeResumen();
     });
 }
 
- function cargarPagosOrden(ordenId) {
+function cargarPagosOrden(ordenId) {
   var pagosEl = document.getElementById("pagos-contenido");
 
-  if (!pagosEl) return;
+  if (!pagosEl) {
+    return;
+  }
 
   pagosEl.innerHTML =
-    "<div class='historial-loading'>" +
-    "Cargando pagos..." +
-    "</div>";
+    "<div class='historial-loading'>Cargando pagos...</div>";
 
   pedirApi(
     "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
@@ -3190,6 +3190,8 @@ calcularSaldoDesdeResumen();
       }
 
       var pagos = res.data || [];
+
+      window.pagosOrdenActuales = pagos;
 
       if (pagos.length === 0) {
         pagosEl.innerHTML =
@@ -3213,22 +3215,22 @@ calcularSaldoDesdeResumen();
             Number(p.monto || 0).toFixed(2) +
             "</span>" +
             "<span class='h-notas'>" +
-			(p.notas ? esc(p.notas) : "") +
-			"</span>" +
-			"<button type='button' class='btn-editar-pago' data-pago-id='" +
-			esc(p.id) +
-			"'>Editar</button>" +
-			"<button type='button' class='btn-eliminar-pago' data-pago-id='" +
-			esc(p.id) +
-			"'>Eliminar</button>" +
-		"</li>"
+            (p.notas ? esc(p.notas) : "") +
+            "</span>" +
+            "<button type='button' class='btn-editar-pago' data-pago-id='" +
+            esc(p.id) +
+            "'>Editar</button>" +
+            "<button type='button' class='btn-eliminar-pago' data-pago-id='" +
+            esc(p.id) +
+            "'>Eliminar</button>" +
+            "</li>"
           );
         }).join("") +
         "</ul>";
 
-            calcularSaldoDesdeResumen(pagos);
+      calcularSaldoDesdeResumen();
 
-                  var botonesEliminarPago = pagosEl.querySelectorAll(
+      var botonesEliminarPago = pagosEl.querySelectorAll(
         ".btn-eliminar-pago"
       );
 
@@ -3262,7 +3264,6 @@ calcularSaldoDesdeResumen();
 
               return cargarPagosOrden(ordenId);
             })
-            
             .catch(function (error) {
               console.error("Error al eliminar pago:", error);
               alert(
@@ -3274,7 +3275,108 @@ calcularSaldoDesdeResumen();
             });
         });
       });
-		
+
+      var botonesEditarPago = pagosEl.querySelectorAll(
+        ".btn-editar-pago"
+      );
+
+      botonesEditarPago.forEach(function (boton) {
+        boton.addEventListener("click", function () {
+          var pagoId = boton.getAttribute("data-pago-id");
+
+          var pago = (window.pagosOrdenActuales || []).find(
+            function (registro) {
+              return String(registro.id) === String(pagoId);
+            }
+          );
+
+          if (!pago) {
+            alert("No se encontró el pago para editar.");
+            return;
+          }
+
+          var montoTexto = prompt(
+            "Monto del pago:",
+            Number(pago.monto || 0).toFixed(2)
+          );
+
+          if (montoTexto === null) {
+            return;
+          }
+
+          var montoNuevo = parseFloat(
+            montoTexto.replace(",", ".")
+          );
+
+          if (!montoNuevo || montoNuevo <= 0) {
+            alert("Monto inválido.");
+            return;
+          }
+
+
+		  var saldoEl = document.getElementById("resumen-saldo");
+
+		  var saldoPendiente = saldoEl
+  		  ? Number(
+         (saldoEl.textContent || "0")
+         .replace("$", "")
+         .replace(/,/g, "")
+         .trim()
+        ) || 0
+        : 0;
+
+var saldoDisponibleParaEdicion =
+  saldoPendiente + (Number(pago.monto) || 0);
+
+if (montoNuevo > saldoDisponibleParaEdicion) {
+  alert(
+    "El monto no puede ser mayor a $" +
+    saldoDisponibleParaEdicion.toFixed(2) + "."
+  );
+  return;
+}	
+
+          var notasNuevas = prompt(
+            "Notas (opcional):",
+            pago.notas || ""
+          );
+
+          if (notasNuevas === null) {
+            return;
+          }
+
+          boton.disabled = true;
+          boton.textContent = "Guardando...";
+
+          pedirApi(
+            "/api/pagos",
+            {
+              id: pagoId,
+              monto: montoNuevo,
+              notas: notasNuevas
+            },
+            "PATCH"
+          )
+            .then(function (resultado) {
+              if (!resultado.ok) {
+                throw new Error(
+                  resultado.error || "No se pudo editar el pago."
+                );
+              }
+
+              return cargarPagosOrden(ordenId);
+            })
+            .catch(function (error) {
+              console.error("Error al editar pago:", error);
+              alert(
+                error.message || "No se pudo editar el pago."
+              );
+
+              boton.disabled = false;
+              boton.textContent = "Editar";
+            });
+        });
+      });
     })
     .catch(function (err) {
       console.error("Error al cargar pagos:", err);
@@ -3285,7 +3387,6 @@ calcularSaldoDesdeResumen();
         "</div>";
     });
 }
-
 
  function calcularSaldoDesdeResumen(pagos) {
   var totalEl = document.getElementById("resumen-total-items");
