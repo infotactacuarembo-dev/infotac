@@ -329,13 +329,68 @@
 
       .search-bar input:focus { border-color: var(--primary); }
 
-      .search-bar svg {
+            .search-bar svg {
         position: absolute;
         left: 0.7rem;
         top: 50%;
         transform: translateY(-50%);
         width: 18px; height: 18px;
         color: var(--text-muted);
+      }
+
+      /* ====== FILTROS ====== */
+      .filters-bar {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 12px 0 16px;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 145px;
+      }
+
+      .filter-group label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .filter-group input,
+      .filter-group select {
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #d7dee8;
+        border-radius: 7px;
+        background: #fff;
+        color: var(--text);
+        font: inherit;
+      }
+
+      .btn-clear-filters {
+        height: 38px;
+        padding: 0 14px;
+        border: 1px solid #d7dee8;
+        border-radius: 7px;
+        background: #fff;
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+      }
+
+      .btn-clear-filters:hover {
+        background: #eef2f7;
       }
 
       /* ====== TABLE ====== */
