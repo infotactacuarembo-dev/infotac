@@ -2064,28 +2064,33 @@ restaurarSesion();
     });
 }
 
-        function mapearFila(row) {
-  			return {
-    		id: row.id,
-    		clienteId: row.cliente_id,
-    		fecha: row.fecha,
-    		nombre: row.cliente,
-    		whatsapp: row.tel,
-    		equipo: row.tipo,
-    		serie: row.serie,
-    		pin: row.pass,
-    		sena: row.sena,
-    		presupuesto: row.presupuesto,
-    		presupuesta: row.presupuesta,
-    		diagnostico: row.diagnostico || "",
-    		trabajoRealizar: row.trabajo_realizar || "",
-    		aprobacionPresupuesto: row.aprobacion_presupuesto || "pendiente",
-    		falla: row.falla,
-    		estetico: row.estetico,
-    		estado: row.estado,
-    		fechaEntrega: row.fecha_entrega
-  			};
-		}
+  function mapearFila(row) {
+  return {
+    id: row.id,
+    clienteId: row.cliente_id,
+    fecha: row.fecha,
+    nombre: row.cliente,
+    whatsapp: row.tel,
+    equipo: row.tipo,
+    serie: row.serie,
+    pin: row.pass,
+    sena: row.sena,
+    presupuesto: row.presupuesto,
+
+    total_items: row.total_items,
+    total_pagos: row.total_pagos,
+    saldo_real: row.saldo_real,
+
+    presupuesta: row.presupuesta,
+    diagnostico: row.diagnostico || "",
+    trabajoRealizar: row.trabajo_realizar || "",
+    aprobacionPresupuesto: row.aprobacion_presupuesto || "pendiente",
+    falla: row.falla,
+    estetico: row.estetico,
+    estado: row.estado,
+    fechaEntrega: row.fecha_entrega
+  };
+}
 
         function cargarOrdenes() {
           return pedirApi("/api/ordenes").then(function (resultado) {
@@ -2413,7 +2418,7 @@ function renderStats() {
     sinreparar: 0
   };
 
-  ordenes.forEach(function (o) {
+  .forEach(function (o) {
     if (counts[o.estado] !== undefined) {
       counts[o.estado]++;
     }
