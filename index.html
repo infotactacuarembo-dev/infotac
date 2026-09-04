@@ -1981,6 +1981,15 @@ if (btnClaveGuardar) {
 		var filtroSaldo = document.getElementById("filtro-saldo");
 		var btnLimpiarFiltros = document.getElementById("btn-limpiar-filtros");  
 
+		var paginationBar = document.getElementById("pagination-bar");
+		var paginationInfo = document.getElementById("pagination-info");
+		var paginationPages = document.getElementById("pagination-pages");
+		var btnPaginaAnterior = document.getElementById("btn-pagina-anterior");
+		var btnPaginaSiguiente = document.getElementById("btn-pagina-siguiente");
+
+		var paginaActual = 1;
+		var ordenesPorPagina = 25;  
+
         var btnExportar = document.getElementById("btn-exportar");
         var btnImportar = document.getElementById("btn-importar");
         var fileImportar = document.getElementById("file-importar");
@@ -2558,16 +2567,60 @@ var filtradas = ordenes.filter(function (o) {
 });
 
           contadorOrdenes.textContent = filtradas.length + " / " + ordenes.length + " órdenes";
+
+          var totalPaginas = Math.max(
+  1,
+  Math.ceil(filtradas.length / ordenesPorPagina)
+);
+
+if (paginaActual > totalPaginas) {
+  paginaActual = totalPaginas;
+}
+
+var inicio = (paginaActual - 1) * ordenesPorPagina;
+var fin = inicio + ordenesPorPagina;
+var ordenesPagina = filtradas.slice(inicio, fin);
+
+if (paginationInfo) {
+  if (filtradas.length === 0) {
+    paginationInfo.textContent = "No hay órdenes para mostrar";
+  } else {
+    paginationInfo.textContent =
+      "Mostrando " +
+      (inicio + 1) +
+      "–" +
+      Math.min(fin, filtradas.length) +
+      " de " +
+      filtradas.length +
+      " órdenes";
+  }
+}
+
+if (paginationPages) {
+  paginationPages.textContent =
+    "Página " + paginaActual + " de " + totalPaginas;
+}
+
+if (btnPaginaAnterior) {
+  btnPaginaAnterior.disabled = paginaActual === 1;
+}
+
+if (btnPaginaSiguiente) {
+  btnPaginaSiguiente.disabled = paginaActual === totalPaginas;
+} 
+			
           renderStats();
 
           if (filtradas.length === 0) {
             tablaOrdenes.innerHTML = "";
             emptyState.classList.remove("hidden");
+		    if (paginationBar) paginationBar.classList.add("hidden");  
             return;
           }
           emptyState.classList.add("hidden");
+		  if (paginationBar) paginationBar.classList.remove("hidden");	
 
-          tablaOrdenes.innerHTML = filtradas.map(function (o) {
+          tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
 		    var totalItems = Number(o.total_items || 0);
             var saldo = Number(o.saldo_real || 0); 
@@ -3770,11 +3823,44 @@ if (senaValidacion > totalItemsNum) {
         /* ===== SEARCH ===== */
         buscador.addEventListener("input", renderizar);
 		  
-		if (filtroDesde) filtroDesde.addEventListener("change", renderizar);
-		if (filtroHasta) filtroHasta.addEventListener("change", renderizar);
-		if (filtroEstado) filtroEstado.addEventListener("change", renderizar);
-		if (filtroSaldo) filtroSaldo.addEventListener("change", renderizar);
+		function reiniciarPaginaYRenderizar() {
+  paginaActual = 1;
+  renderizar();
+}
 
+buscador.addEventListener("input", reiniciarPaginaYRenderizar);
+
+if (filtroDesde) {
+  filtroDesde.addEventListener("change", reiniciarPaginaYRenderizar);
+}
+
+if (filtroHasta) {
+  filtroHasta.addEventListener("change", reiniciarPaginaYRenderizar);
+}
+
+if (filtroEstado) {
+  filtroEstado.addEventListener("change", reiniciarPaginaYRenderizar);
+}
+
+if (filtroSaldo) {
+  filtroSaldo.addEventListener("change", reiniciarPaginaYRenderizar);
+}
+
+if (btnPaginaAnterior) {
+  btnPaginaAnterior.addEventListener("click", function () {
+    if (paginaActual > 1) {
+      paginaActual--;
+      renderizar();
+    }
+  });
+}
+
+if (btnPaginaSiguiente) {
+  btnPaginaSiguiente.addEventListener("click", function () {
+    paginaActual++;
+    renderizar();
+  });
+}
 		if (btnLimpiarFiltros) {
   			btnLimpiarFiltros.addEventListener("click", function () {
     		buscador.value = "";
@@ -3783,7 +3869,8 @@ if (senaValidacion > totalItemsNum) {
     if (filtroHasta) filtroHasta.value = "";
     if (filtroEstado) filtroEstado.value = "";
     if (filtroSaldo) filtroSaldo.value = "";
-
+				
+    paginaActual = 1;
     renderizar();
   });
 }  
