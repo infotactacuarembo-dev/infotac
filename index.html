@@ -3213,14 +3213,68 @@ calcularSaldoDesdeResumen();
             Number(p.monto || 0).toFixed(2) +
             "</span>" +
             "<span class='h-notas'>" +
-            (p.notas ? esc(p.notas) : "") +
-            "</span>" +
-            "</li>"
+			(p.notas ? esc(p.notas) : "") +
+			"</span>" +
+			"<button type='button' class='btn-editar-pago' data-pago-id='" +
+			esc(p.id) +
+			"'>Editar</button>" +
+			"<button type='button' class='btn-eliminar-pago' data-pago-id='" +
+			esc(p.id) +
+			"'>Eliminar</button>" +
+		"</li>"
           );
         }).join("") +
         "</ul>";
 
             calcularSaldoDesdeResumen(pagos);
+
+                  var botonesEliminarPago = pagosEl.querySelectorAll(
+        ".btn-eliminar-pago"
+      );
+
+      botonesEliminarPago.forEach(function (boton) {
+        boton.addEventListener("click", function () {
+          var pagoId = boton.getAttribute("data-pago-id");
+
+          if (!pagoId) {
+            alert("No se encontró el identificador del pago.");
+            return;
+          }
+
+          if (!confirm("¿Eliminar este pago?")) {
+            return;
+          }
+
+          boton.disabled = true;
+          boton.textContent = "Eliminando...";
+
+          pedirApi(
+            "/api/pagos?id=" + encodeURIComponent(pagoId),
+            undefined,
+            "DELETE"
+          )
+            .then(function (resultado) {
+              if (!resultado.ok) {
+                throw new Error(
+                  resultado.error || "No se pudo eliminar el pago."
+                );
+              }
+
+              return cargarPagosOrden(ordenId);
+            })
+            
+            .catch(function (error) {
+              console.error("Error al eliminar pago:", error);
+              alert(
+                error.message || "No se pudo eliminar el pago."
+              );
+
+              boton.disabled = false;
+              boton.textContent = "Eliminar";
+            });
+        });
+      });
+		
     })
     .catch(function (err) {
       console.error("Error al cargar pagos:", err);
