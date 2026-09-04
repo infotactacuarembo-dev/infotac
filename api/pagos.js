@@ -34,7 +34,7 @@ function validOrdenId(value) {
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
-  if (!['GET', 'POST', 'DELETE'].includes(req.method)) {
+  if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
     return res.status(405).json({
       ok: false,
       error: 'Método no permitido.'
@@ -126,6 +126,63 @@ module.exports = async function handler(req, res) {
         data: data
       });
     }
+
+
+        // ===== PATCH: Editar un pago =====
+    if (req.method === 'PATCH') {
+      const body = req.body || {};
+
+      const pagoId = texto(body.id || body.pago_id, 200);
+      const monto = numeroPositivo(body.monto, 0);
+      const notas = texto(body.notas || '', 500);
+
+      if (!validOrdenId(pagoId)) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Identificador de pago inválido.'
+        });
+      }
+
+      if (monto <= 0) {
+        return res.status(400).json({
+          ok: false,
+          error: 'El monto debe ser mayor que cero.'
+        });
+      }
+
+      const { data: pagoExistente, error: pagoError } = await supabase
+        .from('pagos')
+        .select('id, orden_id')
+        .eq('id', pagoId)
+        .maybeSingle();
+
+      if (pagoError) throw pagoError;
+
+      if (!pagoExistente) {
+        return res.status(404).json({
+          ok: false,
+          error: 'Pago no encontrado.'
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('pagos')
+        .update({
+          monto: monto,
+          notas: notas
+        })
+        .eq('id', pagoId)
+        .select('id, orden_id, monto, fecha, notas, creado_en')
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        ok: true,
+        data: data
+      });
+    }
+
 
     // ===== DELETE: Eliminar un pago =====
     if (req.method === 'DELETE') {
