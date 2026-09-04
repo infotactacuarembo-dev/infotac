@@ -69,10 +69,10 @@ function orderInput(body, options) {
     diagnostico: text(source.diagnostico, 4000),
     trabajo_realizar: text(source.trabajo_realizar, 4000),
     aprobacion_presupuesto: text(
-    source.aprobacion_presupuesto || "pendiente",
-    20
-  ),
-   estado,
+      source.aprobacion_presupuesto || 'pendiente',
+      20
+    ),
+    estado,
     fecha_entrega:
       estado === 'entregado' || estado === 'sinreparar'
         ? isoDate(source.fecha_entrega, now)
@@ -97,37 +97,85 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       const clienteId = req.query && req.query.cliente_id;
 
+      // Caso especial: órdenes de un cliente específico
       if (clienteId) {
-      if (!validId(clienteId)) {
-        return res.status(400).json({
-        ok: false,
-        error: 'Identificador de cliente inválido.'
-      });
-  }
+        if (!validId(clienteId)) {
+          return res.status(400).json({
+            ok: false,
+            error: 'Identificador de cliente inválido.'
+          });
+        }
 
-      const { data, error } = await supabase
-      .from('ordenes')
-      .select('id, fecha, tipo, falla, estado, cliente_id')
-      .eq('empresa_id', INFOTAC_EMPRESA_ID)
-      .eq('cliente_id', clienteId)
-      .order('fecha', { ascending: false });
+        const { data, error } = await supabase
+          .from('ordenes')
+          .select('id, fecha, tipo, falla, estado, cliente_id', { count: 'exact' })
+          .eq('empresa_id', INFOTAC_EMPRESA_ID)
+          .eq('cliente_id', clienteId)
+          .order('fecha', { ascending: false });
+
+        if (error) throw error;
+        return res.status(200).json({ ok: true, data: data || [] });
+      }
+
+      // LISTADO CON PAGINACIÓN Y FILTROS
+      const pagina = parseInt(req.query.pagina || '1', 10);
+      const limite = parseInt(req.query.limite || '25', 10);
+      const offset = (pagina - 1) * limite;
+
+      const desde = req.query.desde;
+      const hasta = req.query.hasta;
+      const estado = req.query.estado;
+      const saldo = req.query.saldo;
+      const buscar = req.query.buscar;
+
+      let query = supabase
+        .from('ordenes_resumen')
+        .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real', { count: 'exact' })
+        .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+      if (desde) {
+        query = query.gte('fecha', desde);
+      }
+      if (hasta) {
+        query = query.lte('fecha', hasta);
+      }
+      if (estado) {
+        query = query.eq('estado', estado);
+      }
+
+      if (saldo) {
+        if (saldo === 'pendiente') {
+          query = query.lt('saldo_real', 0.01);
+        } else if (saldo === 'pagando') {
+          query = query.gt('saldo_real', 0);
+        } else if (saldo === 'pagado') {
+          query = query.eq('saldo_real', 0);
+        }
+      }
+
+      if (buscar) {
+        const texto = '%' + buscar + '%';
+        query = query.or(
+          'cliente.ilike.' + texto +
+          ',tipo.ilike.' + texto +
+          ',serie.ilike.' + texto
+        );
+      }
+
+      query = query.order('fecha', { ascending: false });
+      query = query.range(offset, offset + limite - 1);
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
-      return res.status(200).json({ ok: true, data: data || [] });
-  }
-      const { data, error } = await supabase
-  .from('ordenes_resumen')
-  .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
-  .eq('empresa_id', INFOTAC_EMPRESA_ID)
-  .order('fecha', { ascending: false })
-  .limit(1000);
 
-if (error) throw error;
-
-return res.status(200).json({
-  ok: true,
-  data: data || []
-});
+      return res.status(200).json({
+        ok: true,
+        data: data || [],
+        total: count || 0,
+        pagina: pagina,
+        limite: limite
+      });
     }
 
     if (req.method === 'POST') {
@@ -156,11 +204,11 @@ return res.status(200).json({
         });
 
         const { error: importError } = await supabase.rpc(
-  'reemplazar_ordenes_importadas',
-  { p_ordenes: orders }
-);
+          'reemplazar_ordenes_importadas',
+          { p_ordenes: orders }
+        );
 
-if (importError) throw importError;
+        if (importError) throw importError;
 
         return res.status(200).json({ ok: true });
       }
@@ -201,10 +249,10 @@ if (importError) throw importError;
         sena: number(body.sena),
         presupuesto: number(body.presupuesto),
         aprobacion_presupuesto: text(
-        body.aprobacion_presupuesto || 'pendiente',
-        20
-      )
-    };
+          body.aprobacion_presupuesto || 'pendiente',
+          20
+        )
+      };
 
       if (body.estado === 'entregado' || body.estado === 'sinreparar') {
         update.fecha_entrega = isoDate(body.fecha_entrega, new Date().toISOString());
@@ -213,12 +261,12 @@ if (importError) throw importError;
       }
 
       const { data, error } = await supabase
-      .from('ordenes')
-      .update(update)
-      .eq('id', body.id)
-      .eq('empresa_id', INFOTAC_EMPRESA_ID)
-      .select(ORDER_FIELDS)
-      .single();
+        .from('ordenes')
+        .update(update)
+        .eq('id', body.id)
+        .eq('empresa_id', INFOTAC_EMPRESA_ID)
+        .select(ORDER_FIELDS)
+        .single();
 
       if (error) throw error;
       return res.status(200).json({ ok: true, data });
