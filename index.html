@@ -958,7 +958,51 @@
             <div class="search-bar">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               <input type="text" id="buscador" placeholder="Buscar por nombre, equipo, serie o falla..." />
+                        </div>
+
+            <div class="filters-bar" id="filters-bar">
+              <div class="filter-group">
+                <label for="filtro-desde">Desde</label>
+                <input type="date" id="filtro-desde">
+              </div>
+
+              <div class="filter-group">
+                <label for="filtro-hasta">Hasta</label>
+                <input type="date" id="filtro-hasta">
+              </div>
+
+              <div class="filter-group">
+                <label for="filtro-estado">Estado</label>
+                <select id="filtro-estado">
+                  <option value="">Todos los estados</option>
+                  <option value="ingresado">Ingresado</option>
+                  <option value="revision">En revisión</option>
+                  <option value="presupuesto">Presupuesto</option>
+                  <option value="reparando">Reparando</option>
+                  <option value="terminado">Listo para retirar</option>
+                  <option value="entregado">Entregado</option>
+                  <option value="sinreparar">Sin reparar / devuelto</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="filtro-saldo">Saldo</label>
+                <select id="filtro-saldo">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Con saldo pendiente</option>
+                  <option value="cero">Sin saldo pendiente</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                id="btn-limpiar-filtros"
+                class="btn-clear-filters"
+              >
+                Limpiar filtros
+              </button>
             </div>
+
             <div class="table-wrap">
               <table>
                 <thead>
