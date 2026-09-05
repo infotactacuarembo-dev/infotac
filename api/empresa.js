@@ -23,8 +23,6 @@ function obtenerClienteSupabase() {
 }
 
 function esAdministrador(req, res) {
-  if (!requireSession(req, res)) return false;
-
   const usuario = getSessionUser(req);
 
   if (!usuario || usuario.rol !== 'admin') {
@@ -38,14 +36,38 @@ function esAdministrador(req, res) {
   return true;
 }
 
-module.exports = async function handler(req, res) {
-  if (!esAdministrador(req, res)) return;
+const CAMPOS_EMPRESA = [
+  'id',
+  'nombre',
+  'nombre_comercial',
+  'country_code',
+  'country',
+  'tax_id_type',
+  'tax_id',
+  'address_line1',
+  'address_line2',
+  'state_region',
+  'city',
+  'postal_code',
+  'telefono',
+  'whatsapp',
+  'email',
+  'website',
+  'logo_url'
+].join(', ');
 
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'PUT') {
     return res.status(405).json({
       ok: false,
       error: 'Método no permitido.'
     });
+  }
+
+  if (!requireSession(req, res)) return;
+
+  if (req.method === 'PUT' && !esAdministrador(req, res)) {
+    return;
   }
 
   try {
@@ -54,27 +76,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
       const { data: empresa, error } = await supabase
         .from('empresas')
-        .select(
-          [
-            'id',
-            'nombre',
-            'nombre_comercial',
-            'country_code',
-            'country',
-            'tax_id_type',
-            'tax_id',
-            'address_line1',
-            'address_line2',
-            'state_region',
-            'city',
-            'postal_code',
-            'telefono',
-            'whatsapp',
-            'email',
-            'website',
-            'logo_url'
-          ].join(', ')
-        )
+        .select(CAMPOS_EMPRESA)
         .limit(1)
         .maybeSingle();
 
@@ -91,7 +93,7 @@ module.exports = async function handler(req, res) {
 
       return res.status(200).json({
         ok: true,
-        empresa
+        empresa: empresa
       });
     }
 
@@ -160,27 +162,7 @@ module.exports = async function handler(req, res) {
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .select(
-        [
-          'id',
-          'nombre',
-          'nombre_comercial',
-          'country_code',
-          'country',
-          'tax_id_type',
-          'tax_id',
-          'address_line1',
-          'address_line2',
-          'state_region',
-          'city',
-          'postal_code',
-          'telefono',
-          'whatsapp',
-          'email',
-          'website',
-          'logo_url'
-        ].join(', ')
-      )
+      .select(CAMPOS_EMPRESA)
       .maybeSingle();
 
     if (error) {
