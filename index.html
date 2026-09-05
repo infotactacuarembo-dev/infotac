@@ -186,6 +186,14 @@
       }
       .btn-sm.primary:hover { background: var(--primary-dark); }
 
+	  .btn-settings {
+  	   font-size: 1.1rem;
+       padding: 0.5rem 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+	}	
+
       .app-body {
   		display: grid;
   		grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
@@ -969,7 +977,7 @@
     <!-- ====== APP SCREEN ====== -->
     <div id="app-screen" class="admin-bloqueado">
       <div class="header-actions">
-  <a href="/settings.html" class="btn-sm" title="Configuración">⚙️ Configuración</a>
+  <a href="/settings.html" class="btn-sm btn-settings" title="Configuración">⚙️</a>
   <button class="btn-sm" id="btn-exportar">Exportar backup</button>
   <button class="btn-sm" id="btn-importar">Importar backup</button>
   <input type="file" id="file-importar" accept=".json" class="hidden" />
