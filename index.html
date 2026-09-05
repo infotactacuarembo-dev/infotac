@@ -1194,87 +1194,202 @@
 
   <div class="panel-body">
   <form id="form-empresa">
-    <input type="hidden" id="empresa-id">
+  <input type="hidden" id="empresa-id">
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="empresa-nombre">Nombre de la empresa</label>
-        <input
-          type="text"
-          id="empresa-nombre"
-          required
-          autocomplete="organization"
-        >
-      </div>
+  <div class="config-section-title">
+    <h3>Datos de la empresa</h3>
+    <p>Información que aparecerá en órdenes, presupuestos y comprobantes.</p>
+  </div>
 
-      <div class="form-group">
-        <label for="empresa-rut">RUT</label>
-        <input
-          type="text"
-          id="empresa-rut"
-          autocomplete="off"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="empresa-telefono">Teléfono</label>
-        <input
-          type="tel"
-          id="empresa-telefono"
-          autocomplete="tel"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="empresa-whatsapp">WhatsApp</label>
-        <input
-          type="tel"
-          id="empresa-whatsapp"
-          autocomplete="tel"
-        >
-      </div>
-
-      <div class="form-group full-width">
-        <label for="empresa-direccion">Dirección</label>
-        <input
-          type="text"
-          id="empresa-direccion"
-          autocomplete="street-address"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="empresa-email">Email</label>
-        <input
-          type="email"
-          id="empresa-email"
-          autocomplete="email"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="empresa-logo-url">URL del logo</label>
-        <input
-          type="url"
-          id="empresa-logo-url"
-          placeholder="https://..."
-        >
-      </div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="empresa-nombre">Nombre legal</label>
+      <input
+        type="text"
+        id="empresa-nombre"
+        required
+        autocomplete="organization"
+      >
     </div>
 
-    <p
-      id="mensaje-empresa"
-      role="status"
-      aria-live="polite"
-      style="margin: 16px 0 0; color: var(--text-muted);"
-    ></p>
-
-    <div class="form-actions" style="margin-top: 20px;">
-      <button type="submit" class="btn-primary" id="btn-guardar-empresa">
-        Guardar cambios
-      </button>
+    <div class="form-group">
+      <label for="empresa-nombre-comercial">Nombre comercial</label>
+      <input
+        type="text"
+        id="empresa-nombre-comercial"
+        autocomplete="organization"
+      >
     </div>
-  </form>
+
+    <div class="form-group">
+      <label for="empresa-pais">País</label>
+      <select id="empresa-pais" required>
+        <option value="">Seleccioná un país</option>
+        <option value="AR">Argentina</option>
+        <option value="BO">Bolivia</option>
+        <option value="BR">Brasil</option>
+        <option value="CL">Chile</option>
+        <option value="CO">Colombia</option>
+        <option value="CR">Costa Rica</option>
+        <option value="CU">Cuba</option>
+        <option value="DO">República Dominicana</option>
+        <option value="EC">Ecuador</option>
+        <option value="SV">El Salvador</option>
+        <option value="GT">Guatemala</option>
+        <option value="HN">Honduras</option>
+        <option value="MX">México</option>
+        <option value="NI">Nicaragua</option>
+        <option value="PA">Panamá</option>
+        <option value="PY">Paraguay</option>
+        <option value="PE">Perú</option>
+        <option value="PR">Puerto Rico</option>
+        <option value="UY">Uruguay</option>
+        <option value="VE">Venezuela</option>
+        <option value="OTRO">Otro país</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-tax-id-type" id="label-tax-id-type">
+        Tipo de identificación fiscal
+      </label>
+      <input
+        type="text"
+        id="empresa-tax-id-type"
+        placeholder="Ej.: RUT, CUIT, RFC, NIT o RUC"
+      >
+    </div>
+
+    <div class="form-group full-width">
+      <label for="empresa-tax-id" id="label-tax-id">
+        Número de identificación fiscal
+      </label>
+      <input
+        type="text"
+        id="empresa-tax-id"
+        autocomplete="off"
+      >
+    </div>
+  </div>
+
+  <div class="config-section-title">
+    <h3>Ubicación</h3>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-group full-width">
+      <label for="empresa-direccion">Dirección</label>
+      <input
+        type="text"
+        id="empresa-direccion"
+        autocomplete="street-address"
+      >
+    </div>
+
+    <div class="form-group full-width">
+      <label for="empresa-direccion-extra">Complemento de dirección</label>
+      <input
+        type="text"
+        id="empresa-direccion-extra"
+        placeholder="Local, piso, oficina, apartamento, etc."
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-region" id="label-region">
+        Región / Provincia / Departamento
+      </label>
+      <input
+        type="text"
+        id="empresa-region"
+        autocomplete="address-level1"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-ciudad">Ciudad / Localidad</label>
+      <input
+        type="text"
+        id="empresa-ciudad"
+        autocomplete="address-level2"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-codigo-postal">Código postal</label>
+      <input
+        type="text"
+        id="empresa-codigo-postal"
+        autocomplete="postal-code"
+      >
+    </div>
+  </div>
+
+  <div class="config-section-title">
+    <h3>Contacto y marca</h3>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="empresa-telefono">Teléfono</label>
+      <input
+        type="tel"
+        id="empresa-telefono"
+        autocomplete="tel"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-whatsapp">WhatsApp</label>
+      <input
+        type="tel"
+        id="empresa-whatsapp"
+        autocomplete="tel"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-email">Email</label>
+      <input
+        type="email"
+        id="empresa-email"
+        autocomplete="email"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="empresa-web">Sitio web</label>
+      <input
+        type="url"
+        id="empresa-web"
+        placeholder="https://..."
+      >
+    </div>
+
+    <div class="form-group full-width">
+      <label for="empresa-logo-url">URL del logo</label>
+      <input
+        type="url"
+        id="empresa-logo-url"
+        placeholder="https://..."
+      >
+    </div>
+  </div>
+
+  <p
+    id="mensaje-empresa"
+    role="status"
+    aria-live="polite"
+    style="margin: 16px 0 0; color: var(--text-muted);"
+  ></p>
+
+  <div class="form-actions" style="margin-top: 20px;">
+    <button type="submit" class="btn-primary" id="btn-guardar-empresa">
+      Guardar cambios
+    </button>
+  </div>
+</form>
+	  
 </div>
     </section>
   </main>
