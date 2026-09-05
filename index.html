@@ -122,14 +122,14 @@
       .admin-bloqueado { display: none !important; }
 
       #app-screen { min-height: 100vh; }
-/*  probando */
+
       .app-header {
   		background: var(--surface);
   		border-bottom: 1px solid var(--border);
-  		padding: 0.75rem 1.5rem 0.75rem calc(380px + 3rem);
+  		padding: 0.75rem 1.5rem;
   		display: flex;
   		align-items: center;
-  		padding-left: calc(380px + 3rem);
+  		
   		box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   		position: sticky;
   		top: 0;
@@ -138,7 +138,7 @@
 		margin: 0 auto;
 		width: 100%;
 		box-sizing: border-box;
-		outline: 3px solid red !important;  
+		
 		}
 
       .app-header .logo {
@@ -978,7 +978,13 @@
 
     <!-- ====== APP SCREEN ====== -->
     <div id="app-screen" class="admin-bloqueado">
-      <div class="header-actions">
+   <header class="app-header">
+  <div class="logo">
+    <span class="dot"></span>
+    <span id="nombre-empresa-header">Infotac</span>
+  </div>
+	   
+  <div class="header-actions">
   <button class="btn-sm btn-settings" id="btn-configuracion" style="display:none;" title="Configuración">⚙️</button>
   <button class="btn-sm" id="btn-exportar">Exportar backup</button>
   <button class="btn-sm" id="btn-importar">Importar backup</button>
