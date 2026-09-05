@@ -2462,10 +2462,10 @@ if (btnClaveGuardar) {
 		var configuracionPanel = document.getElementById('configuracion-panel');
 		var btnCerrarConfiguracion = document.getElementById('btn-cerrar-configuracion');
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
-var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
-var etiquetaRegionEmpresa = document.getElementById('label-region');
+		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
+		var etiquetaRegionEmpresa = document.getElementById('label-region');
 
-var configuracionPaisEmpresa = {
+		var configuracionPaisEmpresa = {
   AR: { region: 'Provincia', fiscal: 'CUIT' },
   BO: { region: 'Departamento', fiscal: 'NIT' },
   BR: { region: 'Estado', fiscal: 'CNPJ' },
@@ -2516,13 +2516,179 @@ if (campoPaisEmpresa) {
     actualizarEtiquetasEmpresaPorPais
   );
 }
+
+
+var formularioEmpresa = document.getElementById('form-empresa');
+var mensajeEmpresa = document.getElementById('mensaje-empresa');
+var botonGuardarEmpresa = document.getElementById('btn-guardar-empresa');
+
+var campoEmpresaId = document.getElementById('empresa-id');
+var campoNombreEmpresa = document.getElementById('empresa-nombre');
+var campoNombreComercialEmpresa = document.getElementById('empresa-nombre-comercial');
+var campoTaxIdEmpresa = document.getElementById('empresa-tax-id');
+var campoDireccionEmpresa = document.getElementById('empresa-direccion');
+var campoDireccionExtraEmpresa = document.getElementById('empresa-direccion-extra');
+var campoRegionEmpresa = document.getElementById('empresa-region');
+var campoCiudadEmpresa = document.getElementById('empresa-ciudad');
+var campoCodigoPostalEmpresa = document.getElementById('empresa-codigo-postal');
+var campoTelefonoEmpresa = document.getElementById('empresa-telefono');
+var campoWhatsappEmpresa = document.getElementById('empresa-whatsapp');
+var campoEmailEmpresa = document.getElementById('empresa-email');
+var campoWebEmpresa = document.getElementById('empresa-web');
+var campoLogoEmpresa = document.getElementById('empresa-logo-url');
+
+function mensajeConfiguracionEmpresa(texto, esError) {
+  if (!mensajeEmpresa) return;
+
+  mensajeEmpresa.textContent = texto;
+  mensajeEmpresa.style.color = esError
+    ? 'var(--error)'
+    : 'var(--text-muted)';
+}
+
+function obtenerNombrePais(codigo) {
+  if (!campoPaisEmpresa) return '';
+
+  var opcion = campoPaisEmpresa.querySelector(
+    'option[value="' + codigo + '"]'
+  );
+
+  return opcion ? opcion.textContent.trim() : '';
+}
+
+function cargarDatosEmpresa() {
+  if (!formularioEmpresa) return Promise.resolve();
+
+  mensajeConfiguracionEmpresa('Cargando datos de la empresa...', false);
+
+  return pedirApi('/api/empresa', undefined, 'GET')
+    .then(function (resultado) {
+      var empresa = resultado.empresa;
+
+      campoEmpresaId.value = empresa.id || '';
+      campoNombreEmpresa.value = empresa.nombre || '';
+      campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
+
+      campoPaisEmpresa.value = empresa.country_code || '';
+      campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
+      campoTaxIdEmpresa.value = empresa.tax_id || '';
+
+      campoDireccionEmpresa.value = empresa.address_line1 || '';
+      campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
+      campoRegionEmpresa.value = empresa.state_region || '';
+      campoCiudadEmpresa.value = empresa.city || '';
+      campoCodigoPostalEmpresa.value = empresa.postal_code || '';
+
+      campoTelefonoEmpresa.value = empresa.telefono || '';
+      campoWhatsappEmpresa.value = empresa.whatsapp || '';
+      campoEmailEmpresa.value = empresa.email || '';
+      campoWebEmpresa.value = empresa.website || '';
+      campoLogoEmpresa.value = empresa.logo_url || '';
+
+      actualizarEtiquetasEmpresaPorPais();
+      mensajeConfiguracionEmpresa('', false);
+    })
+    .catch(function (error) {
+      console.error('Error al cargar empresa:', error);
+      mensajeConfiguracionEmpresa(
+        error.message || 'No se pudieron cargar los datos de la empresa.',
+        true
+      );
+    });
+}
+
+function guardarDatosEmpresa(evento) {
+  evento.preventDefault();
+
+  if (!formularioEmpresa) return;
+
+  if (!formularioEmpresa.checkValidity()) {
+    formularioEmpresa.reportValidity();
+    return;
+  }
+
+  if (!campoEmpresaId.value) {
+    mensajeConfiguracionEmpresa(
+      'Primero esperá a que se carguen los datos de la empresa.',
+      true
+    );
+    return;
+  }
+
+  var datos = {
+    id: campoEmpresaId.value,
+    nombre: campoNombreEmpresa.value,
+    nombre_comercial: campoNombreComercialEmpresa.value,
+    country_code: campoPaisEmpresa.value,
+    country: obtenerNombrePais(campoPaisEmpresa.value),
+    tax_id_type: campoTipoFiscalEmpresa.value,
+    tax_id: campoTaxIdEmpresa.value,
+    address_line1: campoDireccionEmpresa.value,
+    address_line2: campoDireccionExtraEmpresa.value,
+    state_region: campoRegionEmpresa.value,
+    city: campoCiudadEmpresa.value,
+    postal_code: campoCodigoPostalEmpresa.value,
+    telefono: campoTelefonoEmpresa.value,
+    whatsapp: campoWhatsappEmpresa.value,
+    email: campoEmailEmpresa.value,
+    website: campoWebEmpresa.value,
+    logo_url: campoLogoEmpresa.value
+  };
+
+  botonGuardarEmpresa.disabled = true;
+  mensajeConfiguracionEmpresa('Guardando cambios...', false);
+
+  pedirApi('/api/empresa', datos, 'PUT')
+    .then(function (resultado) {
+      var empresa = resultado.empresa;
+
+      campoEmpresaId.value = empresa.id || campoEmpresaId.value;
+      campoNombreEmpresa.value = empresa.nombre || '';
+      campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
+      campoPaisEmpresa.value = empresa.country_code || '';
+      campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
+      campoTaxIdEmpresa.value = empresa.tax_id || '';
+      campoDireccionEmpresa.value = empresa.address_line1 || '';
+      campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
+      campoRegionEmpresa.value = empresa.state_region || '';
+      campoCiudadEmpresa.value = empresa.city || '';
+      campoCodigoPostalEmpresa.value = empresa.postal_code || '';
+      campoTelefonoEmpresa.value = empresa.telefono || '';
+      campoWhatsappEmpresa.value = empresa.whatsapp || '';
+      campoEmailEmpresa.value = empresa.email || '';
+      campoWebEmpresa.value = empresa.website || '';
+      campoLogoEmpresa.value = empresa.logo_url || '';
+
+      actualizarEtiquetasEmpresaPorPais();
+      mensajeConfiguracionEmpresa(
+        'Datos de la empresa guardados correctamente.',
+        false
+      );
+    })
+    .catch(function (error) {
+      console.error('Error al guardar empresa:', error);
+      mensajeConfiguracionEmpresa(
+        error.message || 'No se pudieron guardar los cambios.',
+        true
+      );
+    })
+    .finally(function () {
+      botonGuardarEmpresa.disabled = false;
+    });
+}
+
+if (formularioEmpresa) {
+  formularioEmpresa.addEventListener('submit', guardarDatosEmpresa);
+}		  
 		  
 
 if (btnConfiguracion) {
   btnConfiguracion.addEventListener('click', function () {
     appScreen.style.display = 'none';
-	configuracionPanel.classList.remove('admin-bloqueado');  
+    configuracionPanel.classList.remove('admin-bloqueado');
     configuracionPanel.style.display = 'block';
+
+    cargarDatosEmpresa();
   });
 }
 
