@@ -74,28 +74,49 @@ module.exports = async function handler(req, res) {
     const supabase = obtenerClienteSupabase();
 
     if (req.method === 'GET') {
-      const { data: empresa, error } = await supabase
-        .from('empresas')
-        .select(CAMPOS_EMPRESA)
-        .limit(1)
-        .maybeSingle();
+  const { data: empresa, error } = await supabase
+    .from('empresas')
+    .select(CAMPOS_EMPRESA)
+    .limit(1)
+    .maybeSingle();
 
-      if (error) {
-        throw error;
+  if (error) {
+    throw error;
+  }
+
+  if (!empresa) {
+    return res.status(404).json({
+      ok: false,
+      error: 'No se encontró una empresa configurada.'
+    });
+  }
+
+  // Generar URL firmada fresca a partir de la ruta estable
+  let logoUrlPublica = null;
+
+  if (empresa.logo_url && typeof empresa.logo_url === 'string') {
+    const ruta = empresa.logo_url.trim();
+    const esRutaEstable = ruta.startsWith('empresa/');
+
+    if (esRutaEstable) {
+      const { data: enlace, error: enlaceError } = await supabase.storage
+        .from('logos')
+        .createSignedUrl(ruta, 60 * 60); // 1 hora
+
+      if (!enlaceError && enlace) {
+        logoUrlPublica = enlace.signedUrl;
       }
-
-      if (!empresa) {
-        return res.status(404).json({
-          ok: false,
-          error: 'No se encontró una empresa configurada.'
-        });
-      }
-
-      return res.status(200).json({
-        ok: true,
-        empresa: empresa
-      });
     }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    empresa: {
+      ...empresa,
+      logo_url: logoUrlPublica || empresa.logo_url
+    }
+  });
+}
 
     const datos = req.body || {};
 
