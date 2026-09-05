@@ -2264,6 +2264,24 @@ if (btnClaveGuardar) {
 
         btnSalir.addEventListener("click", salirModoAdmin);
 
+		var btnConfiguracion = document.getElementById('btn-configuracion');
+		var configuracionPanel = document.getElementById('configuracion-panel');
+		var btnCerrarConfiguracion = document.getElementById('btn-cerrar-configuracion');
+
+if (btnConfiguracion) {
+  btnConfiguracion.addEventListener('click', function () {
+    appScreen.classList.add('admin-bloqueado');
+    configuracionPanel.classList.remove('admin-bloqueado');
+  });
+}
+
+if (btnCerrarConfiguracion) {
+  btnCerrarConfiguracion.addEventListener('click', function () {
+    configuracionPanel.classList.add('admin-bloqueado');
+    appScreen.classList.remove('admin-bloqueado');
+  });
+}  
+
 		  function restaurarSesion() {
   fetch("/api/session", {
     method: "GET",
