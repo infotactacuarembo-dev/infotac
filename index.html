@@ -2278,10 +2278,11 @@ if (btnConfiguracion) {
 
 if (btnCerrarConfiguracion) {
   btnCerrarConfiguracion.addEventListener('click', function () {
-    configuracionPanel.classList.add('admin-bloqueado');
+    configuracionPanel.style.display = 'none';
     appScreen.classList.remove('admin-bloqueado');
+    appScreen.style.display = 'block';
   });
-}  
+}
 
 		  function restaurarSesion() {
   fetch("/api/session", {
