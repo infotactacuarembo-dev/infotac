@@ -150,30 +150,34 @@ module.exports = async function handler(req, res) {
       throw uploadError;
     }
 
-    const { data: enlace, error: enlaceError } = await supabase.storage
-      .from('logos')
-      .createSignedUrl(rutaArchivo, 60 * 60 * 24 * 365);
+    // Guardar la ruta estable en la base, no la URL firmada
+const { error: actualizacionError } = await supabase
+  .from('empresas')
+  .update({
+    logo_url: rutaArchivo,
+    updated_at: new Date().toISOString()
+  })
+  .eq('id', empresaId);
 
-    if (enlaceError) {
-      throw enlaceError;
-    }
+if (actualizacionError) {
+  throw actualizacionError;
+}
 
-    const { error: actualizacionError } = await supabase
-      .from('empresas')
-      .update({
-        logo_url: enlace.signedUrl,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', empresaId);
+// Generar URL firmada solo para la vista previa inmediata
+const { data: enlace, error: enlaceError } = await supabase.storage
+  .from('logos')
+  .createSignedUrl(rutaArchivo, 60 * 60); // 1 hora
 
-    if (actualizacionError) {
-      throw actualizacionError;
-    }
+if (enlaceError) {
+  throw enlaceError;
+}
 
-    return res.status(200).json({
-      ok: true,
-      logo_url: enlace.signedUrl
-    });
+return res.status(200).json({
+  ok: true,
+  logo_url: enlace.signedUrl,
+  logo_path: rutaArchivo
+});
+    
   } catch (error) {
     console.error('logo-empresa API error:', error);
 
