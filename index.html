@@ -2270,8 +2270,8 @@ if (btnClaveGuardar) {
 
 if (btnConfiguracion) {
   btnConfiguracion.addEventListener('click', function () {
-    appScreen.classList.add('admin-bloqueado');
-    configuracionPanel.classList.remove('admin-bloqueado');
+    appScreen.style.display = 'none';
+    configuracionPanel.style.display = 'block';
   });
 }
 
