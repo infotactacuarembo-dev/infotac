@@ -2461,6 +2461,62 @@ if (btnClaveGuardar) {
 		var btnConfiguracion = document.getElementById('btn-configuracion');
 		var configuracionPanel = document.getElementById('configuracion-panel');
 		var btnCerrarConfiguracion = document.getElementById('btn-cerrar-configuracion');
+		var campoPaisEmpresa = document.getElementById('empresa-pais');
+var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
+var etiquetaRegionEmpresa = document.getElementById('label-region');
+
+var configuracionPaisEmpresa = {
+  AR: { region: 'Provincia', fiscal: 'CUIT' },
+  BO: { region: 'Departamento', fiscal: 'NIT' },
+  BR: { region: 'Estado', fiscal: 'CNPJ' },
+  CL: { region: 'Región', fiscal: 'RUT' },
+  CO: { region: 'Departamento', fiscal: 'NIT' },
+  CR: { region: 'Provincia', fiscal: 'Cédula jurídica' },
+  CU: { region: 'Provincia', fiscal: 'NIT' },
+  DO: { region: 'Provincia', fiscal: 'RNC' },
+  EC: { region: 'Provincia', fiscal: 'RUC' },
+  SV: { region: 'Departamento', fiscal: 'NIT' },
+  GT: { region: 'Departamento', fiscal: 'NIT' },
+  HN: { region: 'Departamento', fiscal: 'RTN' },
+  MX: { region: 'Estado', fiscal: 'RFC' },
+  NI: { region: 'Departamento', fiscal: 'RUC' },
+  PA: { region: 'Provincia', fiscal: 'RUC' },
+  PY: { region: 'Departamento', fiscal: 'RUC' },
+  PE: { region: 'Departamento', fiscal: 'RUC' },
+  PR: { region: 'Estado / Territorio', fiscal: 'EIN' },
+  UY: { region: 'Departamento', fiscal: 'RUT' },
+  VE: { region: 'Estado', fiscal: 'RIF' },
+  OTRO: { region: 'Región / Estado / Provincia', fiscal: '' }
+};
+
+function actualizarEtiquetasEmpresaPorPais() {
+  if (!campoPaisEmpresa) return;
+
+  var datosPais = configuracionPaisEmpresa[campoPaisEmpresa.value];
+
+  if (etiquetaRegionEmpresa) {
+    etiquetaRegionEmpresa.textContent = datosPais
+      ? datosPais.region
+      : 'Región / Provincia / Departamento';
+  }
+
+  if (
+    datosPais &&
+    datosPais.fiscal &&
+    campoTipoFiscalEmpresa &&
+    !campoTipoFiscalEmpresa.value
+  ) {
+    campoTipoFiscalEmpresa.value = datosPais.fiscal;
+  }
+}
+
+if (campoPaisEmpresa) {
+  campoPaisEmpresa.addEventListener(
+    'change',
+    actualizarEtiquetasEmpresaPorPais
+  );
+}
+		  
 
 if (btnConfiguracion) {
   btnConfiguracion.addEventListener('click', function () {
