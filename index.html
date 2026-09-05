@@ -2271,6 +2271,7 @@ if (btnClaveGuardar) {
 if (btnConfiguracion) {
   btnConfiguracion.addEventListener('click', function () {
     appScreen.style.display = 'none';
+	configuracionPanel.classList.remove('admin-bloqueado');  
     configuracionPanel.style.display = 'block';
   });
 }
