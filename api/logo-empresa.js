@@ -150,17 +150,28 @@ module.exports = async function handler(req, res) {
       throw uploadError;
     }
 
-    // Guardar la ruta estable en la base, no la URL firmada
-const { error: actualizacionError } = await supabase
+    // Guardar la ruta estable en la base
+const { error: actualizacionError, data: empresaActualizada } = await supabase
   .from('empresas')
   .update({
     logo_url: rutaArchivo,
     updated_at: new Date().toISOString()
   })
-  .eq('id', empresaId);
+  .eq('id', empresaId)
+  .select('logo_url')
+  .maybeSingle();
 
 if (actualizacionError) {
+  console.error('Error al actualizar logo_url:', actualizacionError);
   throw actualizacionError;
+}
+
+if (!empresaActualizada || !empresaActualizada.logo_url) {
+  console.error('logo_url no se actualizó correctamente:', empresaActualizada);
+  return res.status(500).json({
+    ok: false,
+    error: 'No se pudo guardar la ruta del logo.'
+  });
 }
 
 // Generar URL firmada solo para la vista previa inmediata
