@@ -1367,13 +1367,38 @@
     </div>
 
     <div class="form-group full-width">
-      <label for="empresa-logo-url">URL del logo</label>
-      <input
-        type="url"
-        id="empresa-logo-url"
-        placeholder="https://..."
-      >
-    </div>
+  <label for="empresa-logo-archivo">Logo de la empresa</label>
+
+  <input
+    type="file"
+    id="empresa-logo-archivo"
+    accept="image/jpeg,image/png,image/webp"
+  >
+
+  <p
+    id="empresa-logo-ayuda"
+    style="margin: 6px 0 0; font-size: 0.82rem; color: var(--text-muted);"
+  >
+    Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 2 MB.
+  </p>
+
+  <div
+    id="empresa-logo-preview-wrap"
+    style="display: none; margin-top: 12px;"
+  >
+    <p
+      style="margin: 0 0 6px; font-size: 0.82rem; color: var(--text-muted);"
+    >
+      Vista previa
+    </p>
+
+    <img
+      id="empresa-logo-preview"
+      alt="Vista previa del logo de la empresa"
+      style="display: block; max-width: 220px; max-height: 120px; object-fit: contain; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 8px;"
+    >
+  </div>
+</div>
   </div>
 
   <p
@@ -2535,8 +2560,124 @@ var campoTelefonoEmpresa = document.getElementById('empresa-telefono');
 var campoWhatsappEmpresa = document.getElementById('empresa-whatsapp');
 var campoEmailEmpresa = document.getElementById('empresa-email');
 var campoWebEmpresa = document.getElementById('empresa-web');
-var campoLogoEmpresa = document.getElementById('empresa-logo-url');
+var campoLogoArchivoEmpresa = document.getElementById('empresa-logo-archivo');
+var vistaPreviaLogoEmpresa = document.getElementById('empresa-logo-preview');
+var contenedorVistaPreviaLogoEmpresa = document.getElementById(
+  'empresa-logo-preview-wrap'
+);
 
+var logoUrlActualEmpresa = '';
+
+function mostrarVistaPreviaLogoEmpresa(url) {
+  if (!vistaPreviaLogoEmpresa || !contenedorVistaPreviaLogoEmpresa) return;
+
+  if (!url) {
+    vistaPreviaLogoEmpresa.removeAttribute('src');
+    contenedorVistaPreviaLogoEmpresa.style.display = 'none';
+    return;
+  }
+
+  vistaPreviaLogoEmpresa.src = url;
+  contenedorVistaPreviaLogoEmpresa.style.display = 'block';
+}
+
+function validarArchivoLogoEmpresa(archivo) {
+  if (!archivo) return '';
+
+  var tiposPermitidos = [
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+  ];
+
+  var maximoBytes = 2 * 1024 * 1024;
+
+  if (tiposPermitidos.indexOf(archivo.type) === -1) {
+    return 'Formato no permitido. Elegí un archivo JPG, PNG o WebP.';
+  }
+
+  if (archivo.size > maximoBytes) {
+    return 'La imagen supera el límite de 2 MB.';
+  }
+
+  return '';
+}
+
+function previsualizarArchivoLogoEmpresa() {
+  if (!campoLogoArchivoEmpresa) return;
+
+  var archivo = campoLogoArchivoEmpresa.files[0];
+
+  if (!archivo) {
+    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+    return;
+  }
+
+  var error = validarArchivoLogoEmpresa(archivo);
+
+  if (error) {
+    campoLogoArchivoEmpresa.value = '';
+    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+    mensajeConfiguracionEmpresa(error, true);
+    return;
+  }
+
+  mostrarVistaPreviaLogoEmpresa(URL.createObjectURL(archivo));
+  mensajeConfiguracionEmpresa('', false);
+}
+
+function subirLogoEmpresa() {
+  if (!campoLogoArchivoEmpresa || !campoLogoArchivoEmpresa.files[0]) {
+    return Promise.resolve(logoUrlActualEmpresa);
+  }
+
+  var archivo = campoLogoArchivoEmpresa.files[0];
+  var error = validarArchivoLogoEmpresa(archivo);
+
+  if (error) {
+    return Promise.reject(new Error(error));
+  }
+
+  var datosLogo = new FormData();
+  datosLogo.append('empresa_id', campoEmpresaId.value);
+  datosLogo.append('logo', archivo);
+
+  return fetch('/api/logo-empresa', {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: datosLogo
+  })
+    .then(function (respuesta) {
+      return respuesta.json()
+        .catch(function () {
+          return {
+            ok: false,
+            error: 'Respuesta inválida del servidor.'
+          };
+        })
+        .then(function (resultado) {
+          if (!respuesta.ok || !resultado.ok) {
+            throw new Error(resultado.error || 'No se pudo subir el logo.');
+          }
+
+          return resultado.logo_url;
+        });
+    })
+    .then(function (logoUrl) {
+      logoUrlActualEmpresa = logoUrl || '';
+      campoLogoArchivoEmpresa.value = '';
+      mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+      return logoUrlActualEmpresa;
+    });
+}
+
+if (campoLogoArchivoEmpresa) {
+  campoLogoArchivoEmpresa.addEventListener(
+    'change',
+    previsualizarArchivoLogoEmpresa
+  );
+}
+		  
 function mensajeConfiguracionEmpresa(texto, esError) {
   if (!mensajeEmpresa) return;
 
@@ -2583,7 +2724,8 @@ function cargarDatosEmpresa() {
       campoWhatsappEmpresa.value = empresa.whatsapp || '';
       campoEmailEmpresa.value = empresa.email || '';
       campoWebEmpresa.value = empresa.website || '';
-      campoLogoEmpresa.value = empresa.logo_url || '';
+      logoUrlActualEmpresa = empresa.logo_url || '';
+	  mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
 
       actualizarEtiquetasEmpresaPorPais();
       mensajeConfiguracionEmpresa('', false);
@@ -2632,49 +2774,58 @@ function guardarDatosEmpresa(evento) {
     whatsapp: campoWhatsappEmpresa.value,
     email: campoEmailEmpresa.value,
     website: campoWebEmpresa.value,
-    logo_url: campoLogoEmpresa.value
+    logo_url: logoUrlActualEmpresa
   };
 
   botonGuardarEmpresa.disabled = true;
-  mensajeConfiguracionEmpresa('Guardando cambios...', false);
+mensajeConfiguracionEmpresa('Guardando cambios...', false);
 
-  pedirApi('/api/empresa', datos, 'PUT')
-    .then(function (resultado) {
-      var empresa = resultado.empresa;
+pedirApi('/api/empresa', datos, 'PUT')
+  .then(function (resultado) {
+    var empresa = resultado.empresa;
 
-      campoEmpresaId.value = empresa.id || campoEmpresaId.value;
-      campoNombreEmpresa.value = empresa.nombre || '';
-      campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
-      campoPaisEmpresa.value = empresa.country_code || '';
-      campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
-      campoTaxIdEmpresa.value = empresa.tax_id || '';
-      campoDireccionEmpresa.value = empresa.address_line1 || '';
-      campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
-      campoRegionEmpresa.value = empresa.state_region || '';
-      campoCiudadEmpresa.value = empresa.city || '';
-      campoCodigoPostalEmpresa.value = empresa.postal_code || '';
-      campoTelefonoEmpresa.value = empresa.telefono || '';
-      campoWhatsappEmpresa.value = empresa.whatsapp || '';
-      campoEmailEmpresa.value = empresa.email || '';
-      campoWebEmpresa.value = empresa.website || '';
-      campoLogoEmpresa.value = empresa.logo_url || '';
+    campoEmpresaId.value = empresa.id || campoEmpresaId.value;
+    campoNombreEmpresa.value = empresa.nombre || '';
+    campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
+    campoPaisEmpresa.value = empresa.country_code || '';
+    campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
+    campoTaxIdEmpresa.value = empresa.tax_id || '';
+    campoDireccionEmpresa.value = empresa.address_line1 || '';
+    campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
+    campoRegionEmpresa.value = empresa.state_region || '';
+    campoCiudadEmpresa.value = empresa.city || '';
+    campoCodigoPostalEmpresa.value = empresa.postal_code || '';
+    campoTelefonoEmpresa.value = empresa.telefono || '';
+    campoWhatsappEmpresa.value = empresa.whatsapp || '';
+    campoEmailEmpresa.value = empresa.email || '';
+    campoWebEmpresa.value = empresa.website || '';
 
-      actualizarEtiquetasEmpresaPorPais();
-      mensajeConfiguracionEmpresa(
-        'Datos de la empresa guardados correctamente.',
-        false
-      );
-    })
-    .catch(function (error) {
-      console.error('Error al guardar empresa:', error);
-      mensajeConfiguracionEmpresa(
-        error.message || 'No se pudieron guardar los cambios.',
-        true
-      );
-    })
-    .finally(function () {
-      botonGuardarEmpresa.disabled = false;
-    });
+    logoUrlActualEmpresa = empresa.logo_url || logoUrlActualEmpresa;
+    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+
+    return subirLogoEmpresa();
+  })
+  .then(function (logoUrl) {
+    logoUrlActualEmpresa = logoUrl || logoUrlActualEmpresa;
+    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+
+    actualizarEtiquetasEmpresaPorPais();
+    mensajeConfiguracionEmpresa(
+      'Datos de la empresa guardados correctamente.',
+      false
+    );
+  })
+  .catch(function (error) {
+    console.error('Error al guardar empresa:', error);
+    mensajeConfiguracionEmpresa(
+      error.message || 'No se pudieron guardar los cambios.',
+      true
+    );
+  })
+  .finally(function () {
+    botonGuardarEmpresa.disabled = false;
+  });
+	
 }
 
 if (formularioEmpresa) {
