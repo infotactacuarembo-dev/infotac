@@ -2120,6 +2120,11 @@ if (btnClaveGuardar) {
   		if (btnAdmin) {
     		btnAdmin.style.display = (rol === 'admin') ? 'inline-block' : 'none';
   			}
+
+		var btnConfiguracion = document.getElementById('btn-configuracion');
+		if (btnConfiguracion) {
+  			btnConfiguracion.style.display = rol === 'admin' ? 'inline-block' : 'none';
+			}	
 		}
 
         function mostrarLogin() {
