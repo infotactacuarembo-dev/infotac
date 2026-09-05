@@ -724,6 +724,16 @@
         font-weight: 700;
         margin-bottom: 0.15rem;
       }
+
+       .tk-logo {
+  		display: block;
+  		width: auto;
+  		max-width: 180px;
+  		max-height: 85px;
+  		margin: 0 auto 8px;
+  		object-fit: contain;
+		}
+		
       .ticket-paper .tk-sub {
         font-size: 11px;
         color: #555;
@@ -784,6 +794,8 @@
         font-size: 13px;
         margin-top: 0.5rem;
       }
+
+	  	
 
       /* ====== PRINT ====== */
       @media print {
@@ -4633,9 +4645,50 @@ pedirApi(
         var ticketImprimir = document.getElementById("ticket-imprimir");
         var ticketCerrar = document.getElementById("ticket-cerrar");
 
+        function obtenerEmpresaParaTicket() {
+  return pedirApi('/api/empresa', undefined, 'GET')
+    .then(function (resultado) {
+      return resultado.empresa || {};
+    })
+    .catch(function (error) {
+      console.error('No se pudieron cargar los datos de empresa para el ticket:', error);
+
+      return {
+        nombre: 'Empresa',
+        nombre_comercial: '',
+        logo_url: '',
+        address_line1: '',
+        address_line2: '',
+        state_region: '',
+        city: '',
+        postal_code: '',
+        telefono: '',
+        whatsapp: '',
+        email: '',
+        tax_id_type: '',
+        tax_id: ''
+      };
+    });
+}
+
+function lineaEmpresaTicket(valores) {
+  return valores
+    .filter(function (valor) {
+      return valor && String(valor).trim();
+    })
+    .map(function (valor) {
+      return esc(String(valor));
+    })
+    .join(' · ');
+}
+		  
+
         async function imprimirTicket(id) {
           var o = ordenes.find(function (x) { return x.id === id; });
           if (!o) return;
+
+		  var empresa = await obtenerEmpresaParaTicket();
+		  var nombreEmpresa = empresa.nombre_comercial || empresa.nombre || 'Empresa';	
           var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
           var est = ESTADOS[o.estado] || ESTADOS.ingresado;
           var p = parseFloat(o.presupuesto) || 0;
@@ -4665,9 +4718,60 @@ pedirApi(
             );
           }
           html += "<div class='tk-center'>";
-          html += "<div class='tk-header'>💻 SERVICIO TÉCNICO INFOTAC</div>";
-          html += "<div class='tk-sub'>Fecha: " + fmtFecha(o.fecha) + "</div>";
-          html += "</div>";
+
+if (empresa.logo_url) {
+  html += "<img class='tk-logo' src='" +
+    esc(empresa.logo_url) +
+    "' alt='Logo de " +
+    esc(nombreEmpresa) +
+    "'>";
+}
+
+html += "<div class='tk-header'>" +
+  esc(nombreEmpresa) +
+  "</div>";
+
+html += "<div class='tk-sub'>SERVICIO TÉCNICO</div>";
+
+var direccionEmpresa = lineaEmpresaTicket([
+  empresa.address_line1,
+  empresa.address_line2,
+  empresa.city,
+  empresa.state_region,
+  empresa.postal_code
+]);
+
+if (direccionEmpresa) {
+  html += "<div class='tk-sub'>" + direccionEmpresa + "</div>";
+}
+
+var contactoEmpresa = lineaEmpresaTicket([
+  empresa.telefono,
+  empresa.whatsapp,
+  empresa.email
+]);
+
+if (contactoEmpresa) {
+  html += "<div class='tk-sub'>" + contactoEmpresa + "</div>";
+}
+
+var fiscalEmpresa = lineaEmpresaTicket([
+  empresa.tax_id_type && empresa.tax_id
+    ? empresa.tax_id_type + ': ' + empresa.tax_id
+    : empresa.tax_id
+]);
+
+if (fiscalEmpresa) {
+  html += "<div class='tk-sub'>" + fiscalEmpresa + "</div>";
+}
+
+html += "<div class='tk-sub'>Fecha: " +
+  esc(fmtFecha(o.fecha)) +
+  "</div>";
+
+html += "</div>";
+
+			
           html += "<div class='tk-divider'></div>";
           html += "<div class='tk-orden'>ORDEN #" + idOrden + "</div>";
           html += "<div class='tk-estado-wrap'><span class='tk-estado'>" + est.label + "</span></div>";
@@ -4806,7 +4910,9 @@ pedirApi(
           }	
           html += "<div class='tk-divider'></div>";
           html += "<div class='tk-footer'>Nota: Los presupuestos tienen validez por 15 días. Todo equipo no retirado luego de los 90 días se considerará en abandono, perdiendo derecho a reclamo.</div>";
-          html += "<div class='tk-thanks'>¡Gracias por confiar en Infotac!</div>";
+          html += "<div class='tk-thanks'>¡Gracias por confiar en " +
+  		  esc(nombreEmpresa) +
+  		  "!</div>";
 
           ticketContenido.innerHTML = html;
           ticketOverlay.classList.add("visible");
