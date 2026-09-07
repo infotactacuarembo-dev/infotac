@@ -179,6 +179,58 @@
   		margin-left: auto;
 		}
 
+		.header-more-menu {
+  position: relative;
+}
+
+.btn-more {
+  width: 38px;
+  min-width: 38px;
+  padding: 0.35rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-more-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 250;
+  min-width: 190px;
+  padding: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.header-more-dropdown.hidden {
+  display: none;
+}
+
+.header-more-item {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.header-more-item:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+
       .btn-sm {
         padding: 0.5rem 0.9rem;
         border: 1px solid var(--border);
@@ -1025,13 +1077,73 @@
   </div>
 	   
   <div class="header-actions">
-  <button class="btn-sm btn-settings" id="btn-configuracion" style="display:none;" title="Configuración">⚙️</button>
-  <button class="btn-sm" id="btn-exportar">Exportar backup</button>
-  <button class="btn-sm" id="btn-importar">Importar backup</button>
-  <input type="file" id="file-importar" accept=".json" class="hidden" />
-  <button class="btn-sm" id="btn-cambiar-clave">🔑 Cambiar Clave</button>
-  <button class="btn-sm" id="btn-administracion" style="display:none;">Administración</button>
-  <button class="btn-sm danger" id="btn-salir">Cerrar sesión</button>
+  <button
+    class="btn-sm btn-settings"
+    id="btn-configuracion"
+    style="display:none;"
+    title="Configuración"
+    type="button"
+  >
+    ⚙️
+  </button>
+
+  <button class="btn-sm" id="btn-exportar" type="button">
+    Exportar backup
+  </button>
+
+  <button
+    class="btn-sm"
+    id="btn-administracion"
+    style="display:none;"
+    type="button"
+  >
+    Administración
+  </button>
+
+  <div class="header-more-menu">
+    <button
+      class="btn-sm btn-more"
+      id="btn-menu-secundario"
+      type="button"
+      title="Más opciones"
+      aria-label="Más opciones"
+      aria-expanded="false"
+    >
+      ⋮
+    </button>
+
+    <div
+      class="header-more-dropdown hidden"
+      id="menu-secundario"
+    >
+      <button
+        class="header-more-item"
+        id="btn-importar"
+        type="button"
+      >
+        Importar backup
+      </button>
+
+      <button
+        class="header-more-item"
+        id="btn-cambiar-clave"
+        type="button"
+      >
+        🔑 Cambiar clave
+      </button>
+    </div>
+  </div>
+
+  <input
+    type="file"
+    id="file-importar"
+    accept=".json"
+    class="hidden"
+  >
+
+  <button class="btn-sm danger" id="btn-salir" type="button">
+    Cerrar sesión
+  </button>
 </div>
       </header>
 
@@ -2302,6 +2414,9 @@ if (btnClaveGuardar) {
         var btnImportar = document.getElementById("btn-importar");
         var fileImportar = document.getElementById("file-importar");
 
+		var btnMenuSecundario = document.getElementById('btn-menu-secundario');
+		var menuSecundario = document.getElementById('menu-secundario');  
+
         var modalDetalle = document.getElementById("modal-detalle");
         var modalContenido = document.getElementById("modal-contenido");
         var modalCerrar = document.getElementById("modal-cerrar");
@@ -2526,6 +2641,37 @@ if (btnClaveGuardar) {
             });
         }
 
+
+  function cerrarMenuSecundario() {
+  if (!menuSecundario || !btnMenuSecundario) return;
+
+  menuSecundario.classList.add('hidden');
+  btnMenuSecundario.setAttribute('aria-expanded', 'false');
+}
+
+if (btnMenuSecundario && menuSecundario) {
+  btnMenuSecundario.addEventListener('click', function (evento) {
+    evento.stopPropagation();
+
+    var estaOculto = menuSecundario.classList.contains('hidden');
+
+    if (estaOculto) {
+      menuSecundario.classList.remove('hidden');
+      btnMenuSecundario.setAttribute('aria-expanded', 'true');
+    } else {
+      cerrarMenuSecundario();
+    }
+  });
+
+  menuSecundario.addEventListener('click', function (evento) {
+    evento.stopPropagation();
+  });
+
+  document.addEventListener('click', function () {
+    cerrarMenuSecundario();
+  });
+}
+		  
         btnEntrar.addEventListener("click", entrarModoAdminDirecto);
 
         inputClave.addEventListener("keydown", function (e) {
