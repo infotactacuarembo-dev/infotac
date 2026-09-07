@@ -2543,7 +2543,7 @@ if (btnClaveGuardar) {
         function mostrarAplicacion() {
   		loginScreen.classList.add("admin-bloqueado");
   		appScreen.classList.remove("admin-bloqueado");
-		mostrarUsuarioLogueado();	
+		
 
   		// Mostrar/ocultar botón Administración según el rol
   		var rol = sessionStorage.getItem('rol') || 'user';
@@ -2566,11 +2566,11 @@ if (btnClaveGuardar) {
         }
 
         function cargarDatosIniciales() {
-  return Promise.all([
-    cargarClientes(),
-    cargarOrdenes(),
-    pedirApi('/api/empresa', undefined, 'GET')
-  ])
+  			return Promise.all([
+    		cargarClientes(),
+    		cargarOrdenes(),
+    		pedirApi('/api/empresa', undefined, 'GET')
+  		])
     .then(function (resultados) {
       var resultadoEmpresa = resultados[2];
       var empresa = resultadoEmpresa && resultadoEmpresa.empresa;
@@ -2595,7 +2595,42 @@ if (btnClaveGuardar) {
     });
 }
 
-  function entrarModoAdminDirecto() {
+
+  function mostrarUsuarioLogueado() {
+  var user = getSessionUser();
+  if (!user) return;
+
+  var nameEl = document.getElementById('user-name');
+  var rolEl = document.getElementById('user-rol');
+
+  if (!nameEl || !rolEl) return;
+
+  nameEl.textContent = user.nombre || user.email;
+
+  var rolTexto;
+  if (user.rol === 'admin') rolTexto = 'Admin';
+  else if (user.rol === 'tecnico') rolTexto = 'Técnico';
+  else if (user.rol === 'user') rolTexto = 'Usuario';
+  else rolTexto = user.rol;
+
+  rolEl.textContent = rolTexto;
+
+  var colores;
+  if (user.rol === 'admin') {
+    colores = { bg: '#fee2e2', color: '#991b1b' };
+  } else if (user.rol === 'tecnico') {
+    colores = { bg: '#dbeafe', color: '#1e40af' };
+  } else if (user.rol === 'user') {
+    colores = { bg: '#f3f4f6', color: '#374151' };
+  } else {
+    colores = { bg: '#f3f4f6', color: '#374151' };
+  }
+
+  rolEl.style.background = colores.bg;
+  rolEl.style.color = colores.color;
+}
+
+function entrarModoAdminDirecto() {
   var identificador = document.getElementById('input-identificador').value;
   var valorClave = inputClave.value;
 
@@ -2627,57 +2662,18 @@ if (btnClaveGuardar) {
       mensajeError.classList.remove("visible");
       inputClave.classList.remove("shake-error");
 
-      // Guardar rol en sessionStorage
       sessionStorage.setItem('rol', resultado.rol || 'user');
-	  sessionStorage.setItem('usuario', identificador);	
+      sessionStorage.setItem('usuario', identificador);
 
       mostrarAplicacion();
+      mostrarUsuarioLogueado();
       return cargarDatosIniciales();
     })
     .catch(function (error) {
       console.error("Error de inicio de sesión:", error);
 
-
-  function mostrarUsuarioLogueado() {
-  var user = getSessionUser();
-  if (!user) return;
-
-  var nameEl = document.getElementById('user-name');
-  var rolEl = document.getElementById('user-rol');
-
-  if (!nameEl || !rolEl) return;
-
-  // Nombre: usá nombre si existe, sino email
-  nameEl.textContent = user.nombre || user.email;
-
-  // Rol: traducí el valor a texto legible
-  var rolTexto;
-  if (user.rol === 'admin') rolTexto = 'Admin';
-  else if (user.rol === 'tecnico') rolTexto = 'Técnico';
-  else if (user.rol === 'user') rolTexto = 'Usuario';
-  else rolTexto = user.rol;
-
-  rolEl.textContent = rolTexto;
-
-  // Color del badge según rol
-  var colores;
-  if (user.rol === 'admin') {
-    colores = { bg: '#fee2e2', color: '#991b1b' };
-  } else if (user.rol === 'tecnico') {
-    colores = { bg: '#dbeafe', color: '#1e40af' };
-  } else if (user.rol === 'user') {
-    colores = { bg: '#f3f4f6', color: '#374151' };
-  } else {
-    colores = { bg: '#f3f4f6', color: '#374151' };
-  }
-
-  rolEl.style.background = colores.bg;
-  rolEl.style.color = colores.color;
-}	
-
       mostrarLogin();
-      mensajeError.textContent =
-        error.message || "No se pudo verificar la contraseña.";
+      mensajeError.textContent = error.message || "No se pudo verificar la contraseña.";
       mensajeError.classList.add("visible");
 
       inputClave.classList.remove("shake-error");
@@ -2690,22 +2686,22 @@ if (btnClaveGuardar) {
       btnEntrar.disabled = false;
     });
 }
-        function salirModoAdmin() {
-          btnSalir.disabled = true;
 
-          fetch("/api/logout", {
-            method: "POST",
-            credentials: "same-origin"
-          })
-            .catch(function (error) {
-              console.error("Error al cerrar sesión:", error);
-            })
-            .finally(function () {
-              btnSalir.disabled = false;
-              mostrarLogin();
-            });
-        }
+function salirModoAdmin() {
+  btnSalir.disabled = true;
 
+  fetch("/api/logout", {
+    method: "POST",
+    credentials: "same-origin"
+  })
+    .catch(function (error) {
+      console.error("Error al cerrar sesión:", error);
+    })
+    .finally(function () {
+      btnSalir.disabled = false;
+      mostrarLogin();
+    });
+}
 
   function cerrarMenuSecundario() {
   if (!menuSecundario || !btnMenuSecundario) return;
