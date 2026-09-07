@@ -3138,7 +3138,12 @@ function restaurarSesion() {
   		'rol',
   		usuarioSesion.rol || ''
 	); 
-		
+
+
+	  sessionStorage.setItem(
+  		'usuario_id',
+  		usuarioSesion.id || ''
+	);	
 
       var btnAdministracion = document.getElementById(
         'btn-administracion'
