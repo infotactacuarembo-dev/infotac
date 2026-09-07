@@ -4650,7 +4650,7 @@ pedirApi(
         var ticketImprimir = document.getElementById("ticket-imprimir");
         var ticketCerrar = document.getElementById("ticket-cerrar");
 
-        function obtenerEmpresaParaTicket() {
+  function obtenerEmpresaParaTicket() {
   return pedirApi('/api/empresa', undefined, 'GET')
     .then(function (resultado) {
       return resultado.empresa || {};
@@ -4725,9 +4725,7 @@ function lineaEmpresaTicket(valores) {
           html += "<div class='tk-center'>";
 
 if (empresa.logo_url) {
-  html += "<img class='tk-logo' src='" +
-    empresa.logo_url +
-    "' alt='Logo de " +
+  html += "<img class='tk-logo' alt='Logo de " +
     esc(nombreEmpresa) +
     "'>";
 }
@@ -4920,7 +4918,25 @@ html += "</div>";
   		  "!</div>";
 
           ticketContenido.innerHTML = html;
-          ticketOverlay.classList.add("visible");
+
+		  var logoTicket = ticketContenido.querySelector('.tk-logo');
+
+		  if (logoTicket && empresa.logo_url) {
+  			logoTicket.onload = function () {
+    		console.log('Logo cargado correctamente en el ticket.');
+  		  };
+
+  		  logoTicket.onerror = function () {
+          console.error(
+          'No se pudo cargar el logo en el ticket:',
+           empresa.logo_url
+         );
+      };
+
+      logoTicket.src = empresa.logo_url;
+   }
+
+      ticketOverlay.classList.add("visible");
         }
 
         ticketImprimir.addEventListener("click", function () { window.print(); });
