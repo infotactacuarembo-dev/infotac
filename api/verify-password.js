@@ -141,7 +141,11 @@ module.exports = async function handler(req, res) {
       'Inicio de sesión correcto'
     );
 
-    const token = createSessionToken(identificadorNormalizado, usuario.rol);
+    const token = createSessionToken(
+      usuario.id,
+      identificadorNormalizado,
+      usuario.rol
+    );
     res.setHeader('Set-Cookie', sessionCookie(token));
 
     return res.status(200).json({
