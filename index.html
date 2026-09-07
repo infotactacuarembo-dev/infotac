@@ -4726,7 +4726,7 @@ function lineaEmpresaTicket(valores) {
 
 if (empresa.logo_url) {
   html += "<img class='tk-logo' src='" +
-    esc(empresa.logo_url) +
+    empresa.logo_url +
     "' alt='Logo de " +
     esc(nombreEmpresa) +
     "'>";
