@@ -1,4 +1,4 @@
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 
 module.exports = function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,10 +8,18 @@ module.exports = function handler(req, res) {
     });
   }
 
-  if (!requireSession(req, res)) return;
+  if (!requireSession(req, res)) {
+    return;
+  }
+
+  const user = getSessionUser(req);
 
   return res.status(200).json({
     ok: true,
-    authenticated: true
+    authenticated: true,
+    user: {
+      identificador: user.identificador,
+      rol: user.rol
+    }
   });
 };
