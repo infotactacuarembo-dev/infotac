@@ -72,8 +72,7 @@ if (req.method === 'GET') {
   
   let query = supabase
     .from('usuarios')
-    .select('id, identificador, rol, activo, creado_en')
-    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+    .select('id, identificador, rol, activo, creado_en');
   
   if (rol) {
     query = query.eq('rol', rol);
