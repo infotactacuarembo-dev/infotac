@@ -1157,6 +1157,8 @@
       </header>
 
       <div class="app-body">
+
+		  
         <!-- ====== LEFT: REGISTRAR INGRESO ====== -->
         <section class="panel" id="seccion-formulario">
           <div class="panel-header">
@@ -1207,6 +1209,14 @@
                   <label for="f-pin">PIN</label>
                   <input type="text" id="f-pin" placeholder="PIN de seguridad" />
                 </div>
+
+				<div class="form-group">
+  					<label for="f-tecnico">Técnico responsable</label>
+
+  					<select id="f-tecnico">
+    				<option value="">Sin asignar</option>
+  					</select>
+				</div>  
                 
                 <div class="form-group full">
                   <label for="f-falla">Falla declarada</label>
@@ -3440,6 +3450,7 @@ restaurarSesion();
     tipo: val("f-equipo"),
     serie: val("f-serie"),
     pass: val("f-pin"),
+	tecnico_id: val("f-tecnico") || null,  
     sena: senaNum,
     falla: val("f-falla"),
     presupuesto: presupNum,
@@ -3448,6 +3459,8 @@ restaurarSesion();
     estado: "ingresado",
     fecha_entrega: null
   };
+
+	 
 
   return pedirApi(
     "/api/ordenes",
