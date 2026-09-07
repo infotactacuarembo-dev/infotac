@@ -1075,6 +1075,12 @@
    <span class="dot" id="dot-empresa-header"></span>
    <span id="nombre-empresa-header">Infotac</span>
   </div>
+
+   <div id="user-info" style="display:flex;align-items:center;gap:0.5rem;margin-right:0.5rem;">
+  		<span id="user-name" style="font-size:0.85rem;font-weight:500;"></span>
+  		<span id="user-rol" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;background:#e0e7ff;color:#3730a3;"></span>
+	</div>
+	   
 	   
   <div class="header-actions">
   <button
@@ -2537,6 +2543,7 @@ if (btnClaveGuardar) {
         function mostrarAplicacion() {
   		loginScreen.classList.add("admin-bloqueado");
   		appScreen.classList.remove("admin-bloqueado");
+		mostrarUsuarioLogueado();	
 
   		// Mostrar/ocultar botón Administración según el rol
   		var rol = sessionStorage.getItem('rol') || 'user';
@@ -2629,6 +2636,44 @@ if (btnClaveGuardar) {
     })
     .catch(function (error) {
       console.error("Error de inicio de sesión:", error);
+
+
+  function mostrarUsuarioLogueado() {
+  var user = getSessionUser();
+  if (!user) return;
+
+  var nameEl = document.getElementById('user-name');
+  var rolEl = document.getElementById('user-rol');
+
+  if (!nameEl || !rolEl) return;
+
+  // Nombre: usá nombre si existe, sino email
+  nameEl.textContent = user.nombre || user.email;
+
+  // Rol: traducí el valor a texto legible
+  var rolTexto;
+  if (user.rol === 'admin') rolTexto = 'Admin';
+  else if (user.rol === 'tecnico') rolTexto = 'Técnico';
+  else if (user.rol === 'user') rolTexto = 'Usuario';
+  else rolTexto = user.rol;
+
+  rolEl.textContent = rolTexto;
+
+  // Color del badge según rol
+  var colores;
+  if (user.rol === 'admin') {
+    colores = { bg: '#fee2e2', color: '#991b1b' };
+  } else if (user.rol === 'tecnico') {
+    colores = { bg: '#dbeafe', color: '#1e40af' };
+  } else if (user.rol === 'user') {
+    colores = { bg: '#f3f4f6', color: '#374151' };
+  } else {
+    colores = { bg: '#f3f4f6', color: '#374151' };
+  }
+
+  rolEl.style.background = colores.bg;
+  rolEl.style.color = colores.color;
+}	
 
       mostrarLogin();
       mensajeError.textContent =
