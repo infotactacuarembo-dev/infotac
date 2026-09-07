@@ -63,20 +63,30 @@ module.exports = async function handler(req, res) {
   const supabase = createClient(url, key);
 
   try {
+
+    
     // LISTAR USUARIOS
-    if (req.method === 'GET') {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('id, identificador, rol, activo, creado_en')
-        .order('creado_en', { ascending: false });
+if (req.method === 'GET') {
+  const rol = req.query && req.query.rol;
+  
+  let query = supabase
+    .from('usuarios')
+    .select('id, identificador, rol, activo, creado_en')
+    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+  
+  if (rol) {
+    query = query.eq('rol', rol);
+  }
+  
+  const { data, error } = await query.order('creado_en', { ascending: false });
 
-      if (error) throw error;
+  if (error) throw error;
 
-      return res.status(200).json({
-        ok: true,
-        usuarios: data || []
-      });
-    }
+  return res.status(200).json({
+    ok: true,
+    data: data || []
+  });
+}
 
     // CREAR USUARIO
     if (req.method === 'POST') {
