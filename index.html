@@ -3119,6 +3119,17 @@ function restaurarSesion() {
       var usuarioSesion = resultado.datos.user || {};
       var esAdmin = usuarioSesion.rol === 'admin';
 
+      sessionStorage.setItem(
+  		'usuario',
+  		usuarioSesion.identificador || ''
+	);
+
+	  sessionStorage.setItem(
+  		'rol',
+  		usuarioSesion.rol || ''
+	); 
+		
+
       var btnAdministracion = document.getElementById(
         'btn-administracion'
       );
