@@ -2607,6 +2607,7 @@ function cargarTecnicos() {
         var opt = document.createElement('option');
         opt.value = t.id;
         opt.textContent = t.nombre || t.email;
+		opt.style.color = '#000';  
         select.appendChild(opt);
       });
     });
