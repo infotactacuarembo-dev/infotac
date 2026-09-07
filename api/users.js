@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 const bcrypt = require('bcryptjs');
+const INFOTAC_EMPRESA_ID = 'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
 
 async function registrarAuditoriaUsuario(
   supabase,
