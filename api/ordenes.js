@@ -5,7 +5,7 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id`;
+  estado, fecha_entrega, empresa_id, tecnico_id`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -61,6 +61,7 @@ function orderInput(body, options) {
     tipo: text(source.tipo, 160),
     serie: text(source.serie, 160),
     pass: text(source.pass, 160),
+    tecnico_id: validId(source.tecnico_id) ? source.tecnico_id : null,
     sena: number(source.sena),
     presupuesto: number(source.presupuesto),
     falla: text(source.falla, 2000),
@@ -133,6 +134,19 @@ module.exports = async function handler(req, res) {
         .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real', { count: 'exact' })
         .eq('empresa_id', INFOTAC_EMPRESA_ID);
 
+
+      const user = getSessionUser(req);
+
+      if (user && user.rol === 'tecnico') {
+        if (!validId(user.id)) {
+          return res.status(401).json({
+          ok: false,
+          error: 'Sesión de técnico inválida. Volvé a iniciar sesión.'
+      });
+      }
+
+      query = query.eq('tecnico_id', user.id);
+      }
       if (desde) {
         query = query.gte('fecha', desde);
       }
@@ -295,6 +309,8 @@ module.exports = async function handler(req, res) {
         .delete()
         .eq('id', id)
         .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+      
 
       if (error) throw error;
       return res.status(200).json({ ok: true });
