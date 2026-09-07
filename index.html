@@ -2597,30 +2597,32 @@ if (btnClaveGuardar) {
 
 
   function mostrarUsuarioLogueado() {
-  var user = getSessionUser();
-  if (!user) return;
+  var usuario = sessionStorage.getItem('usuario');
+  var rol = sessionStorage.getItem('rol');
+
+  if (!usuario) return;
 
   var nameEl = document.getElementById('user-name');
   var rolEl = document.getElementById('user-rol');
 
   if (!nameEl || !rolEl) return;
 
-  nameEl.textContent = user.nombre || user.email;
+  nameEl.textContent = usuario;
 
   var rolTexto;
-  if (user.rol === 'admin') rolTexto = 'Admin';
-  else if (user.rol === 'tecnico') rolTexto = 'Técnico';
-  else if (user.rol === 'user') rolTexto = 'Usuario';
-  else rolTexto = user.rol;
+  if (rol === 'admin') rolTexto = 'Admin';
+  else if (rol === 'tecnico') rolTexto = 'Técnico';
+  else if (rol === 'user') rolTexto = 'Usuario';
+  else rolTexto = rol;
 
   rolEl.textContent = rolTexto;
 
   var colores;
-  if (user.rol === 'admin') {
+  if (rol === 'admin') {
     colores = { bg: '#fee2e2', color: '#991b1b' };
-  } else if (user.rol === 'tecnico') {
+  } else if (rol === 'tecnico') {
     colores = { bg: '#dbeafe', color: '#1e40af' };
-  } else if (user.rol === 'user') {
+  } else if (rol === 'user') {
     colores = { bg: '#f3f4f6', color: '#374151' };
   } else {
     colores = { bg: '#f3f4f6', color: '#374151' };
@@ -2629,7 +2631,7 @@ if (btnClaveGuardar) {
   rolEl.style.background = colores.bg;
   rolEl.style.color = colores.color;
 }
-
+		  
 function entrarModoAdminDirecto() {
   var identificador = document.getElementById('input-identificador').value;
   var valorClave = inputClave.value;
