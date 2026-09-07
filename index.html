@@ -2566,13 +2566,14 @@ if (btnClaveGuardar) {
         }
 
         function cargarDatosIniciales() {
-  			return Promise.all([
-    		cargarClientes(),
-    		cargarOrdenes(),
-    		pedirApi('/api/empresa', undefined, 'GET')
-  		])
+  return Promise.all([
+    cargarClientes(),
+    cargarOrdenes(),
+    cargarTecnicos(),  // <-- agregá esto
+    pedirApi('/api/empresa', undefined, 'GET')
+  ])
     .then(function (resultados) {
-      var resultadoEmpresa = resultados[2];
+      var resultadoEmpresa = resultados[3];  // <-- cambá esto de 2 a 3
       var empresa = resultadoEmpresa && resultadoEmpresa.empresa;
 
       if (empresa) {
@@ -2595,6 +2596,21 @@ if (btnClaveGuardar) {
     });
 }
 
+function cargarTecnicos() {
+  return solicitarGet('/api/usuarios?rol=tecnico')
+    .then(function (resultado) {
+      var tecnicos = resultado.data || [];
+      var select = document.getElementById('f-tecnico');
+      if (!select) return;
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      tecnicos.forEach(function (t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.nombre || t.email;
+        select.appendChild(opt);
+      });
+    });
+}		  
 
   function mostrarUsuarioLogueado() {
   var usuario = sessionStorage.getItem('usuario');
