@@ -156,11 +156,27 @@
         background: var(--primary-light);
       }
 
+	.app-header .logo .logo-empresa-header {
+     display: block;
+     width: 38px;
+     height: 38px;
+     object-fit: contain;
+     border-radius: 8px;
+    }
+
+.app-header .logo .logo-empresa-header.hidden {
+  display: none;
+}
+
+.app-header .logo .dot.hidden {
+  display: none;
+}	
+
       .header-actions {
   		display: flex;
   		gap: 0.5rem;
   		align-items: center;
-  		
+  		margin-left: auto;
 		}
 
       .btn-sm {
@@ -996,9 +1012,16 @@
     <!-- ====== APP SCREEN ====== -->
     <div id="app-screen" class="admin-bloqueado">
    <header class="app-header">
-  <div class="logo">
-    <span class="dot"></span>
-    <span id="nombre-empresa-header">Infotac</span>
+	   
+    <div class="logo">
+    <img
+    id="logo-empresa-header"
+    class="logo-empresa-header hidden"
+    src=""
+    alt="Logo de la empresa"
+   >
+   <span class="dot" id="dot-empresa-header"></span>
+   <span id="nombre-empresa-header">Infotac</span>
   </div>
 	   
   <div class="header-actions">
