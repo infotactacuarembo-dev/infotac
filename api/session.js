@@ -18,6 +18,7 @@ module.exports = function handler(req, res) {
     ok: true,
     authenticated: true,
     user: {
+      id: user.id,
       identificador: user.identificador,
       rol: user.rol
     }
