@@ -96,10 +96,10 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!['user', 'admin'].includes(rol)) {
+      if (!['user', 'tecnico', 'admin'].includes(rol)) {
         return res.status(400).json({
-          ok: false,
-          error: 'El rol debe ser "user" o "admin".'
+        ok: false,
+        error: 'El rol debe ser "user", "tecnico" o "admin".'
         });
       }
 
@@ -149,37 +149,46 @@ module.exports = async function handler(req, res) {
     }
 
     // EDITAR USUARIO (PUT)
-    if (req.method === 'PUT') {
-      const { id, password, rol, activo } = req.body || {};
+if (req.method === 'PUT') {
+  const { id, password, rol, activo } = req.body || {};
 
-      if (!id || typeof id !== 'string') {
-        return res.status(400).json({
-          ok: false,
-          error: 'ID de usuario inválido.'
-        });
-      }
-      if (activo !== undefined && typeof activo !== 'boolean') {
-        return res.status(400).json({
-        ok: false,
-        error: 'El estado activo debe ser true o false.'
-      });
-    }
-      
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({
+      ok: false,
+      error: 'ID de usuario inválido.'
+    });
+  }
 
-      // Verificar que el usuario existe
-      const { data: usuarioExistente, error: fetchError } = await supabase
-      .from('usuarios')
-      .select('id, identificador, rol, activo')
-      .eq('id', id)
-      .single();
+  if (
+    rol !== undefined &&
+    !['user', 'tecnico', 'admin'].includes(rol)
+  ) {
+    return res.status(400).json({
+      ok: false,
+      error: 'El rol debe ser "user", "tecnico" o "admin".'
+    });
+  }
 
-      if (fetchError || !usuarioExistente) {
-        return res.status(404).json({
-          ok: false,
-          error: 'Usuario no encontrado.'
-        });
-      }
+  if (activo !== undefined && typeof activo !== 'boolean') {
+    return res.status(400).json({
+      ok: false,
+      error: 'El estado activo debe ser true o false.'
+    });
+  }
 
+  // Verificar que el usuario existe
+  const { data: usuarioExistente, error: fetchError } = await supabase
+    .from('usuarios')
+    .select('id, identificador, rol, activo')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !usuarioExistente) {
+    return res.status(404).json({
+      ok: false,
+      error: 'Usuario no encontrado.'
+    });
+  }
       if (
       activo === false &&
       usuarioExistente.identificador.toLowerCase() === user.identificador.toLowerCase()
