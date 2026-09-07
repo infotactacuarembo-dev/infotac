@@ -18,15 +18,19 @@ function sign(payload) {
     .digest('base64url');
 }
 
-function createSessionToken(identificador, rol) {
+function createSessionToken(id, identificador, rol) {
   const payloadData = {
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
     nonce: crypto.randomBytes(16).toString('hex'),
+    id,
     identificador,
     rol
   };
 
-  const payload = Buffer.from(JSON.stringify(payloadData)).toString('base64url');
+  const payload = Buffer
+    .from(JSON.stringify(payloadData))
+    .toString('base64url');
+
   return payload + '.' + sign(payload);
 }
 
@@ -94,9 +98,11 @@ function getSessionUser(req) {
     }
 
     return {
-      identificador: data.identificador || null,
-      rol: data.rol || null
-    };
+  id: data.id || null,
+  identificador: data.identificador || null,
+  rol: data.rol || null
+  };
+    
   } catch (_) {
     return null;
   }
