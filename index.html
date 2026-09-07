@@ -2424,23 +2424,34 @@ if (btnClaveGuardar) {
         }
 
         function cargarDatosIniciales() {
-          return Promise.all([cargarClientes(), cargarOrdenes()])
-            .then(function () {
-              renderizar();
-            })
-            .catch(function (error) {
-              console.error("Error al cargar datos:", error);
+  return Promise.all([
+    cargarClientes(),
+    cargarOrdenes(),
+    pedirApi('/api/empresa', undefined, 'GET')
+  ])
+    .then(function (resultados) {
+      var resultadoEmpresa = resultados[2];
+      var empresa = resultadoEmpresa && resultadoEmpresa.empresa;
 
-              if (error && error.status === 401) {
-                mostrarLogin();
-                mensajeError.textContent = "Tu sesión venció. Ingresá nuevamente.";
-                mensajeError.classList.add("visible");
-                return;
-              }
+      if (empresa) {
+        actualizarEncabezadoEmpresa(empresa);
+      }
 
-              alert("No se pudieron cargar los datos. Revisá tu conexión e intentá nuevamente.");
-            });
-        }
+      renderizar();
+    })
+    .catch(function (error) {
+      console.error("Error al cargar datos:", error);
+
+      if (error && error.status === 401) {
+        mostrarLogin();
+        mensajeError.textContent = "Tu sesión venció. Ingresá nuevamente.";
+        mensajeError.classList.add("visible");
+        return;
+      }
+
+      alert("No se pudieron cargar los datos. Revisá tu conexión e intentá nuevamente.");
+    });
+}
 
   function entrarModoAdminDirecto() {
   var identificador = document.getElementById('input-identificador').value;
