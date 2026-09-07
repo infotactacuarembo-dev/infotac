@@ -7122,12 +7122,15 @@ if (btnUsuarioGuardar) {
       return;
     }
 
-    if (rol !== 'user' && rol !== 'admin') {
-      usuarioMensaje.textContent = 'Seleccioná un rol válido.';
-      usuarioRol.focus();
-      return;
-    }
-
+    if (
+  		rol !== 'user' &&
+  		rol !== 'tecnico' &&
+  		rol !== 'admin'
+		) {
+  		usuarioMensaje.textContent = 'Seleccioná un rol válido.';
+  		usuarioRol.focus();
+  		return;
+		}
     if (!esEdicion && !password) {
       usuarioMensaje.textContent = 'Ingresá una contraseña.';
       usuarioPassword.focus();
