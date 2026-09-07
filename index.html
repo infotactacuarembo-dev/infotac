@@ -3097,20 +3097,44 @@ if (btnCerrarConfiguracion) {
   });
 }
 
-		  function restaurarSesion() {
+function restaurarSesion() {
   fetch("/api/session", {
     method: "GET",
     credentials: "same-origin"
   })
     .then(function (respuesta) {
       return respuesta.json().then(function (datos) {
-        return { respuesta: respuesta, datos: datos };
+        return {
+          respuesta: respuesta,
+          datos: datos
+        };
       });
     })
     .then(function (resultado) {
       if (!resultado.respuesta.ok || !resultado.datos.authenticated) {
         mostrarLogin();
         return;
+      }
+
+      var usuarioSesion = resultado.datos.user || {};
+      var esAdmin = usuarioSesion.rol === 'admin';
+
+      var btnAdministracion = document.getElementById(
+        'btn-administracion'
+      );
+      var btnImportar = document.getElementById('btn-importar');
+      var btnExportar = document.getElementById('btn-exportar');
+
+      if (btnAdministracion) {
+        btnAdministracion.style.display = esAdmin ? '' : 'none';
+      }
+
+      if (btnImportar) {
+        btnImportar.style.display = esAdmin ? '' : 'none';
+      }
+
+      if (btnExportar) {
+        btnExportar.style.display = esAdmin ? '' : 'none';
       }
 
       mostrarAplicacion();
@@ -3120,7 +3144,6 @@ if (btnCerrarConfiguracion) {
       mostrarLogin();
     });
 }
-
 restaurarSesion();
 
                 /* ===== DATA ACCESS (API SEGURA) ===== */
