@@ -2597,7 +2597,7 @@ if (btnClaveGuardar) {
 }
 
 function cargarTecnicos() {
-  return solicitarGet('/api/usuarios?rol=tecnico')
+  return solicitarGet('/api/users?rol=tecnico')
     .then(function (resultado) {
       var tecnicos = resultado.data || [];
       var select = document.getElementById('f-tecnico');
