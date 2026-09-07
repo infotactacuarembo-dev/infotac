@@ -2737,6 +2737,43 @@ function obtenerNombrePais(codigo) {
   return opcion ? opcion.textContent.trim() : '';
 }
 
+
+function actualizarEncabezadoEmpresa(empresa) {
+  var nombreHeader = document.getElementById('nombre-empresa-header');
+  var logoHeader = document.getElementById('logo-empresa-header');
+  var puntoHeader = document.getElementById('dot-empresa-header');
+
+  if (!empresa) return;
+
+  var nombreVisible =
+    empresa.nombre_comercial ||
+    empresa.nombre ||
+    'Infotac';
+
+  if (nombreHeader) {
+    nombreHeader.textContent = nombreVisible;
+  }
+
+  if (logoHeader && empresa.logo_url) {
+    logoHeader.src = empresa.logo_url;
+    logoHeader.alt = 'Logo de ' + nombreVisible;
+    logoHeader.classList.remove('hidden');
+
+    if (puntoHeader) {
+      puntoHeader.classList.add('hidden');
+    }
+  } else {
+    if (logoHeader) {
+      logoHeader.src = '';
+      logoHeader.classList.add('hidden');
+    }
+
+    if (puntoHeader) {
+      puntoHeader.classList.remove('hidden');
+    }
+  }
+}
+	
 function cargarDatosEmpresa() {
   if (!formularioEmpresa) return Promise.resolve();
 
@@ -2766,6 +2803,8 @@ function cargarDatosEmpresa() {
       campoWebEmpresa.value = empresa.website || '';
       logoUrlActualEmpresa = empresa.logo_url || '';
 	  mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+
+	  actualizarEncabezadoEmpresa(empresa);	
 
       actualizarEtiquetasEmpresaPorPais();
       mensajeConfiguracionEmpresa('', false);
