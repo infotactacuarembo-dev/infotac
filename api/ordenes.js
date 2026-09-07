@@ -229,6 +229,7 @@ module.exports = async function handler(req, res) {
 
       const order = orderInput(body, { requireClient: true });
 
+      
       const { data, error } = await supabase
         .from('ordenes')
         .insert(order)
@@ -256,6 +257,26 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      if (
+        Object.prototype.hasOwnProperty.call(body, 'tecnico_id') &&
+        body.tecnico_id !== null &&
+        body.tecnico_id !== ''
+        ) {
+    const { data: tecnico, error: tecnicoError } = await supabase
+    .from('usuarios')
+    .select('id, rol, activo')
+    .eq('id', body.tecnico_id)
+    .eq('empresa_id', INFOTAC_EMPRESA_ID)
+    .single();
+
+  if (tecnicoError || !tecnico || tecnico.rol !== 'tecnico' || tecnico.activo === false) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Técnico inválido o inactivo.'
+    });
+  }
+}
+
       const update = {
         estado: body.estado,
         diagnostico: text(body.diagnostico, 4000),
@@ -268,6 +289,12 @@ module.exports = async function handler(req, res) {
         )
       };
 
+      if (Object.prototype.hasOwnProperty.call(body, 'tecnico_id')) {
+        update.tecnico_id = validId(body.tecnico_id)
+        ? body.tecnico_id
+        : null;
+      }
+      
       if (body.estado === 'entregado' || body.estado === 'sinreparar') {
         update.fecha_entrega = isoDate(body.fecha_entrega, new Date().toISOString());
       } else {
