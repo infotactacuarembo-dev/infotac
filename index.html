@@ -1040,6 +1040,51 @@
 #tabla-auditoria-usuarios tr:hover {
   background: #f8fafc;
 }
+
+/* Arreglo: evita que los campos de Registrar ingreso se salgan del marco */
+#modal-ingreso,
+#modalIngreso,
+.modal-content,
+.modal-body,
+.form-grid,
+.form-row,
+.form-group {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+#modal-ingreso input,
+#modal-ingreso select,
+#modal-ingreso textarea,
+#modalIngreso input,
+#modalIngreso select,
+#modalIngreso textarea,
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .modal-content,
+  .modal-body {
+    width: calc(100% - 16px);
+    max-width: calc(100% - 16px);
+    min-width: 0;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
+  .form-grid,
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
