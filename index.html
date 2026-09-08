@@ -1304,6 +1304,15 @@
               </button>
             </div>
 
+			<button
+  				type="button"
+  				id="btn-exportar-csv"
+  				class="btn-clear-filters"
+  				style="margin-left: 8px;"
+				>
+  				Exportar CSV
+			</button>  
+
             <div class="table-wrap">
               <table>
                 <thead>
@@ -3330,6 +3339,67 @@ restaurarSesion();
   };
 }
 
+function exportarOrdenesCSV() {
+  // Obtener todos los filtros actuales
+  var params = {
+    pagina: 1,
+    limite: 10000  // Obtener todas las órdenes (o un límite alto)
+  };
+
+  var desdeVal = filtroDesde ? filtroDesde.value.trim() : "";
+  var hastaVal = filtroHasta ? filtroHasta.value.trim() : "";
+  var estadoVal = filtroEstado ? filtroEstado.value.trim() : "";
+  var saldoVal = filtroSaldo ? filtroSaldo.value.trim() : "";
+  var buscarVal = buscador ? buscador.value.trim() : "";
+  var tecnicoVal = document.getElementById('f-tecnico-filtro') ? document.getElementById('f-tecnico-filtro').value.trim() : "";
+
+  if (desdeVal) params.desde = desdeVal;
+  if (hastaVal) params.hasta = hastaVal;
+  if (estadoVal) params.estado = estadoVal;
+  if (saldoVal) params.saldo = saldoVal;
+  if (buscarVal) params.buscar = buscarVal;
+  if (tecnicoVal) params.tecnico_id = tecnicoVal;
+
+  // Pedir todas las órdenes con los filtros aplicados
+  solicitarGet('/api/ordenes', params)
+    .then(function (resultado) {
+      var ordenes = resultado.data || [];
+
+      // Encabezados del CSV
+      var csv = 'Fecha,Cliente,Equipo,Serie,Técnico,Estado,Seña,Total Items,Total Pagos,Saldo\n';
+
+      // Filas del CSV
+      ordenes.forEach(function (o) {
+        var fecha = o.fecha ? o.fecha.split('T')[0] : '';  // Solo la fecha sin hora
+        var cliente = o.cliente || '';
+        var equipo = o.tipo || '';
+        var serie = o.serie || '';
+        var tecnico = o.tecnico_nombre || '';
+        var estado = o.estado || '';
+        var sena = o.sena || 0;
+        var totalItems = o.total_items || 0;
+        var totalPagos = o.total_pagos || 0;
+        var saldo = o.saldo_real || 0;
+
+        csv += '"' + fecha + '","' + cliente + '","' + equipo + '","' + serie + '","' + tecnico + '","' + estado + '",' + sena + ',' + totalItems + ',' + totalPagos + ',' + saldo + '\n';
+      });
+
+      // Crear y descargar el archivo CSV
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = 'ordenes_' + new Date().toISOString().split('T')[0] + '.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(function (err) {
+      console.error('Error al exportar:', err);
+      alert('No se pudo exportar el reporte. Intentá de nuevo.');
+    });
+}
+		  
+		  
  function cargarOrdenes() {
   var params = {
     pagina: paginaActual,
@@ -4914,6 +4984,8 @@ if (btnLimpiarFiltros) {
   btnLimpiarFiltros.addEventListener("click", function () {
     buscador.value = "";
 
+	  
+
     if (filtroDesde) filtroDesde.value = "";
     if (filtroHasta) filtroHasta.value = "";
     if (filtroEstado) filtroEstado.value = "";
@@ -4924,6 +4996,14 @@ if (btnLimpiarFiltros) {
     cargarOrdenes().then(renderizar);
   });
 }
+
+    // Event listener para "Exportar CSV"
+var btnExportarCsv = document.getElementById('btn-exportar-csv');
+if (btnExportarCsv) {
+  btnExportarCsv.addEventListener('click', exportarOrdenesCSV);
+}
+
+		  
         /* ===== EXPORT / IMPORT ===== */
         function exportarDatos() {
           var data = JSON.stringify({ exportado: new Date().toISOString(), ordenes: ordenes }, null, 2);
