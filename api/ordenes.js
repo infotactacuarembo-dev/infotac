@@ -170,7 +170,8 @@ module.exports = async function handler(req, res) {
         query = query.gte('fecha', desde);
       }
       if (hasta) {
-        query = query.lte('fecha', hasta);
+        const hastaFinDelDia = new Date(`${hasta}T23:59:59.999`);
+        query = query.lte('fecha', hastaFinDelDia.toISOString());
       }
       if (estado) {
         query = query.eq('estado', estado);
