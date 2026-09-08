@@ -53,9 +53,10 @@ const CAMPOS_EMPRESA = [
   'whatsapp',
   'email',
   'website',
-  'logo_url'
+  'logo_url',
   'zona_horaria'
 ].join(', ');
+
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'PUT') {
