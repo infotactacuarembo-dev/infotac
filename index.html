@@ -2602,7 +2602,7 @@ function cargarTecnicos() {
       var tecnicos = resultado.data || [];
       var select = document.getElementById('f-tecnico');
       if (!select) return;
-      select.innerHTML = '<option value="">Sin asignar</option>';
+      select.innerHTML = '<option value="">Asignar a...</option>';
       tecnicos.forEach(function (t) {
         var opt = document.createElement('option');
         opt.value = t.id;
@@ -3485,6 +3485,15 @@ restaurarSesion();
         /* ===== FORM SUBMIT ===== */
         formIngreso.addEventListener("submit", function (e) {
           e.preventDefault();
+
+		  // Validar que el técnico sea obligatorio
+  				var tecnicoId = val("f-tecnico");
+  				if (!tecnicoId) {
+    			alert("Debes asignar un técnico a la orden");
+    			document.getElementById("f-tecnico").focus();
+    			return;
+  			} 		
+			
           var senaNum = parseFloat(val("f-sena")) || 0;
 
 		// Leer el total de ítems desde el resumen económico
