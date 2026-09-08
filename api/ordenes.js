@@ -135,6 +135,17 @@ module.exports = async function handler(req, res) {
         .eq('empresa_id', INFOTAC_EMPRESA_ID);
 
 
+       // Obtener zona horaria de la empresa
+        const { data: empresaConfig } = await supabase
+        .from('empresas')
+        .select('zona_horaria')
+        .eq('id', INFOTAC_EMPRESA_ID)
+      .maybeSingle();
+
+      const zonaHoraria = empresaConfig && empresaConfig.zona_horaria
+      ? empresaConfig.zona_horaria
+      : 'America/Montevideo';
+      
       const user = getSessionUser(req);
 
       if (user && user.rol === 'tecnico') {
@@ -186,6 +197,41 @@ module.exports = async function handler(req, res) {
       const { data, error, count } = await query;
 
       if (error) throw error;
+
+      // Convertir fechas a la zona horaria de la empresa
+if (data && Array.isArray(data)) {
+  data = data.map(function (orden) {
+    if (orden.fecha) {
+      var fechaUTC = new Date(orden.fecha);
+      
+      // Obtener offset de la zona horaria
+      var opciones = {
+        timeZone: zonaHoraria,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      
+      var formatter = new Intl.DateTimeFormat('es-UY', opciones);
+      var partes = formatter.formatToParts(fechaUTC);
+      
+      // Construir fecha en zona horaria
+      var año = partes.find(p => p.type === 'year').value;
+      var mes = partes.find(p => p.type === 'month').value;
+      var dia = partes.find(p => p.type === 'day').value;
+      var hora = partes.find(p => p.type === 'hour').value;
+      var minuto = partes.find(p => p.type === 'minute').value;
+      var segundo = partes.find(p => p.type === 'second').value;
+      
+      orden.fecha = año + '-' + mes + '-' + dia + 'T' + hora + ':' + minuto + ':' + segundo;
+    }
+    return orden;
+  });
+}
 
       return res.status(200).json({
         ok: true,
