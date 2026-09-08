@@ -297,10 +297,10 @@ if (data && Array.isArray(data)) {
 
       
       const { data, error } = await supabase
-        .from('ordenes')
-        .insert(order)
-        .select(ORDER_FIELDS)
-        .single();
+      .from('ordenes')
+      .insert(order)
+      .select(ORDER_FIELDS_WRITABLE)
+      .single();
 
       if (error) throw error;
       return res.status(201).json({ ok: true, data });
