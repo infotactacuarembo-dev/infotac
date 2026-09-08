@@ -1227,6 +1227,72 @@
 .logo-empresa-header.hidden {
   display: none;
 }
+
+
+/* ===== TABLA DE ÓRDENES: VISTA CELULAR ===== */
+@media (max-width: 600px) {
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .table-wrap table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 0.78rem;
+  }
+
+  .table-wrap th,
+  .table-wrap td {
+    padding: 0.55rem 0.35rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+  }
+
+  /* Oculta: Equipo, Serie, Seña, Presupuesto, Saldo y Técnico */
+  .table-wrap th:nth-child(3),
+  .table-wrap td:nth-child(3),
+  .table-wrap th:nth-child(4),
+  .table-wrap td:nth-child(4),
+  .table-wrap th:nth-child(5),
+  .table-wrap td:nth-child(5),
+  .table-wrap th:nth-child(6),
+  .table-wrap td:nth-child(6),
+  .table-wrap th:nth-child(7),
+  .table-wrap td:nth-child(7),
+  .table-wrap th:nth-child(9),
+  .table-wrap td:nth-child(9) {
+    display: none;
+  }
+
+  /* Fecha */
+  .table-wrap th:nth-child(1),
+  .table-wrap td:nth-child(1) {
+    width: 22%;
+  }
+
+  /* Cliente */
+  .table-wrap th:nth-child(2),
+  .table-wrap td:nth-child(2) {
+    width: 38%;
+  }
+
+  /* Estado */
+  .table-wrap th:nth-child(8),
+  .table-wrap td:nth-child(8) {
+    width: 22%;
+  }
+
+  /* Acciones */
+  .table-wrap th:nth-child(10),
+  .table-wrap td:nth-child(10) {
+    width: 18%;
+    white-space: nowrap;
+  }
+}		
 		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
