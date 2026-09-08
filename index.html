@@ -3340,6 +3340,16 @@ restaurarSesion();
 }
 
 function exportarOrdenesCSV() {
+
+
+  var btnExportarCsv = document.getElementById('btn-exportar-csv');
+  var textoOriginal = btnExportarCsv ? btnExportarCsv.innerText : 'Exportar CSV';
+  
+  // Desactivar botón y mostrar "Exportando..."
+  if (btnExportarCsv) {
+    btnExportarCsv.disabled = true;
+    btnExportarCsv.innerText = 'Exportando...';
+  }
   // Obtener todos los filtros actuales
   var params = {
     pagina: 1,
@@ -3392,10 +3402,22 @@ function exportarOrdenesCSV() {
       link.download = 'ordenes_' + new Date().toISOString().split('T')[0] + '.csv';
       link.click();
       URL.revokeObjectURL(url);
+      // Reactivar botón
+      if (btnExportarCsv) {
+        btnExportarCsv.disabled = false;
+        btnExportarCsv.innerText = textoOriginal;
+      }
+		
     })
     .catch(function (err) {
       console.error('Error al exportar:', err);
       alert('No se pudo exportar el reporte. Intentá de nuevo.');
+
+	  // Reactivar botón en caso de error
+      if (btnExportarCsv) {
+        btnExportarCsv.disabled = false;
+        btnExportarCsv.innerText = textoOriginal;
+      }	
     });
 }
 		  
