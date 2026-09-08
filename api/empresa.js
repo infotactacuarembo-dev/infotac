@@ -54,6 +54,7 @@ const CAMPOS_EMPRESA = [
   'email',
   'website',
   'logo_url'
+  'zona_horaria'
 ].join(', ');
 
 module.exports = async function handler(req, res) {
@@ -137,6 +138,7 @@ module.exports = async function handler(req, res) {
     const email = texto(datos.email, 254);
     const website = texto(datos.website, 500);
     const logoUrl = texto(datos.logo_url, 500);
+    const zonaHoraria = texto(datos.zona_horaria, 100);
 
     if (!id) {
       return res.status(400).json({
@@ -180,6 +182,7 @@ module.exports = async function handler(req, res) {
         logo_url: logoUrl || '',
         direccion: addressLine1 || '',
         rut: taxId || '',
+        zona_horaria: zonaHoraria || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
