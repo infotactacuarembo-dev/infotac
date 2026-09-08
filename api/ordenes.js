@@ -5,7 +5,7 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id, tecnico_id`;
+  estado, fecha_entrega, empresa_id, tecnico_id, tecnico_nombre`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
