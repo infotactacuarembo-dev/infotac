@@ -4885,6 +4885,12 @@ if (filtroEstado) {
 if (filtroSaldo) {
   filtroSaldo.addEventListener("change", reiniciarPaginaYRenderizar);
 }
+
+var filtroTecnico = document.getElementById('f-tecnico-filtro');
+if (filtroTecnico) {
+  filtroTecnico.addEventListener("change", reiniciarPaginaYRenderizar);
+}		  
+		  
 if (btnPaginaAnterior) {
   btnPaginaAnterior.addEventListener("click", function () {
     if (paginaActual > 1) {
@@ -4912,6 +4918,7 @@ if (btnLimpiarFiltros) {
     if (filtroHasta) filtroHasta.value = "";
     if (filtroEstado) filtroEstado.value = "";
     if (filtroSaldo) filtroSaldo.value = "";
+	if (filtroTecnico) filtroTecnico.value = "";  
 
     paginaActual = 1;
     cargarOrdenes().then(renderizar);
