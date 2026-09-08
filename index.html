@@ -1415,9 +1415,12 @@
       >
     </div>
 
-    <div class="form-group">
+	  
+      <div class="form-group">
       <label for="empresa-pais">País</label>
       <select id="empresa-pais" required>
+        
+		  
         <option value="">Seleccioná un país</option>
         <option value="AR">Argentina</option>
         <option value="BO">Bolivia</option>
@@ -1442,6 +1445,16 @@
         <option value="OTRO">Otro país</option>
       </select>
     </div>
+
+	  <div class="form-group">
+  		<label for="empresa-zona-horaria">Zona horaria</label>
+  		<input
+    	type="text"
+    	id="empresa-zona-horaria"
+    	placeholder="Ej.: America/Montevideo"
+    	readonly
+  		>
+		</div>
 
     <div class="form-group">
       <label for="empresa-tax-id-type" id="label-tax-id-type">
@@ -2800,6 +2813,7 @@ if (btnMenuSecundario && menuSecundario) {
 		var btnCerrarConfiguracion = document.getElementById('btn-cerrar-configuracion');
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
 		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
+		var campoZonaHorariaEmpresa = document.getElementById('empresa-zona-horaria');  
 		var etiquetaRegionEmpresa = document.getElementById('label-region');
 
 		var configuracionPaisEmpresa = {
@@ -3009,6 +3023,34 @@ function obtenerNombrePais(codigo) {
   return opcion ? opcion.textContent.trim() : '';
 }
 
+function obtenerZonaHorariaPorPais(codigoPais) {
+  var zonas = {
+    AR: 'America/Argentina/Buenos_Aires',
+    BO: 'America/La_Paz',
+    BR: 'America/Sao_Paulo',
+    CL: 'America/Santiago',
+    CO: 'America/Bogota',
+    CR: 'America/Costa_Rica',
+    CU: 'America/Havana',
+    DO: 'America/Santo_Domingo',
+    EC: 'America/Guayaquil',
+    SV: 'America/El_Salvador',
+    GT: 'America/Guatemala',
+    HN: 'America/Tegucigalpa',
+    MX: 'America/Mexico_City',
+    NI: 'America/Managua',
+    PA: 'America/Panama',
+    PY: 'America/Asuncion',
+    PE: 'America/Lima',
+    PR: 'America/Puerto_Rico',
+    UY: 'America/Montevideo',
+    VE: 'America/Caracas',
+    OTRO: ''
+  };
+
+  return zonas[codigoPais] || '';
+}		  
+
 
 function actualizarEncabezadoEmpresa(empresa) {
   var nombreHeader = document.getElementById('nombre-empresa-header');
@@ -3058,8 +3100,10 @@ function cargarDatosEmpresa() {
       campoEmpresaId.value = empresa.id || '';
       campoNombreEmpresa.value = empresa.nombre || '';
       campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
-
+      
       campoPaisEmpresa.value = empresa.country_code || '';
+	   	
+	  campoZonaHorariaEmpresa.value = empresa.zona_horaria || '';	
       campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
       campoTaxIdEmpresa.value = empresa.tax_id || '';
 
@@ -3090,6 +3134,13 @@ function cargarDatosEmpresa() {
     });
 }
 
+if (campoPaisEmpresa && campoZonaHorariaEmpresa) {
+  			campoPaisEmpresa.addEventListener('change', function () {
+    		var zonaSugerida = obtenerZonaHorariaPorPais(campoPaisEmpresa.value);
+    		campoZonaHorariaEmpresa.value = zonaSugerida || '';
+  		});
+	}	
+		  
 function guardarDatosEmpresa(evento) {
   evento.preventDefault();
 
@@ -3125,7 +3176,8 @@ function guardarDatosEmpresa(evento) {
     whatsapp: campoWhatsappEmpresa.value,
     email: campoEmailEmpresa.value,
     website: campoWebEmpresa.value,
-    logo_url: logoUrlActualEmpresa
+    logo_url: logoUrlActualEmpresa,
+	zona_horaria: campoZonaHorariaEmpresa.value || '',  
   };
 
   botonGuardarEmpresa.disabled = true;
