@@ -227,6 +227,14 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      // Validar que el técnico sea obligatorio
+        if (!body.tecnico_id || body.tecnico_id === '' || body.tecnico_id === null) {
+        return res.status(400).json({
+        ok: false,
+        error: 'El técnico es obligatorio.'
+        });
+      }
+
       const order = orderInput(body, { requireClient: true });
 
       
