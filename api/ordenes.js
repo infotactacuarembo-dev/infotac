@@ -163,13 +163,13 @@ module.exports = async function handler(req, res) {
 
       if (saldo) {
         if (saldo === 'pendiente') {
-          query = query.lt('saldo_real', 0.01);
-        } else if (saldo === 'pagando') {
-          query = query.gt('saldo_real', 0);
-        } else if (saldo === 'pagado') {
-          query = query.eq('saldo_real', 0);
-        }
+          query = query.gt('saldo_real', 0);  // ← Mayor a 0 (tiene saldo pendiente)
+      } else if (saldo === 'pagando') {
+        query = query.gt('saldo_real', 0);
+      } else if (saldo === 'pagado') {
+        query = query.eq('saldo_real', 0);
       }
+    }
 
       if (buscar) {
         const texto = '%' + buscar + '%';
