@@ -1139,6 +1139,24 @@
   }
 }
 
+/* ===== MENÚ SUPERIOR: AJUSTE SOLO PARA CELULAR ===== */
+@media (max-width: 600px) {
+  .menu-dropdown,
+  .dropdown-menu,
+  .user-menu,
+  .header-menu,
+  .more-menu {
+    position: fixed !important;
+    top: 76px;
+    right: 8px !important;
+    left: auto !important;
+    width: min(220px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
