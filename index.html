@@ -1294,38 +1294,28 @@
   }
 }		
 
-/* ===== ACCIONES DE ÓRDENES EN CELULAR ===== */
+/* ===== TABLA DE ÓRDENES: CELULAR SIN ACCIONES ===== */
 @media (max-width: 600px) {
+  /* Oculta la columna Acciones: es la columna número 10 */
   .table-wrap th:nth-child(10),
   .table-wrap td:nth-child(10) {
-    width: 18%;
-    max-width: 18%;
-    padding-left: 0.15rem;
-    padding-right: 0.15rem;
-    overflow: hidden;
+    display: none !important;
   }
 
-  .table-wrap td:nth-child(10) {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    flex-wrap: wrap;
+  /* Distribuye el ancho entre Fecha, Cliente y Estado */
+  .table-wrap th:nth-child(1),
+  .table-wrap td:nth-child(1) {
+    width: 25%;
   }
 
-  .table-wrap td:nth-child(10) button,
-  .table-wrap td:nth-child(10) a {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0;
-    margin: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 34px;
-    font-size: 0.9rem;
+  .table-wrap th:nth-child(2),
+  .table-wrap td:nth-child(2) {
+    width: 47%;
+  }
+
+  .table-wrap th:nth-child(8),
+  .table-wrap td:nth-child(8) {
+    width: 28%;
   }
 }
 		
