@@ -3342,6 +3342,9 @@ restaurarSesion();
   var estadoVal = filtroEstado ? filtroEstado.value.trim() : "";
   var saldoVal = filtroSaldo ? filtroSaldo.value.trim() : "";
   var buscarVal = buscador ? buscador.value.trim() : "";
+  var tecnicoVal = document.getElementById("f-tecnico-filtro")
+  ? document.getElementById("f-tecnico-filtro").value.trim()
+  : "";	 
 
   if (desdeVal) params.desde = desdeVal;
   if (hastaVal) params.hasta = hastaVal;
