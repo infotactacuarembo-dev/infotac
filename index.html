@@ -2606,13 +2606,12 @@ function cargarTecnicos() {
       tecnicos.forEach(function (t) {
         var opt = document.createElement('option');
         opt.value = t.id;
-        opt.textContent = t.nombre || t.email;
-		opt.style.color = '#000';  
+        opt.textContent = t.identificador || t.nombre || t.email;  // <-- usá identificador primero
+        opt.style.color = '#000';
         select.appendChild(opt);
       });
     });
-}		  
-
+}
   function mostrarUsuarioLogueado() {
   var usuario = sessionStorage.getItem('usuario');
   var rol = sessionStorage.getItem('rol');
