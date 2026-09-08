@@ -194,7 +194,7 @@ module.exports = async function handler(req, res) {
       query = query.order('fecha', { ascending: false });
       query = query.range(offset, offset + limite - 1);
 
-      const { data, error, count } = await query;
+      let { data, error, count } = await query;
 
       if (error) throw error;
 
