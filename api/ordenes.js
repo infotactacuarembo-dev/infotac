@@ -157,6 +157,10 @@ module.exports = async function handler(req, res) {
         query = query.eq('estado', estado);
       }
 
+      if (req.query.tecnico_id) {
+        query = query.eq('tecnico_id', req.query.tecnico_id);
+      }
+
       if (saldo) {
         if (saldo === 'pendiente') {
           query = query.lt('saldo_real', 0.01);
