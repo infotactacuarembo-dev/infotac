@@ -3348,6 +3348,7 @@ restaurarSesion();
   if (estadoVal) params.estado = estadoVal;
   if (saldoVal) params.saldo = saldoVal;
   if (buscarVal) params.buscar = buscarVal;
+  if (tecnicoVal) params.tecnico_id = tecnicoVal;	 
 
   return solicitarGet('/api/ordenes', params)
     .then(function (resultado) {
