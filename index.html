@@ -1139,21 +1139,70 @@
   }
 }
 
-/* ===== MENÚ SUPERIOR: AJUSTE SOLO PARA CELULAR ===== */
+/* ===== ENCABEZADO MÓVIL SIN DESBORDAMIENTO ===== */
 @media (max-width: 600px) {
-  .menu-dropdown,
-  .dropdown-menu,
-  .user-menu,
-  .header-menu,
-  .more-menu {
+  header,
+  nav,
+  .header,
+  .topbar,
+  .navbar,
+  .app-header,
+  .dashboard-header {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  header > *,
+  nav > *,
+  .header > *,
+  .topbar > *,
+  .navbar > *,
+  .app-header > *,
+  .dashboard-header > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  header button,
+  nav button,
+  .header button,
+  .topbar button,
+  .navbar button,
+  .app-header button,
+  .dashboard-header button {
+    max-width: 100%;
+  }
+
+  /* El menú desplegable queda dentro de la pantalla */
+  header [role="menu"],
+  nav [role="menu"],
+  header .dropdown,
+  nav .dropdown,
+  header .menu,
+  nav .menu {
     position: fixed !important;
-    top: 76px;
+    top: 76px !important;
     right: 8px !important;
     left: auto !important;
-    width: min(220px, calc(100vw - 16px));
-    max-width: calc(100vw - 16px);
-    min-width: 0;
-    box-sizing: border-box;
+    width: 220px !important;
+    max-width: calc(100vw - 16px) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    z-index: 9999 !important;
+  }
+
+  header [role="menu"] button,
+  nav [role="menu"] button,
+  header .dropdown button,
+  nav .dropdown button,
+  header .menu button,
+  nav .menu button {
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: nowrap;
   }
 }
 		
@@ -1263,6 +1312,15 @@
       >
         🔑 Cambiar clave
       </button>
+	 
+      <button
+  		class="header-more-item danger"
+  		id="btn-salir"
+  		type="button"
+		>
+  	 🚪 Cerrar sesión
+	</button>
+		
     </div>
   </div>
 
@@ -1273,9 +1331,7 @@
     class="hidden"
   >
 
-  <button class="btn-sm danger" id="btn-salir" type="button">
-    Cerrar sesión
-  </button>
+  
 </div>
       </header>
 
