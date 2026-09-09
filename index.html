@@ -1302,7 +1302,11 @@
   
   /* Ocultar todos los botones excepto WhatsApp */
   .row-actions .icon-btn:not(.wa) {
-    display: none;
+    visibility: hidden;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
   }
   
   .row-actions .icon-btn.wa {
@@ -1316,6 +1320,7 @@
     height: 18px;
   }
 }
+		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
