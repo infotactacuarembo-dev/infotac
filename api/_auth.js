@@ -85,24 +85,22 @@ function requireSession(req, res) {
 function getSessionUser(req) {
   try {
     const token = parseCookies(req)[COOKIE_NAME];
-    if (!token) return null;
 
-    const parts = token.split('.');
-    if (parts.length !== 2) return null;
-
-    const payload = parts[0];
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-
-    if (!Number.isInteger(data.exp) || data.exp <= Math.floor(Date.now() / 1000)) {
+    if (!verifySessionToken(token)) {
       return null;
     }
 
+    const payload = token.split('.')[0];
+
+    const data = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8')
+    );
+
     return {
-  id: data.id || null,
-  identificador: data.identificador || null,
-  rol: data.rol || null
-  };
-    
+      id: data.id || null,
+      identificador: data.identificador || null,
+      rol: data.rol || null
+    };
   } catch (_) {
     return null;
   }
