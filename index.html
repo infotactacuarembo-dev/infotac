@@ -6657,7 +6657,7 @@ function cargarMetricas() {
         console.error('Error cargando usuarios para métricas:', datos.error);
         return;
       }
-      var usuarios = datos.usuarios || [];
+      var usuarios = datos.data || [];
 
       var usuariosActivos = usuarios.filter(function (u) {
         return u.activo === true;
@@ -7857,7 +7857,7 @@ function cargarUsuarios() {
     alert('No se pudo cargar la lista de usuarios: ' + (datos.error || 'Error desconocido'));
     return;
   }
-  usuariosActuales = datos.usuarios || [];
+  usuariosActuales = datos.data || [];
   aplicarBusquedaUsuarios();
 })
     .catch(function (e) {
