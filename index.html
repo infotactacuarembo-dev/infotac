@@ -1502,15 +1502,7 @@
     ⚙️
   </button>
 
-  <button
-  	class="btn-sm"
-  	id="btn-exportar"
-  	style="display:none;"
-  	type="button"
-  >
-  Exportar backup
-  </button>
-
+  
   
 
   <div class="header-more-menu">
@@ -1530,16 +1522,6 @@
       id="menu-secundario"
     >
 
-       
-		
-      <button
-        class="header-more-item"
-        id="btn-importar"
-		style="display:none;"  
-        type="button"
-      >
-        Importar backup
-      </button>
 
       <button
         class="header-more-item"
@@ -3014,8 +2996,8 @@ if (btnClaveGuardar) {
 		var ordenesPorPagina = 25;
 		var totalOrdenes = 0;
 
-        var btnExportar = document.getElementById("btn-exportar");
-        var btnImportar = document.getElementById("btn-importar");
+        
+        
         var fileImportar = document.getElementById("file-importar");
 
 		var btnMenuSecundario = document.getElementById('btn-menu-secundario');
@@ -3377,7 +3359,7 @@ if (btnMenuSecundario && menuSecundario) {
   		'btn-exportar-backup-config'
 		);
 		var btnImportarBackupConfig = document.getElementById(
-  		'btn-importar-backup-config'
+  		'-backup-config'
 		);  
 		  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
@@ -3942,17 +3924,7 @@ function restaurarSesion() {
   		usuarioSesion.id || ''
 	);	
 
-      var btnImportar = document.getElementById('btn-importar');
-	  var btnExportar = document.getElementById('btn-exportar');
-
-      if (btnImportar) {
-        btnImportar.style.display = esAdmin ? '' : 'none';
-      }
-
-      if (btnExportar) {
-        btnExportar.style.display = esAdmin ? '' : 'none';
-      }
-
+      
       mostrarAplicacion();
       return cargarDatosIniciales();
     })
@@ -5748,12 +5720,7 @@ if (btnExportarCsv) {
    	 });
 	}  
 
-        if (btnExportar) {
-  			btnExportar.addEventListener(
-    		"click",
-    		exportarBackupActualizado
-  		);
-	}
+        
 
 		if (btnExportarBackupConfig) {
   			btnExportarBackupConfig.addEventListener(
@@ -5768,19 +5735,14 @@ if (btnExportarCsv) {
   			}
 		}
 
-			if (btnImportar) {
-  				btnImportar.addEventListener(
-    			"click",
-    			seleccionarArchivoBackup
+			
+
+		if (btnImportarBackupConfig) {
+  			btnImportarBackupConfig.addEventListener(
+    		"click",
+    		seleccionarArchivoBackup
   			);
 		}
-
-if (btnImportarBackupConfig) {
-  btnImportarBackupConfig.addEventListener(
-    "click",
-    seleccionarArchivoBackup
-  );
-}
 
         if (fileImportar) {
   		  fileImportar.addEventListener("change", function (e) {
