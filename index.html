@@ -1294,34 +1294,29 @@
   }
 }		
 
+/* ===== TABLA DE ÓRDENES: CELULAR SIN ACCIONES ===== */
 @media (max-width: 600px) {
-  .row-actions {
-    flex-wrap: wrap;
-    gap: 2px;
-    justify-content: center;
+  /* Oculta la columna Acciones: es la columna número 10 */
+  .table-wrap th:nth-child(10),
+  .table-wrap td:nth-child(10) {
+    display: none !important;
   }
-  
-  .row-actions .icon-btn {
-    min-width: 28px;
-    height: 28px;
-    padding: 4px;
-    opacity: 0.3;
+
+  /* Distribuye el ancho entre Fecha, Cliente y Estado */
+  .table-wrap th:nth-child(1),
+  .table-wrap td:nth-child(1) {
+    width: 25%;
   }
-  
-  .row-actions .icon-btn.wa {
-    min-width: 40px;
-    height: 40px;
-    padding: 8px;
-    opacity: 1;
-    background: #25D366;
-    border-color: #25D366;
+
+  .table-wrap th:nth-child(2),
+  .table-wrap td:nth-child(2) {
+    width: 47%;
   }
-  
-  .row-actions .icon-btn.wa svg {
-    width: 20px;
-    height: 20px;
+
+  .table-wrap th:nth-child(8),
+  .table-wrap td:nth-child(8) {
+    width: 28%;
   }
-  
 }
 		
 </style>
@@ -4140,19 +4135,6 @@ function crearClienteYInsertar() {
             });
           });
         }
-
-
-		  
-// Evento directo para botón de WhatsApp en celular
-tablaOrdenes.querySelectorAll(".icon-btn.wa").forEach(function (btn) {
-  btn.addEventListener("click", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    var tr = btn.closest("tr");
-    var id = tr.getAttribute("data-id");
-    enviarWhatsApp(id);
-  });
-});
 
 function renderStats() {
   var counts = {
