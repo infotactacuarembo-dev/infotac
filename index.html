@@ -1294,31 +1294,28 @@
   }
 }		
 
-/* ===== TABLA DE ÓRDENES: CELULAR SIN ACCIONES ===== */
 @media (max-width: 600px) {
-  /* Oculta la columna Acciones: es la columna número 10 */
-  .table-wrap th:nth-child(10),
-  .table-wrap td:nth-child(10) {
-    display: none !important;
+  .row-actions {
+    flex-wrap: wrap;
+    gap: 4px;
   }
-
-  /* Distribuye el ancho entre Fecha, Cliente y Estado */
-  .table-wrap th:nth-child(1),
-  .table-wrap td:nth-child(1) {
-    width: 25%;
+  
+  /* Ocultar todos los botones excepto WhatsApp */
+  .row-actions .icon-btn:not(.wa) {
+    display: none;
   }
-
-  .table-wrap th:nth-child(2),
-  .table-wrap td:nth-child(2) {
-    width: 47%;
+  
+  .row-actions .icon-btn.wa {
+    min-width: 36px;
+    height: 36px;
+    padding: 6px;
   }
-
-  .table-wrap th:nth-child(8),
-  .table-wrap td:nth-child(8) {
-    width: 28%;
+  
+  .row-actions .icon-btn.wa svg {
+    width: 18px;
+    height: 18px;
   }
 }
-		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
