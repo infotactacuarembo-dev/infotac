@@ -1381,6 +1381,66 @@
     width: 28%;
   }
 }
+
+
+/* ===== MENÚ DE CONFIGURACIÓN ===== */
+.config-option-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.config-option-card:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1);
+}
+
+.config-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #e6fffa;
+  font-size: 1.35rem;
+}
+
+.config-option-content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.config-option-content strong {
+  font-size: 0.95rem;
+}
+
+.config-option-content small {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.config-option-arrow {
+  color: var(--text-muted);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+		
 		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
@@ -1714,7 +1774,8 @@
       </div>
     </div>
 
-	<!-- ====== CONFIGURACIÓN ====== -->
+
+<!-- ====== CONFIGURACIÓN ====== -->
 <div id="configuracion-panel" class="admin-bloqueado">
   <header class="app-header">
     <div class="logo">
@@ -1723,258 +1784,299 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn-sm" id="btn-cerrar-configuracion">
+      <button class="btn-sm" id="btn-cerrar-configuracion" type="button">
         Volver
       </button>
     </div>
   </header>
 
   <main class="app-body" style="display: block;">
-    <section class="panel">
+    <!-- Menú principal de Configuración -->
+    <section class="panel" id="configuracion-menu">
       <div class="panel-header">
         <h2>Configuración</h2>
       </div>
 
-  <div class="panel-body">
-  <form id="form-empresa">
-  <input type="hidden" id="empresa-id">
+      <div class="panel-body">
+        <p style="margin:0 0 1rem;color:var(--text-muted);">
+          Administrá la información y las opciones del sistema.
+        </p>
 
-  <div class="config-section-title">
-    <h3>Datos de la empresa</h3>
-    <p>Información que aparecerá en órdenes, presupuestos y comprobantes.</p>
-  </div>
+        <button
+          type="button"
+          id="btn-abrir-datos-empresa"
+          class="config-option-card"
+        >
+          <span class="config-option-icon">🏢</span>
+          <span class="config-option-content">
+            <strong>Datos de la empresa</strong>
+            <small>
+              Nombre, logo, dirección, contacto y datos fiscales.
+            </small>
+          </span>
+          <span class="config-option-arrow">›</span>
+        </button>
+      </div>
+    </section>
 
-  <div class="form-grid">
-    <div class="form-group">
-      <label for="empresa-nombre">Nombre legal</label>
-      <input
-        type="text"
-        id="empresa-nombre"
-        required
-        autocomplete="organization"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-nombre-comercial">Nombre comercial</label>
-      <input
-        type="text"
-        id="empresa-nombre-comercial"
-        autocomplete="organization"
-      >
-    </div>
-
-	  
-      <div class="form-group">
-      <label for="empresa-pais">País</label>
-      <select id="empresa-pais" required>
-        
-		  
-        <option value="">Seleccioná un país</option>
-        <option value="AR">Argentina</option>
-        <option value="BO">Bolivia</option>
-        <option value="BR">Brasil</option>
-        <option value="CL">Chile</option>
-        <option value="CO">Colombia</option>
-        <option value="CR">Costa Rica</option>
-        <option value="CU">Cuba</option>
-        <option value="DO">República Dominicana</option>
-        <option value="EC">Ecuador</option>
-        <option value="SV">El Salvador</option>
-        <option value="GT">Guatemala</option>
-        <option value="HN">Honduras</option>
-        <option value="MX">México</option>
-        <option value="NI">Nicaragua</option>
-        <option value="PA">Panamá</option>
-        <option value="PY">Paraguay</option>
-        <option value="PE">Perú</option>
-        <option value="PR">Puerto Rico</option>
-        <option value="UY">Uruguay</option>
-        <option value="VE">Venezuela</option>
-        <option value="OTRO">Otro país</option>
-      </select>
-    </div>
-
-	  <div class="form-group">
-  		<label for="empresa-zona-horaria">Zona horaria</label>
-  		<input
-    	type="text"
-    	id="empresa-zona-horaria"
-    	placeholder="Ej.: America/Montevideo"
-    	readonly
-  		>
-		</div>
-
-    <div class="form-group">
-      <label for="empresa-tax-id-type" id="label-tax-id-type">
-        Tipo de identificación fiscal
-      </label>
-      <input
-        type="text"
-        id="empresa-tax-id-type"
-        placeholder="Ej.: RUT, CUIT, RFC, NIT o RUC"
-      >
-    </div>
-
-    <div class="form-group full-width">
-      <label for="empresa-tax-id" id="label-tax-id">
-        Número de identificación fiscal
-      </label>
-      <input
-        type="text"
-        id="empresa-tax-id"
-        autocomplete="off"
-      >
-    </div>
-  </div>
-
-  <div class="config-section-title">
-    <h3>Ubicación</h3>
-  </div>
-
-  <div class="form-grid">
-    <div class="form-group full-width">
-      <label for="empresa-direccion">Dirección</label>
-      <input
-        type="text"
-        id="empresa-direccion"
-        autocomplete="street-address"
-      >
-    </div>
-
-    <div class="form-group full-width">
-      <label for="empresa-direccion-extra">Complemento de dirección</label>
-      <input
-        type="text"
-        id="empresa-direccion-extra"
-        placeholder="Local, piso, oficina, apartamento, etc."
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-region" id="label-region">
-        Región / Provincia / Departamento
-      </label>
-      <input
-        type="text"
-        id="empresa-region"
-        autocomplete="address-level1"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-ciudad">Ciudad / Localidad</label>
-      <input
-        type="text"
-        id="empresa-ciudad"
-        autocomplete="address-level2"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-codigo-postal">Código postal</label>
-      <input
-        type="text"
-        id="empresa-codigo-postal"
-        autocomplete="postal-code"
-      >
-    </div>
-  </div>
-
-  <div class="config-section-title">
-    <h3>Contacto y marca</h3>
-  </div>
-
-  <div class="form-grid">
-    <div class="form-group">
-      <label for="empresa-telefono">Teléfono</label>
-      <input
-        type="tel"
-        id="empresa-telefono"
-        autocomplete="tel"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-whatsapp">WhatsApp</label>
-      <input
-        type="tel"
-        id="empresa-whatsapp"
-        autocomplete="tel"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-email">Email</label>
-      <input
-        type="email"
-        id="empresa-email"
-        autocomplete="email"
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="empresa-web">Sitio web</label>
-      <input
-        type="url"
-        id="empresa-web"
-        placeholder="https://..."
-      >
-    </div>
-
-    <div class="form-group full-width">
-  <label for="empresa-logo-archivo">Logo de la empresa</label>
-
-  <input
-    type="file"
-    id="empresa-logo-archivo"
-    accept="image/jpeg,image/png,image/webp"
-  >
-
-  <p
-    id="empresa-logo-ayuda"
-    style="margin: 6px 0 0; font-size: 0.82rem; color: var(--text-muted);"
-  >
-    Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 2 MB.
-  </p>
-
-  <div
-    id="empresa-logo-preview-wrap"
-    style="display: none; margin-top: 12px;"
-  >
-    <p
-      style="margin: 0 0 6px; font-size: 0.82rem; color: var(--text-muted);"
+    <!-- Formulario existente: permanece oculto hasta tocar Datos de la empresa -->
+    <section
+      class="panel"
+      id="configuracion-empresa"
+      style="display:none;"
     >
-      Vista previa
-    </p>
+      <div class="panel-header">
+        <h2>Datos de la empresa</h2>
 
-    <img
-      id="empresa-logo-preview"
-      alt="Vista previa del logo de la empresa"
-      style="display: block; max-width: 220px; max-height: 120px; object-fit: contain; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 8px;"
-    >
-  </div>
-</div>
-  </div>
+        <button
+          type="button"
+          class="btn-sm"
+          id="btn-volver-menu-configuracion"
+        >
+          Volver a configuración
+        </button>
+      </div>
 
-  <p
-    id="mensaje-empresa"
-    role="status"
-    aria-live="polite"
-    style="margin: 16px 0 0; color: var(--text-muted);"
-  ></p>
+      <div class="panel-body">
+        <form id="form-empresa">
+          <input type="hidden" id="empresa-id">
 
-  <div class="form-actions" style="margin-top: 20px;">
-    <button type="submit" class="btn-primary" id="btn-guardar-empresa">
-      Guardar cambios
-    </button>
-  </div>
-</form>
-	  
-</div>
+          <div class="config-section-title">
+            <h3>Datos de la empresa</h3>
+            <p>Información que aparecerá en órdenes, presupuestos y comprobantes.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="empresa-nombre">Nombre legal</label>
+              <input
+                type="text"
+                id="empresa-nombre"
+                required
+                autocomplete="organization"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-nombre-comercial">Nombre comercial</label>
+              <input
+                type="text"
+                id="empresa-nombre-comercial"
+                autocomplete="organization"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-pais">País</label>
+              <select id="empresa-pais" required>
+                <option value="">Seleccioná un país</option>
+                <option value="AR">Argentina</option>
+                <option value="BO">Bolivia</option>
+                <option value="BR">Brasil</option>
+                <option value="CL">Chile</option>
+                <option value="CO">Colombia</option>
+                <option value="CR">Costa Rica</option>
+                <option value="CU">Cuba</option>
+                <option value="DO">República Dominicana</option>
+                <option value="EC">Ecuador</option>
+                <option value="SV">El Salvador</option>
+                <option value="GT">Guatemala</option>
+                <option value="HN">Honduras</option>
+                <option value="MX">México</option>
+                <option value="NI">Nicaragua</option>
+                <option value="PA">Panamá</option>
+                <option value="PY">Paraguay</option>
+                <option value="PE">Perú</option>
+                <option value="PR">Puerto Rico</option>
+                <option value="UY">Uruguay</option>
+                <option value="VE">Venezuela</option>
+                <option value="OTRO">Otro país</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-zona-horaria">Zona horaria</label>
+              <input
+                type="text"
+                id="empresa-zona-horaria"
+                placeholder="Ej.: America/Montevideo"
+                readonly
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-tax-id-type" id="label-tax-id-type">
+                Tipo de identificación fiscal
+              </label>
+              <input
+                type="text"
+                id="empresa-tax-id-type"
+                placeholder="Ej.: RUT, CUIT, RFC, NIT o RUC"
+              >
+            </div>
+
+            <div class="form-group full-width">
+              <label for="empresa-tax-id" id="label-tax-id">
+                Número de identificación fiscal
+              </label>
+              <input
+                type="text"
+                id="empresa-tax-id"
+                autocomplete="off"
+              >
+            </div>
+          </div>
+
+          <div class="config-section-title">
+            <h3>Ubicación</h3>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="empresa-direccion">Dirección</label>
+              <input
+                type="text"
+                id="empresa-direccion"
+                autocomplete="street-address"
+              >
+            </div>
+
+            <div class="form-group full-width">
+              <label for="empresa-direccion-extra">Complemento de dirección</label>
+              <input
+                type="text"
+                id="empresa-direccion-extra"
+                placeholder="Local, piso, oficina, apartamento, etc."
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-region" id="label-region">
+                Región / Provincia / Departamento
+              </label>
+              <input
+                type="text"
+                id="empresa-region"
+                autocomplete="address-level1"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-ciudad">Ciudad / Localidad</label>
+              <input
+                type="text"
+                id="empresa-ciudad"
+                autocomplete="address-level2"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-codigo-postal">Código postal</label>
+              <input
+                type="text"
+                id="empresa-codigo-postal"
+                autocomplete="postal-code"
+              >
+            </div>
+          </div>
+
+          <div class="config-section-title">
+            <h3>Contacto y marca</h3>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="empresa-telefono">Teléfono</label>
+              <input
+                type="tel"
+                id="empresa-telefono"
+                autocomplete="tel"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-whatsapp">WhatsApp</label>
+              <input
+                type="tel"
+                id="empresa-whatsapp"
+                autocomplete="tel"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-email">Email</label>
+              <input
+                type="email"
+                id="empresa-email"
+                autocomplete="email"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="empresa-web">Sitio web</label>
+              <input
+                type="url"
+                id="empresa-web"
+                placeholder="https://..."
+              >
+            </div>
+
+            <div class="form-group full-width">
+              <label for="empresa-logo-archivo">Logo de la empresa</label>
+
+              <input
+                type="file"
+                id="empresa-logo-archivo"
+                accept="image/jpeg,image/png,image/webp"
+              >
+
+              <p
+                id="empresa-logo-ayuda"
+                style="margin:6px 0 0;font-size:0.82rem;color:var(--text-muted);"
+              >
+                Formatos permitidos: JPG, PNG o WebP. Tamaño máximo: 2 MB.
+              </p>
+
+              <div
+                id="empresa-logo-preview-wrap"
+                style="display:none;margin-top:12px;"
+              >
+                <p
+                  style="margin:0 0 6px;font-size:0.82rem;color:var(--text-muted);"
+                >
+                  Vista previa
+                </p>
+
+                <img
+                  id="empresa-logo-preview"
+                  alt="Vista previa del logo de la empresa"
+                  style="display:block;max-width:220px;max-height:120px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background:#fff;padding:8px;"
+                >
+              </div>
+            </div>
+          </div>
+
+          <p
+            id="mensaje-empresa"
+            role="status"
+            aria-live="polite"
+            style="margin:16px 0 0;color:var(--text-muted);"
+          ></p>
+
+          <div class="form-actions" style="margin-top:20px;">
+            <button
+              type="submit"
+              class="btn-primary"
+              id="btn-guardar-empresa"
+            >
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   </main>
-</div>  
+</div>
 
     <!-- ====== TICKET OVERLAY ====== -->
     <div id="ticket-overlay">
@@ -3160,6 +3262,12 @@ if (btnMenuSecundario && menuSecundario) {
 		var btnConfiguracion = document.getElementById('btn-configuracion');
 		var configuracionPanel = document.getElementById('configuracion-panel');
 		var btnCerrarConfiguracion = document.getElementById('btn-cerrar-configuracion');
+		var menuConfiguracion = document.getElementById('configuracion-menu');
+		var seccionConfiguracionEmpresa = document.getElementById('configuracion-empresa');
+		var btnAbrirDatosEmpresa = document.getElementById('btn-abrir-datos-empresa');
+		var btnVolverMenuConfiguracion = document.getElementById(
+  		'btn-volver-menu-configuracion'
+		);  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
 		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
 		var campoZonaHorariaEmpresa = document.getElementById('empresa-zona-horaria');  
@@ -3591,13 +3699,55 @@ if (btnConfiguracion) {
     configuracionPanel.classList.remove('admin-bloqueado');
     configuracionPanel.style.display = 'block';
 
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
+  });
+}
+
+
+if (btnAbrirDatosEmpresa) {
+  btnAbrirDatosEmpresa.addEventListener('click', function () {
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'none';
+    }
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'block';
+    }
+
     cargarDatosEmpresa();
   });
 }
 
+if (btnVolverMenuConfiguracion) {
+  btnVolverMenuConfiguracion.addEventListener('click', function () {
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
+
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+  });
+}		  
+
 if (btnCerrarConfiguracion) {
   btnCerrarConfiguracion.addEventListener('click', function () {
     configuracionPanel.style.display = 'none';
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
+
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+
     appScreen.classList.remove('admin-bloqueado');
     appScreen.style.display = 'block';
   });
