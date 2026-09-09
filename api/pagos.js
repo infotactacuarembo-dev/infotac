@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 
 function db() {
   const url = process.env.SUPABASE_URL;
@@ -31,6 +31,32 @@ function validOrdenId(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+const INFOTAC_EMPRESA_ID =
+  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
+
+async function obtenerOrdenPermitida(supabase, ordenId) {
+  const { data: orden, error } = await supabase
+    .from('ordenes')
+    .select('id, empresa_id')
+    .eq('id', ordenId)
+    .eq('empresa_id', INFOTAC_EMPRESA_ID)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return orden;
+}
+
+function esTecnico(user) {
+  return user && user.rol === 'tecnico';
+}
+
+function esAdmin(user) {
+  return user && user.rol === 'admin';
+}
+
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
@@ -43,6 +69,21 @@ module.exports = async function handler(req, res) {
 
   try {
     const supabase = db();
+    const user = getSessionUser(req);
+
+    if (!user) {
+      return res.status(401).json({
+      ok: false,
+      error: 'Sesión inválida. Volvé a iniciar sesión.'
+      });
+    }
+
+    if (esTecnico(user)) {
+      return res.status(403).json({
+      ok: false,
+      error: 'Los técnicos no tienen acceso a pagos.'
+      });
+    }
 
     // ===== GET: Listar pagos de una orden =====
     if (req.method === 'GET') {
@@ -55,11 +96,21 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      const orden = await obtenerOrdenPermitida(supabase, ordenId);
+
+        if (!orden) {
+          return res.status(404).json({
+          ok: false,
+          error: 'Orden no encontrada.'
+        });
+        }
+
       const { data, error } = await supabase
         .from('pagos')
         .select('id, orden_id, monto, fecha, notas, creado_en')
         .eq('orden_id', ordenId)
         .order('fecha', { ascending: true });
+               
 
       if (error) throw error;
 
@@ -93,18 +144,12 @@ module.exports = async function handler(req, res) {
       }
 
       // Verificar que la orden existe
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .select('id')
-        .eq('id', ordenId)
-        .maybeSingle();
-
-      if (ordenError) throw ordenError;
+      const orden = await obtenerOrdenPermitida(supabase, ordenId);
 
       if (!orden) {
         return res.status(404).json({
-          ok: false,
-          error: 'Orden no encontrada.'
+        ok: false,
+        error: 'Orden no encontrada.'
         });
       }
 
@@ -165,6 +210,18 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      const orden = await obtenerOrdenPermitida(
+      supabase,
+      pagoExistente.orden_id
+      );
+
+if (!orden) {
+  return res.status(404).json({
+    ok: false,
+    error: 'Pago no encontrado.'
+  });
+}
+
       const { data, error } = await supabase
         .from('pagos')
         .update({
@@ -186,6 +243,12 @@ module.exports = async function handler(req, res) {
 
     // ===== DELETE: Eliminar un pago =====
     if (req.method === 'DELETE') {
+      if (!esAdmin(user)) {
+          return res.status(403).json({
+          ok: false,
+          error: 'Solo un administrador puede eliminar pagos.'
+        });
+      }
       const pagoId = texto(
         req.query && (req.query.id || req.query.pago_id),
         200
@@ -212,6 +275,18 @@ module.exports = async function handler(req, res) {
           error: 'Pago no encontrado.'
         });
       }
+
+      const orden = await obtenerOrdenPermitida(
+      supabase,
+      pago.orden_id
+      );
+
+if (!orden) {
+  return res.status(404).json({
+    ok: false,
+    error: 'Pago no encontrado.'
+  });
+}
 
       const { error: deleteError } = await supabase
         .from('pagos')
