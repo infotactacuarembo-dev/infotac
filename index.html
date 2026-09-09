@@ -1322,10 +1322,6 @@
     height: 20px;
   }
   
-  .row-actions .icon-btn:not(.wa) svg {
-    width: 14px;
-    height: 14px;
-  }
 }
 		
 </style>
@@ -4144,6 +4140,19 @@ function crearClienteYInsertar() {
             });
           });
         }
+
+
+		  
+// Evento directo para botón de WhatsApp en celular
+tablaOrdenes.querySelectorAll(".icon-btn.wa").forEach(function (btn) {
+  btn.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var tr = btn.closest("tr");
+    var id = tr.getAttribute("data-id");
+    enviarWhatsApp(id);
+  });
+});
 
 function renderStats() {
   var counts = {
