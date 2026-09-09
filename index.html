@@ -1816,6 +1816,22 @@
           </span>
           <span class="config-option-arrow">›</span>
         </button>
+
+          <button
+  			type="button"
+  			id="btn-abrir-administracion-config"
+  			class="config-option-card"
+		>		
+  		<span class="config-option-icon">🛡️</span>
+  		<span class="config-option-content">
+    	<strong>Administración</strong>
+    	<small>
+      	Usuarios, roles, auditorías y controles de seguridad.
+    	</small>
+  		</span>
+  		<span class="config-option-arrow">›</span>
+	</button>
+		  
       </div>
     </section>
 
@@ -3268,6 +3284,11 @@ if (btnMenuSecundario && menuSecundario) {
 		var btnVolverMenuConfiguracion = document.getElementById(
   		'btn-volver-menu-configuracion'
 		);  
+		  
+		var btnAbrirAdministracionConfig = document.getElementById(
+  		'btn-abrir-administracion-config'
+		);  
+		  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
 		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
 		var campoZonaHorariaEmpresa = document.getElementById('empresa-zona-horaria');  
@@ -6266,18 +6287,33 @@ var btnAdministracion = document.getElementById('btn-administracion');
 var auditoriaPanel = document.getElementById('auditoria-panel');
 var btnCerrarAuditoria = document.getElementById('btn-cerrar-auditoria');
 var btnActualizarAuditoria = document.getElementById('btn-actualizar-auditoria');
-if (btnAdministracion) {
-  btnAdministracion.addEventListener('click', function () {
-    appScreen.classList.add('admin-bloqueado');
+		  
+function abrirAdministracion() {
+  appScreen.classList.add('admin-bloqueado');
 
-    if (auditoriaPanel) {
-      auditoriaPanel.style.display = 'block';
-      cargarAuditoria();
-      cargarMetricas();
-    }
-  });
+  if (configuracionPanel) {
+    configuracionPanel.style.display = 'none';
+  }
+
+  if (auditoriaPanel) {
+    auditoriaPanel.style.display = 'block';
+    cargarAuditoria();
+    cargarMetricas();
+  }
 }
-  
+
+/* Acceso actual: se mantiene temporalmente durante la prueba */
+if (btnAdministracion) {
+  btnAdministracion.addEventListener('click', abrirAdministracion);
+}
+
+/* Nuevo acceso: tarjeta dentro de Configuración */
+if (btnAbrirAdministracionConfig) {
+  btnAbrirAdministracionConfig.addEventListener(
+    'click',
+    abrirAdministracion
+  );
+}  
 
 function fmtFechaAuditoria(fechaIso) {
   if (!fechaIso) return '';
@@ -7297,7 +7333,19 @@ function dibujarTablaAuditoriaUsuarios(registros) {
 if (btnCerrarAuditoria && auditoriaPanel) {
   btnCerrarAuditoria.addEventListener('click', function () {
     auditoriaPanel.style.display = 'none';
-    appScreen.classList.remove('admin-bloqueado');
+
+    if (configuracionPanel) {
+      configuracionPanel.classList.remove('admin-bloqueado');
+      configuracionPanel.style.display = 'block';
+    }
+
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
   });
 }
 
