@@ -1440,7 +1440,14 @@
   font-size: 1.8rem;
   line-height: 1;
 }
-		
+
+
+/* Acciones dentro de Copias de seguridad */
+.backup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}		
 		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
@@ -1824,6 +1831,22 @@
   		</span>
   		<span class="config-option-arrow">›</span>
 	</button>
+
+      <button
+  		type="button"
+  		id="btn-abrir-backup-config"
+  		class="config-option-card"
+	>
+  	<span class="config-option-icon">💾</span>
+  	<span class="config-option-content">
+    <strong>Copias de seguridad</strong>
+    <small>
+      Exportá un respaldo o importá un archivo de backup.
+    </small>
+  </span>
+  <span class="config-option-arrow">›</span>
+</button>
+		  
 		  
       </div>
     </section>
@@ -2084,6 +2107,71 @@
         </form>
       </div>
     </section>
+
+
+	  <!-- Copias de seguridad -->
+<section
+  class="panel"
+  id="configuracion-backup"
+  style="display:none;"
+>
+  <div class="panel-header">
+    <h2>Copias de seguridad</h2>
+
+    <button
+      type="button"
+      class="btn-sm"
+      id="btn-volver-menu-backup"
+    >
+      Volver a configuración
+    </button>
+  </div>
+
+  <div class="panel-body">
+    <p style="margin:0 0 1.25rem;color:var(--text-muted);">
+      Exportá las órdenes actuales a un archivo o restaurá un respaldo anterior.
+    </p>
+
+    <div class="backup-actions">
+      <button
+        type="button"
+        class="config-option-card"
+        id="btn-exportar-backup-config"
+      >
+        <span class="config-option-icon">⬇️</span>
+        <span class="config-option-content">
+          <strong>Exportar backup</strong>
+          <small>
+            Descargá un archivo JSON con las órdenes actuales.
+          </small>
+        </span>
+        <span class="config-option-arrow">›</span>
+      </button>
+
+      <button
+        type="button"
+        class="config-option-card"
+        id="btn-importar-backup-config"
+      >
+        <span class="config-option-icon">⬆️</span>
+        <span class="config-option-content">
+          <strong>Importar backup</strong>
+          <small>
+            Restaurá órdenes desde un archivo JSON previamente exportado.
+          </small>
+        </span>
+        <span class="config-option-arrow">›</span>
+      </button>
+    </div>
+
+    <p
+      style="margin:1rem 0 0;font-size:0.82rem;color:var(--text-muted);"
+    >
+      Atención: al importar un backup, las órdenes actuales se reemplazarán
+      por las del archivo seleccionado.
+    </p>
+  </div>
+</section>
   </main>
 </div>
 
@@ -3275,6 +3363,22 @@ if (btnMenuSecundario && menuSecundario) {
 		var btnAbrirAdministracionConfig = document.getElementById(
   		'btn-abrir-administracion-config'
 		);  
+
+		var seccionConfiguracionBackup = document.getElementById(
+  		'configuracion-backup'
+		);
+		var btnAbrirBackupConfig = document.getElementById(
+  		'btn-abrir-backup-config'
+		);
+		var btnVolverMenuBackup = document.getElementById(
+  		'btn-volver-menu-backup'
+		);
+		var btnExportarBackupConfig = document.getElementById(
+  		'btn-exportar-backup-config'
+		);
+		var btnImportarBackupConfig = document.getElementById(
+  		'btn-importar-backup-config'
+		);  
 		  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
 		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
@@ -3714,9 +3818,12 @@ if (btnConfiguracion) {
     if (seccionConfiguracionEmpresa) {
       seccionConfiguracionEmpresa.style.display = 'none';
     }
+
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'none';
+    }
   });
 }
-
 
 if (btnAbrirDatosEmpresa) {
   btnAbrirDatosEmpresa.addEventListener('click', function () {
@@ -3726,6 +3833,10 @@ if (btnAbrirDatosEmpresa) {
 
     if (seccionConfiguracionEmpresa) {
       seccionConfiguracionEmpresa.style.display = 'block';
+    }
+
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'none';
     }
 
     cargarDatosEmpresa();
@@ -3742,7 +3853,7 @@ if (btnVolverMenuConfiguracion) {
       menuConfiguracion.style.display = 'block';
     }
   });
-}		  
+}
 
 if (btnCerrarConfiguracion) {
   btnCerrarConfiguracion.addEventListener('click', function () {
@@ -3750,6 +3861,10 @@ if (btnCerrarConfiguracion) {
 
     if (seccionConfiguracionEmpresa) {
       seccionConfiguracionEmpresa.style.display = 'none';
+    }
+
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'none';
     }
 
     if (menuConfiguracion) {
@@ -3761,6 +3876,34 @@ if (btnCerrarConfiguracion) {
   });
 }
 
+if (btnAbrirBackupConfig) {
+  btnAbrirBackupConfig.addEventListener('click', function () {
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'none';
+    }
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
+
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'block';
+    }
+  });
+}
+
+if (btnVolverMenuBackup) {
+  btnVolverMenuBackup.addEventListener('click', function () {
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'none';
+    }
+
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+  });
+}
+		  
 function restaurarSesion() {
   fetch("/api/session", {
     method: "GET",
@@ -5593,21 +5736,54 @@ if (btnExportarCsv) {
           URL.revokeObjectURL(url);
         }
 
-        btnExportar.addEventListener("click", function () {
-          // Refresca desde la nube antes de exportar para que el backup sea completo y actual.
-          cargarOrdenes()
-            .then(function () {
-              exportarDatos();
-            })
-            .catch(function (err) {
-              console.error("Error al refrescar antes de exportar:", err);
-              exportarDatos();
-            });
-        });
 
-        btnImportar.addEventListener("click", function () { fileImportar.click(); });
+		function exportarBackupActualizado() {
+  		cargarOrdenes()
+    	.then(function () {
+        exportarDatos();
+      })
+      .catch(function (err) {
+      console.error("Error al refrescar antes de exportar:", err);
+      exportarDatos();
+   	 });
+	}  
 
-        fileImportar.addEventListener("change", function (e) {
+        if (btnExportar) {
+  			btnExportar.addEventListener(
+    		"click",
+    		exportarBackupActualizado
+  		);
+	}
+
+		if (btnExportarBackupConfig) {
+  			btnExportarBackupConfig.addEventListener(
+    		"click",
+    		exportarBackupActualizado
+  		);
+		}
+
+        function seleccionarArchivoBackup() {
+  			if (fileImportar) {
+    			fileImportar.click();
+  			}
+		}
+
+			if (btnImportar) {
+  				btnImportar.addEventListener(
+    			"click",
+    			seleccionarArchivoBackup
+  			);
+		}
+
+if (btnImportarBackupConfig) {
+  btnImportarBackupConfig.addEventListener(
+    "click",
+    seleccionarArchivoBackup
+  );
+}
+
+        if (fileImportar) {
+  		  fileImportar.addEventListener("change", function (e) {
           var file = e.target.files[0];
           if (!file) return;
           var reader = new FileReader();
@@ -5688,6 +5864,8 @@ pedirApi(
           reader.readAsText(file);
           fileImportar.value = "";
         });
+
+	}		
 
         /* ===== TICKET ====== */
         var ticketOverlay = document.getElementById("ticket-overlay");
