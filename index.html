@@ -1523,14 +1523,7 @@
       id="menu-secundario"
     >
 
-       <button
-  		class="header-more-item"
-  		id="btn-administracion"
-  		style="display:none;"
-  		type="button"
-       >
-  		Administración
-		</button>
+       
 		
       <button
         class="header-more-item"
@@ -3040,16 +3033,10 @@ if (btnClaveGuardar) {
         function mostrarAplicacion() {
   		loginScreen.classList.add("admin-bloqueado");
   		appScreen.classList.remove("admin-bloqueado");
-		
-
-  		// Mostrar/ocultar botón Administración según el rol
-  		var rol = sessionStorage.getItem('rol') || 'user';
-  		var btnAdmin = document.getElementById('btn-administracion');
-  		if (btnAdmin) {
-    		btnAdmin.style.display = (rol === 'admin') ? 'inline-block' : 'none';
-  			}
+		var rol = sessionStorage.getItem('rol') || 'user';
 
 		var btnConfiguracion = document.getElementById('btn-configuracion');
+			
 		if (btnConfiguracion) {
   			btnConfiguracion.style.display = rol === 'admin' ? 'inline-block' : 'none';
 			}	
@@ -3812,15 +3799,8 @@ function restaurarSesion() {
   		usuarioSesion.id || ''
 	);	
 
-      var btnAdministracion = document.getElementById(
-        'btn-administracion'
-      );
       var btnImportar = document.getElementById('btn-importar');
-      var btnExportar = document.getElementById('btn-exportar');
-
-      if (btnAdministracion) {
-        btnAdministracion.style.display = esAdmin ? '' : 'none';
-      }
+	  var btnExportar = document.getElementById('btn-exportar');
 
       if (btnImportar) {
         btnImportar.style.display = esAdmin ? '' : 'none';
@@ -3838,8 +3818,9 @@ function restaurarSesion() {
     });
 }
 restaurarSesion();
+		  
 
-                /* ===== DATA ACCESS (API SEGURA) ===== */
+        /* ===== DATA ACCESS (API SEGURA) ===== */
         function errorApi(respuesta, datos) {
           var error = new Error(
             (datos && datos.error) || "No se pudo completar la operación."
@@ -6283,7 +6264,7 @@ function eliminarUsuario(usuario) {
 }
 		  
 /* ===== AUDITORÍA ===== */
-var btnAdministracion = document.getElementById('btn-administracion');
+
 var auditoriaPanel = document.getElementById('auditoria-panel');
 var btnCerrarAuditoria = document.getElementById('btn-cerrar-auditoria');
 var btnActualizarAuditoria = document.getElementById('btn-actualizar-auditoria');
@@ -6302,10 +6283,7 @@ function abrirAdministracion() {
   }
 }
 
-/* Acceso actual: se mantiene temporalmente durante la prueba */
-if (btnAdministracion) {
-  btnAdministracion.addEventListener('click', abrirAdministracion);
-}
+
 
 /* Nuevo acceso: tarjeta dentro de Configuración */
 if (btnAbrirAdministracionConfig) {
