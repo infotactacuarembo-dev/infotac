@@ -1297,27 +1297,34 @@
 @media (max-width: 600px) {
   .row-actions {
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
+    justify-content: center;
   }
   
-  /* Ocultar todos los botones excepto WhatsApp */
-  .row-actions .icon-btn:not(.wa) {
-    visibility: hidden;
-    width: 0;
-    padding: 0;
-    margin: 0;
-    border: none;
+  .row-actions .icon-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 4px;
+    opacity: 0.3;
   }
   
   .row-actions .icon-btn.wa {
-    min-width: 36px;
-    height: 36px;
-    padding: 6px;
+    min-width: 40px;
+    height: 40px;
+    padding: 8px;
+    opacity: 1;
+    background: #25D366;
+    border-color: #25D366;
   }
   
   .row-actions .icon-btn.wa svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .row-actions .icon-btn:not(.wa) svg {
+    width: 14px;
+    height: 14px;
   }
 }
 		
