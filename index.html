@@ -1206,6 +1206,44 @@
   }
 }
 
+/* ===== FILTROS DEL PANEL DE ÓRDENES EN CELULAR ===== */
+@media (max-width: 600px) {
+  /* En teléfono, ocultar el grupo completo de Saldo */
+  .filters-bar .filter-group:nth-of-type(4) {
+    display: none;
+  }
+
+  /* Desde y Hasta quedan lado a lado */
+  .filters-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+
+  /* Evita que inputs y selects se salgan de las columnas */
+  .filters-bar .filter-group,
+  .filters-bar input,
+  .filters-bar select {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Estado y Técnico ocupan la fila completa */
+  .filters-bar .filter-group:nth-of-type(3),
+  .filters-bar .filter-group:nth-of-type(5) {
+    grid-column: 1 / -1;
+  }
+
+  /* El botón queda debajo y ocupa todo el ancho */
+  #btn-limpiar-filtros {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 0;
+  }
+}
+		
 /* ===== LOGO EN EL ENCABEZADO ===== */
 .logo-empresa-header {
   width: 38px;
