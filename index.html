@@ -6718,7 +6718,7 @@ document.getElementById('metrica-usuarios-creados-hoy').textContent =
 
           var tdUsuario = document.createElement('td');
           tdUsuario.style.padding = '8px';
-          tdUsuario.textContent = u.usuario;
+          tdUsuario.textContent = u.identificador || '-';
 
           var tdNombre = document.createElement('td');
           tdNombre.style.padding = '8px';
