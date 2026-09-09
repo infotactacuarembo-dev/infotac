@@ -4138,16 +4138,7 @@ function crearClienteYInsertar() {
           }).join("");
 			
 
-  tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
-  tr.addEventListener("click", function (e) {
-    var action = e.target.closest("[data-action]");
-    var id = tr.getAttribute("data-id");
-
-    if (action) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
+tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
   tr.addEventListener("click", function (e) {
     var action = e.target.closest("[data-action]");
     var id = tr.getAttribute("data-id");
