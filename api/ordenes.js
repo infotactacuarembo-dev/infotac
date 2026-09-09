@@ -6,7 +6,7 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id, tecnico_id`;
+  estado, fecha_entrega, empresa_id, tecnico_id, tecnico_nombre`;
 
 // Campos para INSERT/UPDATE (excluye tecnico_nombre)
 const ORDER_FIELDS_WRITABLE = `
@@ -368,13 +368,22 @@ if (data && Array.isArray(data)) {
         update.fecha_entrega = null;
       }
 
-      const { data, error } = await supabase
-        .from('ordenes')
-        .update(update)
-        .eq('id', body.id)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
-        .select(ORDER_FIELDS)
-        .single();
+      // Primero actualizamos
+const { error: updateError } = await supabase
+  .from('ordenes')
+  .update(update)
+  .eq('id', body.id)
+  .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+if (updateError) throw updateError;
+
+// Luego leemos desde la vista
+const { data, error } = await supabase
+  .from('ordenes_resumen')
+  .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
+  .eq('id', body.id)
+  .eq('empresa_id', INFOTAC_EMPRESA_ID)
+  .single();
 
       if (error) throw error;
       return res.status(200).json({ ok: true, data });
