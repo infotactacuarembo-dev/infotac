@@ -4147,25 +4147,23 @@ function crearClienteYInsertar() {
       e.preventDefault();
       e.stopPropagation();
 
-      var tipoAccion = action.getAttribute("data-action");
+      tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
+  tr.addEventListener("click", function (e) {
+    var action = e.target.closest("[data-action]");
+    var id = tr.getAttribute("data-id");
 
-      if (tipoAccion === "borrar") {
-        borrarOrden(id);
-        return;
-      }
-
-      if (tipoAccion === "whatsapp") {
-        enviarWhatsApp(id);
-        return;
-      }
-
-      if (tipoAccion === "ticket") {
-        imprimirTicket(id);
-        return;
-      }
+    if (action && action.getAttribute("data-action") === "borrar") {
+      e.stopPropagation();
+      borrarOrden(id);
+    } else if (action && action.getAttribute("data-action") === "whatsapp") {
+      e.stopPropagation();
+      enviarWhatsApp(id);
+    } else if (action && action.getAttribute("data-action") === "ticket") {
+      e.stopPropagation();
+      imprimirTicket(id);
+    } else {
+      abrirDetalle(id);
     }
-
-    abrirDetalle(id);
   });
 });
 
