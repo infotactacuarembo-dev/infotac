@@ -4562,10 +4562,12 @@ function renderStats() {
   html += "<div class='detail-row'><div class='detail-label'>Nro Serie</div><div class='detail-value'>" + (esc(o.serie) || "—") + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>PIN</div><div class='detail-value'>" + (esc(o.pin) || "—") + "</div></div>";
 
+  if (!esTecnicoActual) {
   html += "<div class='form-group full'>";
   html += "<label for='modal-sena'>Seña</label>";
   html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
   html += "</div>";
+}
 			
   html += "<div class='form-group full'>";
   html += "<label for='modal-falla'>Falla declarada</label>";
@@ -4587,6 +4589,7 @@ function renderStats() {
   html += "<textarea id='modal-trabajo' rows='4' placeholder='Describí qué se le va a realizar al equipo...'>" + esc(o.trabajoRealizar) + "</textarea>";
   html += "</div>";
 
+  if (!esTecnicoActual) {
   html += "<div class='status-select-wrap'>";
   html += "<label for='modal-aprobacion'>Aprobación del presupuesto</label>";
   html += "<select id='modal-aprobacion'>";
@@ -4595,6 +4598,7 @@ function renderStats() {
   html += "<option value='rechazado'" + (o.aprobacionPresupuesto === "rechazado" ? " selected" : "") + ">Rechazado</option>";
   html += "</select>";
   html += "</div>";
+}
 
   html += "<div class='status-select-wrap'>";
   html += "<label for='modal-estado'>Estado</label>";
@@ -4633,10 +4637,12 @@ html += "<label for='item-cantidad'>Cantidad</label>";
 html += "<input type='number' id='item-cantidad' min='0.01' step='0.01' value='1'>";
 html += "</div>";
 
-html += "<div class='form-group full'>";
-html += "<label for='item-precio'>Precio unitario</label>";
-html += "<input type='number' id='item-precio' min='0' step='0.01' value='0'>";
-html += "</div>";
+if (!esTecnicoActual) {
+  html += "<div class='form-group full'>";
+  html += "<label for='item-precio'>Precio unitario</label>";
+  html += "<input type='number' id='item-precio' min='0' step='0.01' value='0'>";
+  html += "</div>";
+}
 
 html += "<button type='button' class='btn-sm' id='btn-agregar-item'>";
 html += "+ Agregar ítem";
