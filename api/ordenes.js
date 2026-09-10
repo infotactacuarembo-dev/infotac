@@ -302,6 +302,7 @@ if (data && Array.isArray(data)) {
       });
       }
 
+      
       // Validar que el técnico sea obligatorio
         if (!body.tecnico_id || body.tecnico_id === '' || body.tecnico_id === null) {
         return res.status(400).json({
