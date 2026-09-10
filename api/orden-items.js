@@ -363,9 +363,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: item, error: itemError } = await supabase
+        const { data: item, error: itemError } = await supabase
         .from('orden_items')
-        .select('id, orden_id')
+        .select(
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
+        )
         .eq('id', itemId)
         .maybeSingle();
 
@@ -396,7 +398,30 @@ module.exports = async function handler(req, res) {
         .delete()
         .eq('id', itemId);
 
-      if (deleteError) throw deleteError;
+            if (deleteError) throw deleteError;
+
+      const tipoVisible =
+        item.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
+
+      await registrarAuditoriaOrden(supabase, user, {
+        orden_id: item.orden_id,
+        empresa_id: orden.empresa_id,
+        accion: 'item_eliminado',
+        detalle:
+          'Se eliminó ' +
+          tipoVisible +
+          ': ' +
+          item.descripcion +
+          '.',
+        datos_anteriores: {
+          item_id: item.id,
+          tipo: item.tipo,
+          descripcion: item.descripcion,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          creado_en: item.creado_en
+        }
+      });
 
       return res.status(200).json({
         ok: true
