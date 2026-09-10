@@ -4653,38 +4653,43 @@ html += "<div class='historial-loading'>Cargando servicios...</div>";
 html += "</div>";
 html += "</div>";
 
-html += "<div class='orden-resumen-economico'>";
-html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
+if (!esTecnicoActual) {
+  html += "<div class='orden-resumen-economico'>";
+  html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
 
-html += "<div class='orden-resumen-fila'>";
-html += "<span>Total de ítems</span>";
-html += "<strong id='resumen-total-items'>$0.00</strong>";
-html += "</div>";
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Total de ítems</span>";
+  html += "<strong id='resumen-total-items'>$0.00</strong>";
+  html += "</div>";
 
-html += "<div class='orden-resumen-fila'>";
-html += "<span>Seña</span>";
-html += "<strong id='resumen-sena'>$" +
-  Number(o.sena || 0).toFixed(2) +
-  "</strong>";
-html += "</div>";
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Seña</span>";
+  html += "<strong id='resumen-sena'>$" +
+    Number(o.sena || 0).toFixed(2) +
+    "</strong>";
+  html += "</div>";
 
-html += "<div class='orden-resumen-fila'>";
-html += "<span>Saldo pendiente</span>";
-html += "<strong id='resumen-saldo'>$0.00</strong>";
-html += "</div>";
+  html += "<div class='orden-resumen-fila'>";
+  html += "<span>Saldo pendiente</span>";
+  html += "<strong id='resumen-saldo'>$0.00</strong>";
+  html += "</div>";
 
-html += "</div>";
+  html += "</div>";
+}
 
 // Sección de pagos
-html += "<div class='historial-section'>";
-html += "<div class='historial-title'>Pagos registrados</div>";
-html += "<div id='pagos-contenido'>";
-html += "<div class='historial-loading'>Cargando pagos...</div>";
-html += "</div>";
-html += "<button type='button' class='btn-sm' id='btn-registrar-pago'>";
-html += "+ Registrar pago";
-html += "</button>";
-html += "</div>";	  
+// Sección de pagos: solo administración.
+if (!esTecnicoActual) {
+  html += "<div class='historial-section'>";
+  html += "<div class='historial-title'>Pagos registrados</div>";
+  html += "<div id='pagos-contenido'>";
+  html += "<div class='historial-loading'>Cargando pagos...</div>";
+  html += "</div>";
+  html += "<button type='button' class='btn-sm' id='btn-registrar-pago'>";
+  html += "+ Registrar pago";
+  html += "</button>";
+  html += "</div>";
+}
 	  
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
@@ -4695,8 +4700,11 @@ html += "</div>";
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
-cargarPagosOrden(o.id);	  
 
+// Los técnicos no tienen acceso a pagos.
+if (!esTecnicoActual) {
+  cargarPagosOrden(o.id);
+}
 var senaInput = document.getElementById("modal-sena");
 var resumenSena = document.getElementById("resumen-sena");
 var resumenSaldo = document.getElementById("resumen-saldo");
@@ -5566,23 +5574,34 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var presupuestoEl = document.getElementById("modal-presupuesto");
   var aprobacionEl = document.getElementById("modal-aprobacion");
 
+  var rolActual = sessionStorage.getItem('rol') || 'user';
+var esTecnicoActual = rolActual === 'tecnico';
+
+if (!esTecnicoActual) {
   var senaValidacion = senaEl
-  ? parseFloat(senaEl.value) || 0
-  : 0;
+    ? parseFloat(senaEl.value) || 0
+    : 0;
 
-// Leer el total de ítems desde el resumen económico del modal
-var totalItemsEl = document.getElementById("resumen-total-items");
-var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
-var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+  var totalItemsEl = document.getElementById('resumen-total-items');
+  var totalItemsTexto = totalItemsEl
+    ? totalItemsEl.textContent
+    : '0';
 
-if (senaValidacion > totalItemsNum) {
-  alert("La seña no puede ser mayor que el total de servicios y repuestos.");
+  var totalItemsNum = parseFloat(
+    totalItemsTexto.replace(/[^0-9.,-]/g, '').replace(',', '.')
+  ) || 0;
 
-  if (senaEl) {
-    senaEl.focus();
+  if (senaValidacion > totalItemsNum) {
+    alert(
+      'La seña no puede ser mayor que el total de servicios y repuestos.'
+    );
+
+    if (senaEl) {
+      senaEl.focus();
+    }
+
+    return;
   }
-
-  return;
 }
   var update = {
     estado: nuevoEstado,
