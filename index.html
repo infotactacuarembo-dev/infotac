@@ -4540,8 +4540,7 @@ function renderStats() {
  /* ===== DETAIL MODAL ===== */
   function abrirDetalle(id) {
 
-  var rol = sessionStorage.getItem('rol') || 'user';
-  var esTecnicoActual = rol === 'tecnico';	  
+  
 	  
   var o = ordenes.find(function (x) {
     return x.id === id;
@@ -4553,6 +4552,8 @@ function renderStats() {
   estadoEditTemporal = o.estado;
 
   var html = "";
+  var rol = sessionStorage.getItem('rol') || 'user';
+  var esTecnicoActual = rol === 'tecnico';	  	  
 
   html += "<div class='detail-row'><div class='detail-label'>Fecha de Ingreso</div><div class='detail-value'>" + fmtFecha(o.fecha) + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>Cliente</div><div class='detail-value'>" + esc(o.nombre) + "</div></div>";
