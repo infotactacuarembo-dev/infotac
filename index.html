@@ -1485,8 +1485,25 @@ table {
     	<h1>Infotac</h1>
     	<p class="subtitle">Gestión de Taller — Inicia sesión</p>
 
-    	<input type="text" id="input-identificador" placeholder="Usuario" autocomplete="username" />
-    	<input type="password" id="input-clave-taller" placeholder="Contraseña" autocomplete="current-password" />
+    	<input
+  		type="text"
+  		id="input-codigo-empresa"
+  		placeholder="Código de empresa"
+  		autocomplete="organization"
+  		autocapitalize="characters"
+		/>
+		<input
+  		type="text"
+  		id="input-identificador"
+  		placeholder="Usuario"
+  		autocomplete="username"
+		/>
+		<input
+  		type="password"
+  		id="input-clave-taller"
+  		placeholder="Contraseña"
+  		autocomplete="current-password"
+		/>
     	<button type="button" class="btn-primary" id="btn-entrar">Entrar</button>
     	<div class="login-msg" id="mensaje-error"></div>
   		</div>
@@ -2993,8 +3010,9 @@ if (btnClaveGuardar) {
 });
         /* ===== ELEMENTS ===== */
         var loginScreen = document.getElementById("login-screen");
-        var appScreen = document.getElementById("app-screen");
-        var inputClave = document.getElementById("input-clave-taller");
+		var appScreen = document.getElementById("app-screen");
+		var inputCodigoEmpresa = document.getElementById("input-codigo-empresa");
+		var inputClave = document.getElementById("input-clave-taller");
         var btnEntrar = document.getElementById("btn-entrar");
         var btnSalir = document.getElementById("btn-salir");
         var mensajeError = document.getElementById("mensaje-error");
@@ -3341,8 +3359,28 @@ function cargarTecnicos() {
 }
 	  
 function entrarModoAdminDirecto() {
-  var identificador = document.getElementById('input-identificador').value;
+  var codigoEmpresa = inputCodigoEmpresa
+    ? inputCodigoEmpresa.value.trim().toUpperCase()
+    : '';
+
+  var identificador = document
+    .getElementById('input-identificador')
+    .value
+    .trim()
+    .toLowerCase();
+
   var valorClave = inputClave.value;
+
+  if (!codigoEmpresa) {
+    mensajeError.textContent = "Ingresá el código de empresa.";
+    mensajeError.classList.add("visible");
+
+    if (inputCodigoEmpresa) {
+      inputCodigoEmpresa.focus();
+    }
+
+    return;
+  }
 
   if (!identificador) {
     mensajeError.textContent = "Ingresá el usuario.";
@@ -3362,10 +3400,16 @@ function entrarModoAdminDirecto() {
   mensajeError.textContent = "Verificando...";
   mensajeError.classList.add("visible");
 
-  solicitarJSON("/api/verify-password", { identificador: identificador, password: valorClave })
+  solicitarJSON("/api/verify-password", {
+    codigo_empresa: codigoEmpresa,
+    identificador: identificador,
+    password: valorClave
+  })
     .then(function (resultado) {
       if (!resultado.ok) {
-        throw new Error(resultado.error || "Usuario o contraseña incorrectos.");
+        throw new Error(
+          resultado.error || "Empresa, usuario o contraseña incorrectos."
+        );
       }
 
       mensajeError.textContent = "";
@@ -3374,6 +3418,8 @@ function entrarModoAdminDirecto() {
 
       sessionStorage.setItem('rol', resultado.rol || 'user');
       sessionStorage.setItem('usuario', identificador);
+      sessionStorage.setItem('empresa_id', resultado.empresa_id || '');
+      sessionStorage.setItem('codigo_empresa', codigoEmpresa);
 
       mostrarAplicacion();
       mostrarUsuarioLogueado();
@@ -3383,7 +3429,8 @@ function entrarModoAdminDirecto() {
       console.error("Error de inicio de sesión:", error);
 
       mostrarLogin();
-      mensajeError.textContent = error.message || "No se pudo verificar la contraseña.";
+      mensajeError.textContent =
+        error.message || "No se pudo iniciar sesión.";
       mensajeError.classList.add("visible");
 
       inputClave.classList.remove("shake-error");
@@ -3396,7 +3443,7 @@ function entrarModoAdminDirecto() {
       btnEntrar.disabled = false;
     });
 }
-
+		  
 function salirModoAdmin() {
   btnSalir.disabled = true;
 
@@ -4027,9 +4074,19 @@ function restaurarSesion() {
       var usuarioSesion = resultado.datos.user || {};
       var esAdmin = usuarioSesion.rol === 'admin';
 
-      sessionStorage.setItem(
+     sessionStorage.setItem(
   		'usuario',
   		usuarioSesion.identificador || ''
+	);
+
+	sessionStorage.setItem(
+  	'empresa_id',
+  	usuarioSesion.empresa_id || ''
+	);
+
+	sessionStorage.setItem(
+  	'codigo_empresa',
+  	usuarioSesion.codigo_empresa || ''
 	);
 
 	  sessionStorage.setItem(
