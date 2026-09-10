@@ -3120,14 +3120,21 @@ if (btnClaveGuardar) {
         }
 
  function cargarDatosIniciales() {
-  return Promise.all([
-    cargarClientes(),
+  var rol = sessionStorage.getItem('rol') || 'user';
+
+  var tareas = [
     cargarOrdenes(),
-    cargarTecnicos(),  // <-- agregá esto
     pedirApi('/api/empresa', undefined, 'GET')
-  ])
+  ];
+
+  if (rol === 'admin' || rol === 'user') {
+    tareas.push(cargarClientes());
+    tareas.push(cargarTecnicos());
+  }
+
+  return Promise.all(tareas)
     .then(function (resultados) {
-      var resultadoEmpresa = resultados[3];  // <-- cambá esto de 2 a 3
+      var resultadoEmpresa = resultados[1];
       var empresa = resultadoEmpresa && resultadoEmpresa.empresa;
 
       if (empresa) {
@@ -3137,19 +3144,22 @@ if (btnClaveGuardar) {
       renderizar();
     })
     .catch(function (error) {
-      console.error("Error al cargar datos:", error);
+      console.error('Error al cargar datos:', error);
 
       if (error && error.status === 401) {
         mostrarLogin();
-        mensajeError.textContent = "Tu sesión venció. Ingresá nuevamente.";
-        mensajeError.classList.add("visible");
+        mensajeError.textContent =
+          'Tu sesión venció. Ingresá nuevamente.';
+        mensajeError.classList.add('visible');
         return;
       }
 
-      alert("No se pudieron cargar los datos. Revisá tu conexión e intentá nuevamente.");
+      alert(
+        'No se pudieron cargar los datos. Revisá tu conexión e intentá nuevamente.'
+      );
     });
 }
-
+		  
 function cargarTecnicos() {
   return solicitarGet('/api/users?rol=tecnico')
     .then(function (resultado) {
