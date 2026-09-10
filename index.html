@@ -4766,6 +4766,16 @@ if (!esTecnicoActual) {
   html += "</button>";
   html += "</div>";
 }
+
+    // Historial de cambios de esta orden: solo administración.
+  if (!esTecnicoActual) {
+    html += "<div class='historial-section'>";
+    html += "<div class='historial-title'>Historial de esta orden</div>";
+    html += "<div id='orden-audit-contenido'>";
+    html += "<div class='historial-loading'>Cargando historial de la orden...</div>";
+    html += "</div>";
+    html += "</div>";
+  }
 	  
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
@@ -4783,10 +4793,12 @@ if (modalEliminar) {
     rolActual === 'admin' ? '' : 'none';
 }	  
 
-// Los técnicos no tienen acceso a pagos.
+// Los técnicos no tienen acceso a pagos ni al historial de auditoría.
 if (!esTecnicoActual) {
   cargarPagosOrden(o.id);
+  cargarHistorialOrden(o.id);
 }
+	  
 var senaInput = document.getElementById("modal-sena");
 var resumenSena = document.getElementById("resumen-sena");
 var resumenSaldo = document.getElementById("resumen-saldo");
@@ -5382,6 +5394,87 @@ calcularSaldoDesdeResumen();
     });
 }
 
+
+function cargarHistorialOrden(ordenId) {
+  var historialEl = document.getElementById(
+    "orden-audit-contenido"
+  );
+
+  if (!historialEl) {
+    return;
+  }
+
+  historialEl.innerHTML =
+    "<div class='historial-loading'>Cargando historial de la orden...</div>";
+
+  pedirApi(
+    "/api/audit-log?orden_id=" + encodeURIComponent(ordenId)
+  )
+    .then(function (res) {
+      if (!res.ok) {
+        throw new Error(
+          res.error || "No se pudo cargar el historial de la orden."
+        );
+      }
+
+      var eventos = res.data || [];
+
+      if (eventos.length === 0) {
+        historialEl.innerHTML =
+          "<div class='historial-loading'>" +
+          "Aún no hay movimientos registrados para esta orden." +
+          "</div>";
+        return;
+      }
+
+      historialEl.innerHTML =
+        "<ul class='historial-list orden-audit-list'>" +
+        eventos
+          .map(function (evento) {
+            var fecha = evento.creado_en
+              ? fmtFecha(evento.creado_en)
+              : "Sin fecha";
+
+            var actor = evento.actor_identificador
+              ? esc(evento.actor_identificador)
+              : "Sistema";
+
+            var rol = evento.actor_rol
+              ? " (" + esc(evento.actor_rol) + ")"
+              : "";
+
+            var detalle = evento.detalle
+              ? esc(evento.detalle)
+              : "Movimiento registrado.";
+
+            return (
+              "<li class='historial-item orden-audit-item'>" +
+              "<span class='h-fecha'>" +
+              fecha +
+              "</span>" +
+              "<span class='h-notas'>" +
+              "<strong>" +
+              actor +
+              rol +
+              "</strong>: " +
+              detalle +
+              "</span>" +
+              "</li>"
+            );
+          })
+          .join("") +
+        "</ul>";
+    })
+    .catch(function (error) {
+      console.error("historial de orden error:", error);
+
+      historialEl.innerHTML =
+        "<div class='historial-loading'>" +
+        "No se pudo cargar el historial de esta orden." +
+        "</div>";
+    });
+}
+		  
 function cargarPagosOrden(ordenId) {
   var pagosEl = document.getElementById("pagos-contenido");
 
