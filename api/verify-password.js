@@ -1,39 +1,15 @@
-const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const { createSessionToken, sessionCookie } = require('./_auth');
 
-function obtenerIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-
-  if (typeof forwarded === 'string' && forwarded.trim()) {
-    return forwarded.split(',')[0].trim();
-  }
-
-  return req.socket && req.socket.remoteAddress
-    ? req.socket.remoteAddress
-    : 'desconocida';
-}
-
-function huellaIp(req) {
-  const ip = obtenerIp(req);
-
-  return crypto
-    .createHash('sha256')
-    .update(ip)
-    .digest('hex');
-}
-
-function minutosRestantes(segundos) {
-  return Math.max(1, Math.ceil(Number(segundos || 0) / 60));
-}
-
 async function registrarAuditoria(supabase, identificador, resultado, detalle) {
-  const { error } = await supabase.from('login_audit').insert({
-    identificador,
-    resultado,
-    detalle
-  });
+  const { error } = await supabase
+    .from('login_audit')
+    .insert({
+      identificador,
+      resultado,
+      detalle
+    });
 
   if (error) {
     console.error('No se pudo registrar auditoría de login:', error);
@@ -71,7 +47,7 @@ module.exports = async function handler(req, res) {
     ) {
       return res.status(400).json({
         ok: false,
-        error: 'Identificador inválido.'
+        error: 'Usuario inválido.'
       });
     }
 
@@ -104,10 +80,9 @@ module.exports = async function handler(req, res) {
     const identificadorNormalizado =
       identificador.trim().toLowerCase();
 
-    // Primero se identifica la empresa a partir de su código público.
     const { data: empresa, error: empresaError } = await supabase
       .from('empresas')
-      .select('id, codigo_acceso')
+      .select('id, nombre, codigo_acceso')
       .eq('codigo_acceso', codigoEmpresa)
       .maybeSingle();
 
@@ -127,7 +102,6 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // El usuario se busca únicamente dentro de la empresa indicada.
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
       .select(
@@ -165,9 +139,12 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const valid = bcrypt.compareSync(password, usuario.password_hash);
+    const passwordCorrecta = bcrypt.compareSync(
+      password,
+      usuario.password_hash
+    );
 
-    if (!valid) {
+    if (!passwordCorrecta) {
       await registrarAuditoria(
         supabase,
         identificadorNormalizado,
@@ -192,7 +169,8 @@ module.exports = async function handler(req, res) {
       usuario.id,
       usuario.identificador,
       usuario.rol,
-      usuario.empresa_id
+      usuario.empresa_id,
+      empresa.codigo_acceso
     );
 
     res.setHeader('Set-Cookie', sessionCookie(token));
@@ -200,7 +178,9 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       rol: usuario.rol,
-      empresa_id: usuario.empresa_id
+      empresa_id: usuario.empresa_id,
+      codigo_empresa: empresa.codigo_acceso,
+      empresa_nombre: empresa.nombre
     });
   } catch (error) {
     console.error('verify-password error:', error);
