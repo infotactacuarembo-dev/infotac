@@ -1633,7 +1633,7 @@
         </section>
 
         <!-- ====== RIGHT: PANEL DE ÓRDENES ====== -->
-        <section class="panel">
+        <section class="panel" id="seccion-ordenes">
           <div class="panel-header">
             <h2>Panel de Órdenes</h2>
             <span id="contador-ordenes" style="font-size:0.82rem;color:var(--text-muted);font-weight:600;"></span>
@@ -3230,21 +3230,31 @@ function cargarTecnicos() {
   rolEl.style.background = colores.bg;
   rolEl.style.color = colores.color;
 
-    // Ocultar "Registrar Ingreso" para técnicos
+  // Ajustar la vista según el rol
   var seccionFormulario = document.getElementById('seccion-formulario');
+  var seccionOrdenes = document.getElementById('seccion-ordenes');
 
   if (rol === 'tecnico') {
     if (seccionFormulario) {
       seccionFormulario.style.display = 'none';
     }
+
+    if (seccionOrdenes) {
+      seccionOrdenes.style.gridColumn = '1 / -1';
+      seccionOrdenes.style.width = '100%';
+    }
   } else {
     if (seccionFormulario) {
       seccionFormulario.style.display = '';
     }
+
+    if (seccionOrdenes) {
+      seccionOrdenes.style.gridColumn = '';
+      seccionOrdenes.style.width = '';
+    }
   }
+
 	  
-}
-		  
 function entrarModoAdminDirecto() {
   var identificador = document.getElementById('input-identificador').value;
   var valorClave = inputClave.value;
