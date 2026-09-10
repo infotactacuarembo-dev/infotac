@@ -18,13 +18,14 @@ function sign(payload) {
     .digest('base64url');
 }
 
-function createSessionToken(id, identificador, rol) {
+function createSessionToken(id, identificador, rol, empresaId) {
   const payloadData = {
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
     nonce: crypto.randomBytes(16).toString('hex'),
     id,
     identificador,
-    rol
+    rol,
+    empresa_id: empresaId
   };
 
   const payload = Buffer
@@ -96,11 +97,13 @@ function getSessionUser(req) {
       Buffer.from(payload, 'base64url').toString('utf8')
     );
 
-    return {
+        return {
       id: data.id || null,
       identificador: data.identificador || null,
-      rol: data.rol || null
+      rol: data.rol || null,
+      empresa_id: data.empresa_id || null
     };
+    
   } catch (_) {
     return null;
   }
