@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 const INFOTAC_EMPRESA_ID =
   'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
 
@@ -19,11 +19,31 @@ function texto(value, max) {
   return String(value).trim().slice(0, max);
 }
 
+
+function esTecnico(user) {
+  return user && user.rol === 'tecnico';
+}
+
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
   try {
     const supabase = db();
+    const user = getSessionUser(req);
+
+    if (!user) {
+      return res.status(401).json({
+      ok: false,
+      error: 'Sesión inválida. Volvé a iniciar sesión.'
+      });
+    }
+
+  if (esTecnico(user)) {
+    return res.status(403).json({
+    ok: false,
+    error: 'Los técnicos no tienen acceso a clientes.'
+  });
+}
 
     if (req.method === 'GET') {
       const { data, error } = await supabase
