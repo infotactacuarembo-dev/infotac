@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
+const { registrarAuditoriaOrden } = require('./_orden-audit');
 
 // Campos para SELECT (incluye tecnico_nombre de la vista)
 const ORDER_FIELDS = `
@@ -321,8 +322,34 @@ if (data && Array.isArray(data)) {
       .single();
 
       if (error) throw error;
+
+        await registrarAuditoriaOrden(supabase, user, {
+        orden_id: data.id,
+        empresa_id: data.empresa_id,
+        accion: 'orden_creada',
+        detalle: 'Se creó la orden.',
+        datos_nuevos: {
+          fecha: data.fecha,
+          cliente_id: data.cliente_id,
+          cliente: data.cliente,
+          tel: data.tel,
+          tipo: data.tipo,
+          serie: data.serie,
+          tecnico_id: data.tecnico_id,
+          sena: data.sena,
+          presupuesto: data.presupuesto,
+          falla: data.falla,
+          presupuesta: data.presupuesta,
+          estetico: data.estetico,
+          diagnostico: data.diagnostico,
+          trabajo_realizar: data.trabajo_realizar,
+          aprobacion_presupuesto: data.aprobacion_presupuesto,
+          estado: data.estado,
+          fecha_entrega: data.fecha_entrega
+        }
+      });
+
       return res.status(201).json({ ok: true, data });
-    }
 
 if (req.method === 'PATCH') {
   const body = req.body || {};
