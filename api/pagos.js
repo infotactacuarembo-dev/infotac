@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
+const { registrarAuditoriaOrden } = require('./_orden-audit');
 
 function db() {
   const url = process.env.SUPABASE_URL;
@@ -164,7 +165,20 @@ module.exports = async function handler(req, res) {
         .select('id, orden_id, monto, fecha, notas, creado_en')
         .single();
 
-      if (error) throw error;
+        if (error) throw error;
+          await registrarAuditoriaOrden(supabase, user, {
+          
+          orden_id: data.orden_id,
+          empresa_id: orden.empresa_id,
+          accion: 'pago_registrado',
+          detalle: 'Pago registrado por $ ' + data.monto + '.',
+          datos_nuevos: {
+          pago_id: data.id,
+          monto: data.monto,
+          fecha: data.fecha,
+          notas: data.notas
+        }
+      });
 
       return res.status(201).json({
         ok: true,
