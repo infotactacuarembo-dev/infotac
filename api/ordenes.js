@@ -349,18 +349,19 @@ if (data && Array.isArray(data)) {
         }
       });
 
-      return res.status(201).json({ ok: true, data });
+    return res.status(201).json({ ok: true, data });
+    }
 
-if (req.method === 'PATCH') {
-  const body = req.body || {};
-  const user = getSessionUser(req);
+    if (req.method === 'PATCH') {
+      const body = req.body || {};
+      const user = getSessionUser(req);
 
-  if (!user) {
-    return res.status(401).json({
+    if (!user) {
+      return res.status(401).json({
       ok: false,
       error: 'Sesión inválida. Volvé a iniciar sesión.'
     });
-  }
+   }
 
   if (!validId(body.id)) {
     return res.status(400).json({
