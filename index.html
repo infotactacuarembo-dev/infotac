@@ -4389,9 +4389,14 @@ function crearClienteYInsertar() {
     });
 }
           function manejarError(err) {
-            console.error("Error al registrar ingreso:", err);
-            alert("No se pudo registrar el ingreso. Revisa la conexión e inténtalo de nuevo.");
-          }
+  			console.error('Error al registrar ingreso:', err);
+
+  			alert(
+    		err && err.message
+      		? err.message
+      		: 'No se pudo registrar el ingreso. Revisá tu conexión e intentá nuevamente.'
+  			);
+		}
 
           if (clienteSeleccionadoId) {
             insertarOrdenConCliente(clienteSeleccionadoId).catch(manejarError);
