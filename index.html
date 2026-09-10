@@ -5549,10 +5549,13 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
 }
 		  
 		  
-        modalCerrar.addEventListener("click", function () { modalDetalle.classList.remove("visible"); });
-        modalDetalle.addEventListener("click", function (e) {
-          if (e.target === modalDetalle) modalDetalle.classList.remove("visible");
-        });
+  modalCerrar.addEventListener("click", function () {
+  modalDetalle.classList.remove("visible");
+});
+
+// No cerrar al hacer clic en el fondo:
+// así se evita cerrar el modal accidentalmente al seleccionar texto
+// o editar campos.
 
   modalGuardar.addEventListener("click", function () {
   if (!ordenActivaId) return;
