@@ -257,9 +257,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: item, error: itemError } = await supabase
+        const { data: item, error: itemError } = await supabase
         .from('orden_items')
-        .select('id, orden_id, precio_unitario')
+        .select(
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario'
+        )
         .eq('id', itemId)
         .maybeSingle();
 
@@ -304,7 +306,42 @@ module.exports = async function handler(req, res) {
         )
         .single();
 
-      if (error) throw error;
+            if (error) throw error;
+
+      const datosAnteriores = {
+        tipo: item.tipo,
+        descripcion: item.descripcion,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario
+      };
+
+      const datosNuevos = {
+        tipo: data.tipo,
+        descripcion: data.descripcion,
+        cantidad: data.cantidad,
+        precio_unitario: data.precio_unitario
+      };
+
+      const huboCambios =
+        String(datosAnteriores.tipo ?? '') !==
+          String(datosNuevos.tipo ?? '') ||
+        String(datosAnteriores.descripcion ?? '') !==
+          String(datosNuevos.descripcion ?? '') ||
+        String(datosAnteriores.cantidad ?? '') !==
+          String(datosNuevos.cantidad ?? '') ||
+        String(datosAnteriores.precio_unitario ?? '') !==
+          String(datosNuevos.precio_unitario ?? '');
+
+      if (huboCambios) {
+        await registrarAuditoriaOrden(supabase, user, {
+          orden_id: data.orden_id,
+          empresa_id: orden.empresa_id,
+          accion: 'item_actualizado',
+          detalle: 'Se actualizó el ítem: ' + data.descripcion + '.',
+          datos_anteriores: datosAnteriores,
+          datos_nuevos: datosNuevos
+        });
+      }
 
       return res.status(200).json({
         ok: true,
