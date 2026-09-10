@@ -324,87 +324,178 @@ if (data && Array.isArray(data)) {
       return res.status(201).json({ ok: true, data });
     }
 
-    if (req.method === 'PATCH') {
-      const body = req.body || {};
+if (req.method === 'PATCH') {
+  const body = req.body || {};
+  const user = getSessionUser(req);
 
-      if (!validId(body.id)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Identificador de orden inválido.'
-        });
-      }
+  if (!user) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Sesión inválida. Volvé a iniciar sesión.'
+    });
+  }
 
-      if (!ALLOWED_STATES.has(body.estado)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Estado de orden inválido.'
-        });
-      }
+  if (!validId(body.id)) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Identificador de orden inválido.'
+    });
+  }
 
-      if (
-        Object.prototype.hasOwnProperty.call(body, 'tecnico_id') &&
-        body.tecnico_id !== null &&
-        body.tecnico_id !== ''
-        ) {
+  if (!ALLOWED_STATES.has(body.estado)) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Estado de orden inválido.'
+    });
+  }
+
+  // Un técnico solo puede modificar órdenes asignadas a él.
+  let ordenQuery = supabase
+    .from('ordenes')
+    .select(
+      'id, tecnico_id, sena, presupuesto, aprobacion_presupuesto, fecha_entrega'
+    )
+    .eq('id', body.id)
+    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+  if (user.rol === 'tecnico') {
+    if (!validId(user.id)) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Sesión de técnico inválida. Volvé a iniciar sesión.'
+      });
+    }
+
+    ordenQuery = ordenQuery.eq('tecnico_id', user.id);
+  }
+
+  const { data: ordenActual, error: ordenError } = await ordenQuery.maybeSingle();
+
+  if (ordenError) throw ordenError;
+
+  if (!ordenActual) {
+    return res.status(404).json({
+      ok: false,
+      error: 'Orden no encontrada.'
+    });
+  }
+
+  // Un técnico puede avanzar el trabajo hasta "Listo para retirar",
+  // pero no puede cerrar una orden como entregada o devuelta.
+  if (user.rol === 'tecnico') {
+    const estadosTecnicoPermitidos = new Set([
+      'ingresado',
+      'revision',
+      'presupuesto',
+      'reparando',
+      'terminado'
+    ]);
+
+    if (!estadosTecnicoPermitidos.has(body.estado)) {
+      return res.status(403).json({
+        ok: false,
+        error:
+          'Los técnicos no pueden marcar órdenes como entregadas o devueltas.'
+      });
+    }
+  }
+
+  // Solo admin/user pueden reasignar el técnico.
+  if (
+    user.rol === 'tecnico' &&
+    Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
+  ) {
+    return res.status(403).json({
+      ok: false,
+      error: 'Los técnicos no pueden reasignar órdenes.'
+    });
+  }
+
+  // Si admin/user asigna o cambia un técnico, validar que sea activo.
+  if (
+    user.rol !== 'tecnico' &&
+    Object.prototype.hasOwnProperty.call(body, 'tecnico_id') &&
+    body.tecnico_id !== null &&
+    body.tecnico_id !== ''
+  ) {
     const { data: tecnico, error: tecnicoError } = await supabase
-    .from('usuarios')
-    .select('id, rol, activo')
-    .eq('id', body.tecnico_id)
+      .from('usuarios')
+      .select('id, rol, activo')
+      .eq('id', body.tecnico_id)
+      .eq('empresa_id', INFOTAC_EMPRESA_ID)
+      .single();
+
+    if (
+      tecnicoError ||
+      !tecnico ||
+      tecnico.rol !== 'tecnico' ||
+      tecnico.activo === false
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Técnico inválido o inactivo.'
+      });
+    }
+  }
+
+  let update;
+
+  if (user.rol === 'tecnico') {
+    // Campos puramente técnicos: no acepta importes, aprobación,
+    // reasignación ni fecha de entrega proporcionada por el navegador.
+    update = {
+      estado: body.estado,
+      diagnostico: text(body.diagnostico, 4000),
+      trabajo_realizar: text(body.trabajo_realizar, 4000),
+      fecha_entrega: null
+    };
+  } else {
+    // Admin y user conservan las opciones actuales.
+    update = {
+      estado: body.estado,
+      diagnostico: text(body.diagnostico, 4000),
+      trabajo_realizar: text(body.trabajo_realizar, 4000),
+      sena: number(body.sena),
+      presupuesto: number(body.presupuesto),
+      aprobacion_presupuesto: text(
+        body.aprobacion_presupuesto || 'pendiente',
+        20
+      ),
+      fecha_entrega:
+        body.estado === 'entregado' || body.estado === 'sinreparar'
+          ? isoDate(body.fecha_entrega, new Date().toISOString())
+          : null
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, 'tecnico_id')) {
+      update.tecnico_id = validId(body.tecnico_id)
+        ? body.tecnico_id
+        : null;
+    }
+  }
+
+  const { error: updateError } = await supabase
+    .from('ordenes')
+    .update(update)
+    .eq('id', body.id)
+    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+  if (updateError) throw updateError;
+
+  const { data, error } = await supabase
+    .from('ordenes_resumen')
+    .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
+    .eq('id', body.id)
     .eq('empresa_id', INFOTAC_EMPRESA_ID)
     .single();
 
-  if (tecnicoError || !tecnico || tecnico.rol !== 'tecnico' || tecnico.activo === false) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Técnico inválido o inactivo.'
-    });
-  }
+  if (error) throw error;
+
+  return res.status(200).json({
+    ok: true,
+    data
+  });
 }
-
-      const update = {
-        estado: body.estado,
-        diagnostico: text(body.diagnostico, 4000),
-        trabajo_realizar: text(body.trabajo_realizar, 4000),
-        sena: number(body.sena),
-        presupuesto: number(body.presupuesto),
-        aprobacion_presupuesto: text(
-          body.aprobacion_presupuesto || 'pendiente',
-          20
-        )
-      };
-
-      if (Object.prototype.hasOwnProperty.call(body, 'tecnico_id')) {
-        update.tecnico_id = validId(body.tecnico_id)
-        ? body.tecnico_id
-        : null;
-      }
-      
-      if (body.estado === 'entregado' || body.estado === 'sinreparar') {
-        update.fecha_entrega = isoDate(body.fecha_entrega, new Date().toISOString());
-      } else {
-        update.fecha_entrega = null;
-      }
-
-      // Primero actualizamos
-const { error: updateError } = await supabase
-  .from('ordenes')
-  .update(update)
-  .eq('id', body.id)
-  .eq('empresa_id', INFOTAC_EMPRESA_ID);
-
-if (updateError) throw updateError;
-
-// Luego leemos desde la vista
-const { data, error } = await supabase
-  .from('ordenes_resumen')
-  .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
-  .eq('id', body.id)
-  .eq('empresa_id', INFOTAC_EMPRESA_ID)
-  .single();
-
-      if (error) throw error;
-      return res.status(200).json({ ok: true, data });
-    }
 
     if (req.method === 'DELETE') {
       const user = getSessionUser(req);
