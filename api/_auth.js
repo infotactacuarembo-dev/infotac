@@ -5,9 +5,11 @@ const MAX_AGE_SECONDS = 60 * 60 * 8;
 
 function secret() {
   const value = process.env.SESSION_SECRET;
+
   if (!value || value.length < 32) {
     throw new Error('SESSION_SECRET no está configurada correctamente.');
   }
+
   return value;
 }
 
@@ -18,14 +20,15 @@ function sign(payload) {
     .digest('base64url');
 }
 
-function createSessionToken(id, identificador, rol, empresaId) {
+function createSessionToken(id, identificador, rol, empresaId, codigoEmpresa) {
   const payloadData = {
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
     nonce: crypto.randomBytes(16).toString('hex'),
-    id,
-    identificador,
-    rol,
-    empresa_id: empresaId
+    id: id || null,
+    identificador: identificador || null,
+    rol: rol || null,
+    empresa_id: empresaId || null,
+    codigo_empresa: codigoEmpresa || null
   };
 
   const payload = Buffer
@@ -47,11 +50,25 @@ function verifySessionToken(token) {
 
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return false;
+
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return false;
+  }
 
   try {
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return Number.isInteger(data.exp) && data.exp > Math.floor(Date.now() / 1000);
+    const data = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8')
+    );
+
+    return (
+      Number.isInteger(data.exp) &&
+      data.exp > Math.floor(Date.now() / 1000) &&
+      typeof data.id === 'string' &&
+      typeof data.identificador === 'string' &&
+      typeof data.rol === 'string' &&
+      typeof data.empresa_id === 'string' &&
+      typeof data.codigo_empresa === 'string'
+    );
   } catch (_) {
     return false;
   }
@@ -59,12 +76,17 @@ function verifySessionToken(token) {
 
 function parseCookies(req) {
   const header = req.headers.cookie || '';
+
   return header.split(';').reduce(function (cookies, part) {
     const index = part.indexOf('=');
+
     if (index === -1) return cookies;
+
     const key = part.slice(0, index).trim();
     const value = part.slice(index + 1).trim();
+
     cookies[key] = decodeURIComponent(value);
+
     return cookies;
   }, {});
 }
@@ -72,13 +94,23 @@ function parseCookies(req) {
 function requireSession(req, res) {
   try {
     const token = parseCookies(req)[COOKIE_NAME];
+
     if (!verifySessionToken(token)) {
-      res.status(401).json({ ok: false, error: 'Sesión requerida o vencida.' });
+      res.status(401).json({
+        ok: false,
+        error: 'Sesión requerida o vencida.'
+      });
+
       return false;
     }
+
     return true;
   } catch (_) {
-    res.status(401).json({ ok: false, error: 'Sesión inválida.' });
+    res.status(401).json({
+      ok: false,
+      error: 'Sesión inválida.'
+    });
+
     return false;
   }
 }
@@ -97,13 +129,13 @@ function getSessionUser(req) {
       Buffer.from(payload, 'base64url').toString('utf8')
     );
 
-        return {
-      id: data.id || null,
-      identificador: data.identificador || null,
-      rol: data.rol || null,
-      empresa_id: data.empresa_id || null
+    return {
+      id: data.id,
+      identificador: data.identificador,
+      rol: data.rol,
+      empresa_id: data.empresa_id,
+      codigo_empresa: data.codigo_empresa
     };
-    
   } catch (_) {
     return null;
   }
