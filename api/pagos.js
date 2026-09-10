@@ -209,9 +209,9 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: pagoExistente, error: pagoError } = await supabase
+        const { data: pagoExistente, error: pagoError } = await supabase
         .from('pagos')
-        .select('id, orden_id')
+        .select('id, orden_id, monto, notas')
         .eq('id', pagoId)
         .maybeSingle();
 
@@ -246,7 +246,39 @@ if (!orden) {
         .select('id, orden_id, monto, fecha, notas, creado_en')
         .single();
 
-      if (error) throw error;
+        if (error) throw error;
+
+        const datosAnteriores = {
+        monto: pagoExistente.monto,
+        notas: pagoExistente.notas
+      };
+
+      const datosNuevos = {
+        monto: data.monto,
+        notas: data.notas
+      };
+
+      const huboCambios =
+        String(datosAnteriores.monto ?? '') !==
+          String(datosNuevos.monto ?? '') ||
+        String(datosAnteriores.notas ?? '') !==
+          String(datosNuevos.notas ?? '');
+
+      if (huboCambios) {
+        await registrarAuditoriaOrden(supabase, user, {
+          orden_id: data.orden_id,
+          empresa_id: orden.empresa_id,
+          accion: 'pago_actualizado',
+          detalle:
+            'Pago actualizado: $ ' +
+            datosAnteriores.monto +
+            ' → $ ' +
+            datosNuevos.monto +
+            '.',
+          datos_anteriores: datosAnteriores,
+          datos_nuevos: datosNuevos
+        });
+      }
 
       return res.status(200).json({
         ok: true,
