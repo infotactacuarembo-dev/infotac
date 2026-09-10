@@ -49,16 +49,37 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { identificador, password } = req.body || {};
+    const { codigo_empresa, identificador, password } = req.body || {};
 
-    if (!identificador || typeof identificador !== 'string' || identificador.length > 256) {
+    if (
+      !codigo_empresa ||
+      typeof codigo_empresa !== 'string' ||
+      codigo_empresa.trim().length === 0 ||
+      codigo_empresa.length > 80
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Código de empresa inválido.'
+      });
+    }
+
+    if (
+      !identificador ||
+      typeof identificador !== 'string' ||
+      identificador.trim().length === 0 ||
+      identificador.length > 256
+    ) {
       return res.status(400).json({
         ok: false,
         error: 'Identificador inválido.'
       });
     }
 
-    if (!password || typeof password !== 'string' || password.length > 256) {
+    if (
+      !password ||
+      typeof password !== 'string' ||
+      password.length > 256
+    ) {
       return res.status(400).json({
         ok: false,
         error: 'Contraseña inválida.'
@@ -78,45 +99,72 @@ module.exports = async function handler(req, res) {
     }
 
     const supabase = createClient(url, key);
-    const identificadorNormalizado = identificador.trim().toLowerCase();
 
-    // Buscar usuario en la tabla usuarios
-    const { data: usuario, error: usuarioError } = await supabase
-      .from('usuarios')
-      .select('id, identificador, password_hash, rol, activo')
-      .eq('identificador', identificadorNormalizado)
-      .single();
+    const codigoEmpresa = codigo_empresa.trim().toUpperCase();
+    const identificadorNormalizado =
+      identificador.trim().toLowerCase();
 
-    if (usuarioError || !usuario) {
-      // Intento con usuario inexistente
+    // Primero se identifica la empresa a partir de su código público.
+    const { data: empresa, error: empresaError } = await supabase
+      .from('empresas')
+      .select('id, codigo_acceso')
+      .eq('codigo_acceso', codigoEmpresa)
+      .maybeSingle();
+
+    if (empresaError) throw empresaError;
+
+    if (!empresa) {
       await registrarAuditoria(
         supabase,
         identificadorNormalizado,
         'fallo',
-        'Usuario no encontrado'
+        'Código de empresa inválido'
       );
 
       return res.status(401).json({
         ok: false,
-        error: 'Usuario o contraseña incorrectos.'
+        error: 'Empresa, usuario o contraseña incorrectos.'
+      });
+    }
+
+    // El usuario se busca únicamente dentro de la empresa indicada.
+    const { data: usuario, error: usuarioError } = await supabase
+      .from('usuarios')
+      .select(
+        'id, empresa_id, identificador, password_hash, rol, activo'
+      )
+      .eq('empresa_id', empresa.id)
+      .eq('identificador', identificadorNormalizado)
+      .maybeSingle();
+
+    if (usuarioError || !usuario) {
+      await registrarAuditoria(
+        supabase,
+        identificadorNormalizado,
+        'fallo',
+        'Usuario no encontrado para la empresa indicada'
+      );
+
+      return res.status(401).json({
+        ok: false,
+        error: 'Empresa, usuario o contraseña incorrectos.'
       });
     }
 
     if (usuario.activo === false) {
-  await registrarAuditoria(
-    supabase,
-    identificadorNormalizado,
-    'fallo',
-    'Intento de acceso con usuario inactivo'
-  );
+      await registrarAuditoria(
+        supabase,
+        identificadorNormalizado,
+        'fallo',
+        'Intento de acceso con usuario inactivo'
+      );
 
-  return res.status(403).json({
-    ok: false,
-    error: 'Este usuario está desactivado.'
-  });
-}
-    
-    // Validar contraseña
+      return res.status(403).json({
+        ok: false,
+        error: 'Este usuario está desactivado.'
+      });
+    }
+
     const valid = bcrypt.compareSync(password, usuario.password_hash);
 
     if (!valid) {
@@ -129,11 +177,10 @@ module.exports = async function handler(req, res) {
 
       return res.status(401).json({
         ok: false,
-        error: 'Usuario o contraseña incorrectos.'
+        error: 'Empresa, usuario o contraseña incorrectos.'
       });
     }
 
-    // Login exitoso
     await registrarAuditoria(
       supabase,
       identificadorNormalizado,
@@ -143,14 +190,17 @@ module.exports = async function handler(req, res) {
 
     const token = createSessionToken(
       usuario.id,
-      identificadorNormalizado,
-      usuario.rol
+      usuario.identificador,
+      usuario.rol,
+      usuario.empresa_id
     );
+
     res.setHeader('Set-Cookie', sessionCookie(token));
 
     return res.status(200).json({
       ok: true,
-      rol: usuario.rol
+      rol: usuario.rol,
+      empresa_id: usuario.empresa_id
     });
   } catch (error) {
     console.error('verify-password error:', error);
