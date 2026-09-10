@@ -1,6 +1,29 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 
+const INFOTAC_EMPRESA_ID =
+  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
+
+function db() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error('Base de datos no configurada.');
+  }
+
+  return createClient(url, key);
+}
+
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -9,68 +32,131 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  if (!requireSession(req, res)) {
-    return;
-  }
+  if (!requireSession(req, res)) return;
 
-  // Validar que el usuario sea admin
   const user = getSessionUser(req);
-  if (!user || user.rol !== 'admin') {
-    return res.status(403).json({
+
+  if (!user) {
+    return res.status(401).json({
       ok: false,
-      error: 'Acceso no autorizado.'
+      error: 'Sesión inválida. Volvé a iniciar sesión.'
     });
   }
 
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    return res.status(503).json({
-      ok: false,
-      error: 'Servicio de auditoría no disponible.'
-    });
-  }
+  const ordenId = req.query && req.query.orden_id;
 
   try {
-    const supabase = createClient(url, key);
+    const supabase = db();
+
+    // =========================================================
+    // MODO 1: historial de una orden.
+    // Permitido para admin y user; técnico no puede consultarlo.
+    // =========================================================
+    if (ordenId) {
+      if (!['admin', 'user'].includes(user.rol)) {
+        return res.status(403).json({
+          ok: false,
+          error: 'No tenés permiso para consultar el historial de órdenes.'
+        });
+      }
+
+      if (!validId(ordenId)) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Identificador de orden inválido.'
+        });
+      }
+
+      const { data: orden, error: ordenError } = await supabase
+        .from('ordenes')
+        .select('id, empresa_id')
+        .eq('id', ordenId)
+        .eq('empresa_id', INFOTAC_EMPRESA_ID)
+        .maybeSingle();
+
+      if (ordenError) throw ordenError;
+
+      if (!orden) {
+        return res.status(404).json({
+          ok: false,
+          error: 'Orden no encontrada.'
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('orden_audit')
+        .select(
+          `
+            id,
+            creado_en,
+            actor_identificador,
+            actor_rol,
+            accion,
+            detalle,
+            datos_anteriores,
+            datos_nuevos
+          `
+        )
+        .eq('orden_id', orden.id)
+        .eq('empresa_id', orden.empresa_id)
+        .order('creado_en', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        ok: true,
+        data: data || []
+      });
+    }
+
+    // =========================================================
+    // MODO 2: auditoría general existente.
+    // Permitida únicamente para administradores.
+    // =========================================================
+    if (user.rol !== 'admin') {
+      return res.status(403).json({
+        ok: false,
+        error: 'Acceso no autorizado.'
+      });
+    }
 
     const [
-  { data: accesos, error: accesosError },
-  { data: cambiosClave, error: cambiosError },
-  { data: auditoriaUsuarios, error: usuariosError }
-] = await Promise.all([
-  supabase
-    .from('login_audit')
-    .select('id, creado_en, identificador, resultado, detalle')
-    .order('creado_en', { ascending: false })
-    .limit(30),
+      { data: accesos, error: accesosError },
+      { data: cambiosClave, error: cambiosError },
+      { data: auditoriaUsuarios, error: usuariosError }
+    ] = await Promise.all([
+      supabase
+        .from('login_audit')
+        .select('id, creado_en, identificador, resultado, detalle')
+        .order('creado_en', { ascending: false })
+        .limit(30),
 
-  supabase
-    .from('password_changes')
-    .select('id, cambiado_en, ip, resultado, detalle')
-    .order('cambiado_en', { ascending: false })
-    .limit(30),
+      supabase
+        .from('password_changes')
+        .select('id, cambiado_en, ip, resultado, detalle')
+        .order('cambiado_en', { ascending: false })
+        .limit(30),
 
-  supabase
-    .from('user_audit')
-    .select('id, creado_en, actor_identificador, accion, usuario_afectado, detalle')
-    .order('creado_en', { ascending: false })
-    .limit(30)
-]);
+      supabase
+        .from('user_audit')
+        .select(
+          'id, creado_en, actor_identificador, accion, usuario_afectado, detalle'
+        )
+        .order('creado_en', { ascending: false })
+        .limit(30)
+    ]);
 
-if (accesosError) throw accesosError;
-if (cambiosError) throw cambiosError;
-if (usuariosError) throw usuariosError;
+    if (accesosError) throw accesosError;
+    if (cambiosError) throw cambiosError;
+    if (usuariosError) throw usuariosError;
 
-return res.status(200).json({
-  ok: true,
-  accesos: accesos || [],
-  cambiosClave: cambiosClave || [],
-  auditoriaUsuarios: auditoriaUsuarios || []
-});
-
-    
+    return res.status(200).json({
+      ok: true,
+      accesos: accesos || [],
+      cambiosClave: cambiosClave || [],
+      auditoriaUsuarios: auditoriaUsuarios || []
+    });
   } catch (error) {
     console.error('audit-log error:', error);
 
