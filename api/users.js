@@ -42,14 +42,32 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // Verificar que el usuario sea admin
   const user = getSessionUser(req);
-  if (!user || user.rol !== 'admin') {
-    return res.status(403).json({
-      ok: false,
-      error: 'Acceso no autorizado.'
-    });
-  }
+
+if (!user) {
+  return res.status(401).json({
+    ok: false,
+    error: 'Sesión inválida. Volvé a iniciar sesión.'
+  });
+}
+
+const solicitaTecnicos =
+  req.method === 'GET' &&
+  req.query &&
+  req.query.rol === 'tecnico';
+
+const userPuedeListarTecnicos =
+  user.rol === 'user' &&
+  solicitaTecnicos;
+
+const esAdmin = user.rol === 'admin';
+
+if (!esAdmin && !userPuedeListarTecnicos) {
+  return res.status(403).json({
+    ok: false,
+    error: 'Acceso no autorizado.'
+  });
+}
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -69,16 +87,22 @@ module.exports = async function handler(req, res) {
     // LISTAR USUARIOS
 if (req.method === 'GET') {
   const rol = req.query && req.query.rol;
-  
+
   let query = supabase
     .from('usuarios')
     .select('id, identificador, rol, activo, creado_en');
-  
+
   if (rol) {
     query = query.eq('rol', rol);
   }
-  
-  const { data, error } = await query.order('creado_en', { ascending: false });
+
+  if (userPuedeListarTecnicos) {
+    query = query.eq('activo', true);
+  }
+
+  const { data, error } = await query.order('creado_en', {
+    ascending: false
+  });
 
   if (error) throw error;
 
