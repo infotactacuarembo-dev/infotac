@@ -307,9 +307,9 @@ if (!orden) {
         });
       }
 
-      const { data: pago, error: pagoError } = await supabase
+        const { data: pago, error: pagoError } = await supabase
         .from('pagos')
-        .select('id, orden_id')
+        .select('id, orden_id, monto, fecha, notas, creado_en')
         .eq('id', pagoId)
         .maybeSingle();
 
@@ -339,7 +339,21 @@ if (!orden) {
         .delete()
         .eq('id', pagoId);
 
-      if (deleteError) throw deleteError;
+            if (deleteError) throw deleteError;
+
+      await registrarAuditoriaOrden(supabase, user, {
+        orden_id: pago.orden_id,
+        empresa_id: orden.empresa_id,
+        accion: 'pago_eliminado',
+        detalle: 'Se eliminó un pago por $ ' + pago.monto + '.',
+        datos_anteriores: {
+          pago_id: pago.id,
+          monto: pago.monto,
+          fecha: pago.fecha,
+          notas: pago.notas,
+          creado_en: pago.creado_en
+        }
+      });
 
       return res.status(200).json({
         ok: true
