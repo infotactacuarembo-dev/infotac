@@ -518,19 +518,30 @@
         color: var(--text);
       }
 
-      /* ====== TABLE ====== */
-      .table-wrap {
-        overflow-x: auto;
-        max-height: calc(100vh - 280px);
-        overflow-y: auto;
-      }
+ /* ====== TABLE ====== */
+.table-scroll-top {
+  display: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 16px;
+  margin-bottom: 6px;
+}
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-      }
+#table-scroll-top-inner {
+  height: 1px;
+}
 
+.table-wrap {
+  overflow-x: auto;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
       thead {
         position: sticky;
         top: 0;
@@ -1704,8 +1715,12 @@
   				Exportar CSV
 			</button>  
 
-            <div class="table-wrap">
-              <table>
+            <div class="table-scroll-top" id="table-scroll-top">
+  			<div id="table-scroll-top-inner"></div>
+			</div>
+
+			<div class="table-wrap" id="table-wrap">
+  			<table>
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -2976,6 +2991,65 @@ if (btnClaveGuardar) {
         var formIngreso = document.getElementById("form-ingreso");
         var buscador = document.getElementById("buscador");
         var tablaOrdenes = document.getElementById("tabla-ordenes");
+
+		var tableWrap = document.getElementById('table-wrap');
+		var tableScrollTop = document.getElementById('table-scroll-top');
+		var tableScrollTopInner = document.getElementById(
+  		'table-scroll-top-inner'
+		);
+
+function actualizarScrollSuperiorTabla() {
+  if (!tableWrap || !tableScrollTop || !tableScrollTopInner) {
+    return;
+  }
+
+  var table = tableWrap.querySelector('table');
+
+  if (!table) {
+    tableScrollTop.style.display = 'none';
+    return;
+  }
+
+  var hayDesbordeHorizontal =
+    tableWrap.scrollWidth > tableWrap.clientWidth;
+
+  if (!hayDesbordeHorizontal) {
+    tableScrollTop.style.display = 'none';
+    tableScrollTop.scrollLeft = 0;
+    tableWrap.scrollLeft = 0;
+    return;
+  }
+
+  tableScrollTop.style.display = 'block';
+  tableScrollTopInner.style.width =
+    tableWrap.scrollWidth + 'px';
+  tableScrollTop.scrollLeft = tableWrap.scrollLeft;
+}
+
+if (tableWrap && tableScrollTop) {
+  var sincronizandoScrollTabla = false;
+
+  tableScrollTop.addEventListener('scroll', function () {
+    if (sincronizandoScrollTabla) return;
+
+    sincronizandoScrollTabla = true;
+    tableWrap.scrollLeft = tableScrollTop.scrollLeft;
+    sincronizandoScrollTabla = false;
+  });
+
+  tableWrap.addEventListener('scroll', function () {
+    if (sincronizandoScrollTabla) return;
+
+    sincronizandoScrollTabla = true;
+    tableScrollTop.scrollLeft = tableWrap.scrollLeft;
+    sincronizandoScrollTabla = false;
+  });
+
+  window.addEventListener(
+    'resize',
+    actualizarScrollSuperiorTabla
+  );
+}  
         var emptyState = document.getElementById("empty-state");
         var contadorOrdenes = document.getElementById("contador-ordenes");
         var statsRow = document.getElementById("stats-row");
@@ -4457,6 +4531,7 @@ function crearClienteYInsertar() {
             tablaOrdenes.innerHTML = "";
             emptyState.classList.remove("hidden");
 		    if (paginationBar) paginationBar.classList.add("hidden");  
+			actualizarScrollSuperiorTabla();  
             return;
           }
           emptyState.classList.add("hidden");
@@ -4505,6 +4580,7 @@ function crearClienteYInsertar() {
               }
             });
           });
+			setTimeout(actualizarScrollSuperiorTabla, 0);
         }
 
 function renderStats() {
