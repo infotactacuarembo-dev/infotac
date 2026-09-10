@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
+const { registrarAuditoriaOrden } = require('./_orden-audit');
 
 const INFOTAC_EMPRESA_ID =
   'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
@@ -190,7 +191,29 @@ module.exports = async function handler(req, res) {
         )
         .single();
 
-      if (error) throw error;
+            if (error) throw error;
+
+      const tipoVisible =
+        data.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
+
+      await registrarAuditoriaOrden(supabase, user, {
+        orden_id: data.orden_id,
+        empresa_id: orden.empresa_id,
+        accion: 'item_agregado',
+        detalle:
+          'Se agregó ' +
+          tipoVisible +
+          ': ' +
+          data.descripcion +
+          '.',
+        datos_nuevos: {
+          item_id: data.id,
+          tipo: data.tipo,
+          descripcion: data.descripcion,
+          cantidad: data.cantidad,
+          precio_unitario: data.precio_unitario
+        }
+      });
 
       return res.status(201).json({
         ok: true,
