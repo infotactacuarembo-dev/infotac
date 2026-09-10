@@ -4827,7 +4827,7 @@ if (senaInput && resumenSena) {
     });
   }
 
-      var btnRegistrarPago = document.getElementById("btn-registrar-pago");
+  var btnRegistrarPago = document.getElementById("btn-registrar-pago");
 
   if (btnRegistrarPago) {
     btnRegistrarPago.addEventListener("click", function () {
@@ -4870,7 +4870,7 @@ if (senaInput && resumenSena) {
           if (!res.ok) {
             throw new Error(res.error || "No se pudo registrar el pago");
           }
-          return cargarPagosOrden(o.id);
+          return (o.id);
         })
         .then(function () {
           calcularSaldoDesdeResumen();
