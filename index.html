@@ -3229,6 +3229,20 @@ function cargarTecnicos() {
 
   rolEl.style.background = colores.bg;
   rolEl.style.color = colores.color;
+
+    // Ocultar "Registrar Ingreso" para técnicos
+  var seccionFormulario = document.getElementById('seccion-formulario');
+
+  if (rol === 'tecnico') {
+    if (seccionFormulario) {
+      seccionFormulario.style.display = 'none';
+    }
+  } else {
+    if (seccionFormulario) {
+      seccionFormulario.style.display = '';
+    }
+  }
+	  
 }
 		  
 function entrarModoAdminDirecto() {
