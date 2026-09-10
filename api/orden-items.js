@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { requireSession } = require('./_auth');
+const { requireSession, getSessionUser } = require('./_auth');
 
 const INFOTAC_EMPRESA_ID =
   'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
@@ -39,6 +39,28 @@ function numeroPositivo(value, valorPorDefecto) {
   return numero;
 }
 
+function esTecnico(user) {
+  return user && user.rol === 'tecnico';
+}
+
+async function obtenerOrdenPermitida(supabase, ordenId, user) {
+  let query = supabase
+    .from('ordenes')
+    .select('id, empresa_id, tecnico_id')
+    .eq('id', ordenId)
+    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+
+  if (esTecnico(user)) {
+    query = query.eq('tecnico_id', user.id);
+  }
+
+  const { data: orden, error } = await query.maybeSingle();
+
+  if (error) throw error;
+
+  return orden;
+}
+
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
@@ -51,7 +73,16 @@ module.exports = async function handler(req, res) {
 
   try {
     const supabase = db();
+    const user = getSessionUser(req);
 
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Sesión inválida. Volvé a iniciar sesión.'
+      });
+    }
+
+    // ===== GET: listar ítems de una orden =====
     if (req.method === 'GET') {
       const ordenId = req.query && req.query.orden_id;
 
@@ -62,14 +93,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .select('id')
-        .eq('id', ordenId)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
-        .maybeSingle();
-
-      if (ordenError) throw ordenError;
+      const orden = await obtenerOrdenPermitida(
+        supabase,
+        ordenId,
+        user
+      );
 
       if (!orden) {
         return res.status(404).json({
@@ -94,17 +122,18 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // ===== POST: crear ítem =====
     if (req.method === 'POST') {
       const body = req.body || {};
-
       const ordenId = texto(body.orden_id, 200);
       const tipo = texto(body.tipo, 30);
       const descripcion = texto(body.descripcion, 300);
       const cantidad = numeroPositivo(body.cantidad, 0);
-      const precioUnitario = numeroPositivo(
-        body.precio_unitario,
-        0
-      );
+
+      // Un técnico no puede definir precios.
+      const precioUnitario = esTecnico(user)
+        ? 0
+        : numeroPositivo(body.precio_unitario, 0);
 
       if (!validOrdenId(ordenId)) {
         return res.status(400).json({
@@ -134,14 +163,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .select('id')
-        .eq('id', ordenId)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
-        .maybeSingle();
-
-      if (ordenError) throw ordenError;
+      const orden = await obtenerOrdenPermitida(
+        supabase,
+        ordenId,
+        user
+      );
 
       if (!orden) {
         return res.status(404).json({
@@ -172,18 +198,13 @@ module.exports = async function handler(req, res) {
       });
     }
 
-
-      if (req.method === 'PATCH') {
+    // ===== PATCH: editar ítem =====
+    if (req.method === 'PATCH') {
       const body = req.body || {};
-
       const itemId = texto(body.id || body.item_id, 200);
       const tipo = texto(body.tipo, 30);
       const descripcion = texto(body.descripcion, 300);
       const cantidad = numeroPositivo(body.cantidad, 0);
-      const precioUnitario = numeroPositivo(
-        body.precio_unitario,
-        0
-      );
 
       if (!validOrdenId(itemId)) {
         return res.status(400).json({
@@ -215,7 +236,7 @@ module.exports = async function handler(req, res) {
 
       const { data: item, error: itemError } = await supabase
         .from('orden_items')
-        .select('id, orden_id')
+        .select('id, orden_id, precio_unitario')
         .eq('id', itemId)
         .maybeSingle();
 
@@ -228,14 +249,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .select('id')
-        .eq('id', item.orden_id)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
-        .maybeSingle();
-
-      if (ordenError) throw ordenError;
+      const orden = await obtenerOrdenPermitida(
+        supabase,
+        item.orden_id,
+        user
+      );
 
       if (!orden) {
         return res.status(404).json({
@@ -243,6 +261,11 @@ module.exports = async function handler(req, res) {
           error: 'Orden no encontrada.'
         });
       }
+
+      // Un técnico conserva el precio anterior; user/admin sí pueden cambiarlo.
+      const precioUnitario = esTecnico(user)
+        ? numeroPositivo(item.precio_unitario, 0)
+        : numeroPositivo(body.precio_unitario, 0);
 
       const { data, error } = await supabase
         .from('orden_items')
@@ -265,8 +288,9 @@ module.exports = async function handler(req, res) {
         data: data
       });
     }
-        
-        if (req.method === 'DELETE') {
+
+    // ===== DELETE: eliminar ítem =====
+    if (req.method === 'DELETE') {
       const itemId = texto(
         req.query && (req.query.id || req.query.item_id),
         200
@@ -294,14 +318,11 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .select('id')
-        .eq('id', item.orden_id)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
-        .maybeSingle();
-
-      if (ordenError) throw ordenError;
+      const orden = await obtenerOrdenPermitida(
+        supabase,
+        item.orden_id,
+        user
+      );
 
       if (!orden) {
         return res.status(404).json({
@@ -321,10 +342,7 @@ module.exports = async function handler(req, res) {
         ok: true
       });
     }
-    
   } catch (error) {
-
-    
     console.error('orden-items error:', error);
 
     return res.status(500).json({
