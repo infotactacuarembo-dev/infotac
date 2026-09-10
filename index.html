@@ -4539,6 +4539,10 @@ function renderStats() {
 
  /* ===== DETAIL MODAL ===== */
   function abrirDetalle(id) {
+
+  var rol = sessionStorage.getItem('rol') || 'user';
+  var esTecnicoActual = rol === 'tecnico';	  
+	  
   var o = ordenes.find(function (x) {
     return x.id === id;
   });
@@ -4596,10 +4600,17 @@ function renderStats() {
   html += "<select id='modal-estado'>";
 
   Object.keys(ESTADOS).forEach(function (k) {
-    html += "<option value='" + k + "'" +
-      (k === o.estado ? " selected" : "") +
-      ">" + ESTADOS[k].label + "</option>";
-  });
+  var estadoPermitidoParaTecnico =
+    k !== 'entregado' && k !== 'sinreparar';
+
+  if (esTecnicoActual && !estadoPermitidoParaTecnico) {
+    return;
+  }
+
+  html += "<option value='" + k + "'" +
+    (k === o.estado ? " selected" : "") +
+    ">" + ESTADOS[k].label + "</option>";
+});
 
   html += "</select>";
   html += "</div>";
