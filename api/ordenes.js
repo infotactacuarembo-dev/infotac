@@ -378,14 +378,25 @@ if (data && Array.isArray(data)) {
   }
 
   // Un técnico solo puede modificar órdenes asignadas a él.
-  let ordenQuery = supabase
+    let ordenQuery = supabase
     .from('ordenes')
     .select(
-      'id, tecnico_id, sena, presupuesto, aprobacion_presupuesto, fecha_entrega'
+      `
+        id,
+        empresa_id,
+        tecnico_id,
+        estado,
+        diagnostico,
+        trabajo_realizar,
+        sena,
+        presupuesto,
+        aprobacion_presupuesto,
+        fecha_entrega
+      `
     )
     .eq('id', body.id)
     .eq('empresa_id', INFOTAC_EMPRESA_ID);
-
+      
   if (user.rol === 'tecnico') {
     if (!validId(user.id)) {
       return res.status(401).json({
@@ -508,10 +519,46 @@ if (data && Array.isArray(data)) {
     .eq('id', body.id)
     .eq('empresa_id', INFOTAC_EMPRESA_ID);
 
-  if (updateError) throw updateError;
+    if (updateError) throw updateError;
+
+  const cambios = {};
+
+  Object.keys(update).forEach(function (campo) {
+    const anterior = ordenActual[campo];
+    const nuevo = update[campo];
+
+    if (String(anterior ?? '') !== String(nuevo ?? '')) {
+      cambios[campo] = {
+        anterior: anterior ?? null,
+        nuevo: nuevo ?? null
+      };
+    }
+  });
+
+  if (Object.keys(cambios).length > 0) {
+    const camposCambiados = Object.keys(cambios).join(', ');
+
+    await registrarAuditoriaOrden(supabase, user, {
+      orden_id: ordenActual.id,
+      empresa_id: ordenActual.empresa_id,
+      accion: 'orden_actualizada',
+      detalle: 'Se actualizaron los campos: ' + camposCambiados + '.',
+      datos_anteriores: Object.fromEntries(
+        Object.entries(cambios).map(function ([campo, valores]) {
+          return [campo, valores.anterior];
+        })
+      ),
+      datos_nuevos: Object.fromEntries(
+        Object.entries(cambios).map(function ([campo, valores]) {
+          return [campo, valores.nuevo];
+        })
+      )
+    });
+  }
 
   const { data, error } = await supabase
     .from('ordenes_resumen')
+    
     .select(ORDER_FIELDS + ', total_items, total_pagos, saldo_real')
     .eq('id', body.id)
     .eq('empresa_id', INFOTAC_EMPRESA_ID)
