@@ -4700,6 +4700,12 @@ if (!esTecnicoActual) {
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
+var rolActual = sessionStorage.getItem('rol') || 'user';
+
+if (modalEliminar) {
+  modalEliminar.style.display =
+    rolActual === 'admin' ? '' : 'none';
+}	  
 
 // Los técnicos no tienen acceso a pagos.
 if (!esTecnicoActual) {
@@ -5667,10 +5673,20 @@ if (!esTecnicoActual) {
     });
 });
 		  
-        modalEliminar.addEventListener("click", function () {
-          if (ordenActivaId) borrarOrden(ordenActivaId);
-          modalDetalle.classList.remove("visible");
-        });
+  modalEliminar.addEventListener("click", function () {
+  var rolActual = sessionStorage.getItem('rol') || 'user';
+
+  if (rolActual !== 'admin') {
+    alert('Solo un administrador puede eliminar órdenes.');
+    return;
+  }
+
+  if (ordenActivaId) {
+    borrarOrden(ordenActivaId);
+  }
+
+  modalDetalle.classList.remove("visible");
+});
 
       /* ===== DELETE ===== */
   function borrarOrden(id) {
