@@ -286,6 +286,22 @@ if (data && Array.isArray(data)) {
         return res.status(200).json({ ok: true });
       }
 
+      const user = getSessionUser(req);
+
+        if (!user) {
+        return res.status(401).json({
+        ok: false,
+        error: 'Sesión inválida. Volvé a iniciar sesión.'
+      });
+      }
+
+      if (user.rol === 'tecnico') {
+        return res.status(403).json({
+        ok: false,
+        error: 'Los técnicos no pueden registrar órdenes.'
+      });
+      }
+
       // Validar que el técnico sea obligatorio
         if (!body.tecnico_id || body.tecnico_id === '' || body.tecnico_id === null) {
         return res.status(400).json({
