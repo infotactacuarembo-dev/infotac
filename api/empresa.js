@@ -11,6 +11,15 @@ function texto(value, maxLength) {
   return value.trim().slice(0, maxLength);
 }
 
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
 function obtenerClienteSupabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,18 +31,8 @@ function obtenerClienteSupabase() {
   return createClient(url, key);
 }
 
-function esAdministrador(req, res) {
-  const usuario = getSessionUser(req);
-
-  if (!usuario || usuario.rol !== 'admin') {
-    res.status(403).json({
-      ok: false,
-      error: 'No tenés permisos de administrador.'
-    });
-    return false;
-  }
-
-  return true;
+function esAdministrador(user) {
+  return user && user.rol === 'admin';
 }
 
 const CAMPOS_EMPRESA = [
@@ -57,6 +56,42 @@ const CAMPOS_EMPRESA = [
   'zona_horaria'
 ].join(', ');
 
+async function obtenerEmpresaConLogo(supabase, empresaId) {
+  const { data: empresa, error } = await supabase
+    .from('empresas')
+    .select(CAMPOS_EMPRESA)
+    .eq('id', empresaId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!empresa) return null;
+
+  let logoUrlPublica = null;
+
+  if (
+    empresa.logo_url &&
+    typeof empresa.logo_url === 'string'
+  ) {
+    const ruta = empresa.logo_url.trim();
+
+    if (ruta.startsWith('empresa/')) {
+      const { data: enlace, error: enlaceError } =
+        await supabase.storage
+          .from('logos')
+          .createSignedUrl(ruta, 60 * 60);
+
+      if (!enlaceError && enlace) {
+        logoUrlPublica = enlace.signedUrl;
+      }
+    }
+  }
+
+  return {
+    ...empresa,
+    logo_url: logoUrlPublica || empresa.logo_url
+  };
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'PUT') {
@@ -68,64 +103,55 @@ module.exports = async function handler(req, res) {
 
   if (!requireSession(req, res)) return;
 
-  if (req.method === 'PUT' && !esAdministrador(req, res)) {
-    return;
+  const user = getSessionUser(req);
+  const empresaId = user && user.empresa_id;
+
+  if (!user || !validId(empresaId)) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
+    });
+  }
+
+  if (req.method === 'PUT' && !esAdministrador(user)) {
+    return res.status(403).json({
+      ok: false,
+      error: 'No tenés permisos de administrador.'
+    });
   }
 
   try {
     const supabase = obtenerClienteSupabase();
 
+    // ===== GET: perfil de la empresa de la sesión =====
     if (req.method === 'GET') {
-  const { data: empresa, error } = await supabase
-    .from('empresas')
-    .select(CAMPOS_EMPRESA)
-    .limit(1)
-    .maybeSingle();
+      const empresa = await obtenerEmpresaConLogo(
+        supabase,
+        empresaId
+      );
 
-  if (error) {
-    throw error;
-  }
-
-  if (!empresa) {
-    return res.status(404).json({
-      ok: false,
-      error: 'No se encontró una empresa configurada.'
-    });
-  }
-
-  // Generar URL firmada fresca a partir de la ruta estable
-  let logoUrlPublica = null;
-
-  if (empresa.logo_url && typeof empresa.logo_url === 'string') {
-    const ruta = empresa.logo_url.trim();
-    const esRutaEstable = ruta.startsWith('empresa/');
-
-    if (esRutaEstable) {
-      const { data: enlace, error: enlaceError } = await supabase.storage
-        .from('logos')
-        .createSignedUrl(ruta, 60 * 60); // 1 hora
-
-      if (!enlaceError && enlace) {
-        logoUrlPublica = enlace.signedUrl;
+      if (!empresa) {
+        return res.status(404).json({
+          ok: false,
+          error: 'No se encontró una empresa configurada.'
+        });
       }
-    }
-  }
 
-  return res.status(200).json({
-    ok: true,
-    empresa: {
-      ...empresa,
-      logo_url: logoUrlPublica || empresa.logo_url
+      return res.status(200).json({
+        ok: true,
+        empresa: empresa
+      });
     }
-  });
-}
 
+    // ===== PUT: actualizar solo la empresa de la sesión =====
     const datos = req.body || {};
 
-    const id = texto(datos.id, 100);
     const nombre = texto(datos.nombre, 200);
     const nombreComercial = texto(datos.nombre_comercial, 200);
-    const countryCode = texto(datos.country_code, 10).toUpperCase();
+    const countryCode = texto(
+      datos.country_code,
+      10
+    ).toUpperCase();
     const country = texto(datos.country, 100);
     const taxIdType = texto(datos.tax_id_type, 100);
     const taxId = texto(datos.tax_id, 100);
@@ -140,13 +166,6 @@ module.exports = async function handler(req, res) {
     const website = texto(datos.website, 500);
     const logoUrl = texto(datos.logo_url, 500);
     const zonaHoraria = texto(datos.zona_horaria, 100);
-
-    if (!id) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Falta identificar la empresa a actualizar.'
-      });
-    }
 
     if (!nombre) {
       return res.status(400).json({
@@ -186,13 +205,11 @@ module.exports = async function handler(req, res) {
         zona_horaria: zonaHoraria || null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id)
+      .eq('id', empresaId)
       .select(CAMPOS_EMPRESA)
       .maybeSingle();
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     if (!empresaActualizada) {
       return res.status(404).json({
@@ -201,9 +218,14 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    const empresa = await obtenerEmpresaConLogo(
+      supabase,
+      empresaId
+    );
+
     return res.status(200).json({
       ok: true,
-      empresa: empresaActualizada
+      empresa: empresa || empresaActualizada
     });
   } catch (error) {
     console.error('empresa API error:', error);
