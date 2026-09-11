@@ -5063,13 +5063,10 @@ if (btnRegistrarPago) {
         if (!res.ok) {
           throw new Error(res.error || "No se pudo registrar el pago");
         }
-        return res;
-      })
-      .then(function () {
-        // Refrescar lista de pagos y luego recalcular saldo
-        return cargarPagosOrden(o.id).then(function () {
-          calcularSaldoDesdeResumen();
-        });
+        // Refrescar lista de pagos
+        cargarPagosOrden(o.id);
+        // Recalcular saldo
+        calcularSaldoDesdeResumen();
       })
       .catch(function (err) {
         console.error("Error al registrar pago:", err);
