@@ -5482,8 +5482,8 @@ function cargarHistorialOrden(ordenId) {
   historialEl.innerHTML =
     "<div class='historial-loading'>Cargando historial de la orden...</div>";
 
-  pedirApi(
-   return "/api/audit-log?orden_id=" + encodeURIComponent(ordenId)
+  return pedirApi(
+    "/api/audit-log?orden_id=" + encodeURIComponent(ordenId)
   )
     .then(function (res) {
       if (!res.ok) {
@@ -5560,8 +5560,8 @@ function cargarPagosOrden(ordenId) {
   pagosEl.innerHTML =
     "<div class='historial-loading'>Cargando pagos...</div>";
 
-  pedirApi(
-    return "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
+  return pedirApi(
+     "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
   )
     .then(function (res) {
       if (!res.ok) {
