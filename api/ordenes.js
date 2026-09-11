@@ -336,18 +336,78 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (req.method === 'POST') {
-      const body = req.body || {};
+  if (req.method === 'POST') {
+  const body = req.body || {};
 
-      // Temporalmente bloqueado hasta adaptar la función SQL de importación
-      // para trabajar de forma aislada por empresa.
-      if (body.action === 'import') {
-        return res.status(503).json({
-          ok: false,
-          error:
-            'La importación está temporalmente en mantenimiento por la migración multiempresa.'
-        });
+  // ===== IMPORTACIÓN DE BACKUP =====
+  if (body.action === 'import') {
+    if (user.rol !== 'admin') {
+      return res.status(403).json({
+        ok: false,
+        error: 'Solo un administrador puede importar backups.'
+      });
+    }
+
+    const importadas = Array.isArray(body.ordenes) ? body.ordenes : [];
+
+    if (importadas.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        error: 'No hay órdenes para importar.'
+      });
+    }
+
+    // Limitar cantidad máxima para evitar operaciones masivas accidentales
+    const MAX_ORDENES_IMPORTAR = 500;
+    if (importadas.length > MAX_ORDENES_IMPORTAR) {
+      return res.status(400).json({
+        ok: false,
+        error:
+          'El archivo tiene demasiadas órdenes (' +
+          importadas.length +
+          '). El límite actual es ' +
+          MAX_ORDENES_IMPORTAR +
+          '.'
+      });
+    }
+
+    // Ejecutar función SQL segura por empresa
+    const { error } = await supabase.rpc('importar_ordenes_empresa', {
+      p_empresa_id: empresaId,
+      p_ordenes: importadas
+    });
+
+    if (error) {
+      console.error('Error al importar backup:', error);
+      return res.status(500).json({
+        ok: false,
+        error: error.message || 'No se pudo importar el backup.'
+      });
+    }
+
+    // Registrar auditoría de la importación
+    await registrarAuditoriaOrden(supabase, user, {
+      orden_id: null,
+      empresa_id: empresaId,
+      accion: 'backup_importado',
+      detalle:
+        'Se importaron ' +
+        importadas.length +
+        ' órdenes desde un archivo de backup.',
+      datos_nuevos: {
+        cantidad: importadas.length
       }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      data: {
+        importadas: importadas.length
+      }
+    });
+  }
+
+  // ... resto del código existente para crear orden individual ...
 
       if (user.rol === 'tecnico') {
         return res.status(403).json({
