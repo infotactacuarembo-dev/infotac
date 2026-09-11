@@ -1,7 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
-const INFOTAC_EMPRESA_ID =
-  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
 
 function db() {
   const url = process.env.SUPABASE_URL;
@@ -19,6 +17,20 @@ function texto(value, max) {
   return String(value).trim().slice(0, max);
 }
 
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
+function getEmpresaId(user) {
+  return validId(user && user.empresa_id)
+    ? user.empresa_id
+    : null;
+}
 
 function esTecnico(user) {
   return user && user.rol === 'tecnico';
@@ -27,33 +39,39 @@ function esTecnico(user) {
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
+  const user = getSessionUser(req);
+  const empresaId = getEmpresaId(user);
+
+  if (!user || !empresaId) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
+    });
+  }
+
   try {
     const supabase = db();
-    const user = getSessionUser(req);
 
-    if (!user) {
-      return res.status(401).json({
-      ok: false,
-      error: 'Sesión inválida. Volvé a iniciar sesión.'
+    if (esTecnico(user)) {
+      return res.status(403).json({
+        ok: false,
+        error: 'Los técnicos no tienen acceso a clientes.'
       });
     }
 
-  if (esTecnico(user)) {
-    return res.status(403).json({
-    ok: false,
-    error: 'Los técnicos no tienen acceso a clientes.'
-  });
-}
-
     if (req.method === 'GET') {
       const { data, error } = await supabase
-      .from('clientes')
-      .select('id, nombre, whatsapp')
-      .eq('empresa_id', INFOTAC_EMPRESA_ID)
-      .order('nombre', { ascending: true });
+        .from('clientes')
+        .select('id, nombre, whatsapp')
+        .eq('empresa_id', empresaId)
+        .order('nombre', { ascending: true });
 
       if (error) throw error;
-      return res.status(200).json({ ok: true, data: data || [] });
+
+      return res.status(200).json({
+        ok: true,
+        data: data || []
+      });
     }
 
     if (req.method === 'POST') {
@@ -67,11 +85,11 @@ module.exports = async function handler(req, res) {
           error: 'El nombre del cliente es obligatorio.'
         });
       }
-      
+
       const { data: existente, error: buscarError } = await supabase
         .from('clientes')
         .select('id, nombre, whatsapp')
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
+        .eq('empresa_id', empresaId)
         .ilike('nombre', nombre)
         .maybeSingle();
 
@@ -79,23 +97,28 @@ module.exports = async function handler(req, res) {
 
       if (existente) {
         return res.status(409).json({
-        ok: false,
-        error: 'Ese cliente ya existe.',
-        data: existente
-  });
-}
+          ok: false,
+          error: 'Ese cliente ya existe.',
+          data: existente
+        });
+      }
+
       const { data, error } = await supabase
         .from('clientes')
         .insert({
-        empresa_id: INFOTAC_EMPRESA_ID,
-        nombre,
-        whatsapp
-      })
+          empresa_id: empresaId,
+          nombre,
+          whatsapp
+        })
         .select('id, nombre, whatsapp')
         .single();
 
       if (error) throw error;
-      return res.status(201).json({ ok: true, data });
+
+      return res.status(201).json({
+        ok: true,
+        data: data
+      });
     }
 
     return res.status(405).json({
@@ -104,6 +127,7 @@ module.exports = async function handler(req, res) {
     });
   } catch (error) {
     console.error('clientes error:', error);
+
     return res.status(500).json({
       ok: false,
       error: 'No se pudo procesar clientes.'
