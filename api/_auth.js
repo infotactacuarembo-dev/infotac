@@ -42,6 +42,7 @@ function verifySessionToken(token) {
   if (!token || typeof token !== 'string') return false;
 
   const parts = token.split('.');
+
   if (parts.length !== 2) return false;
 
   const payload = parts[0];
@@ -60,14 +61,30 @@ function verifySessionToken(token) {
       Buffer.from(payload, 'base64url').toString('utf8')
     );
 
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    const rolesPermitidos = new Set([
+      'admin',
+      'user',
+      'tecnico'
+    ]);
+
     return (
       Number.isInteger(data.exp) &&
       data.exp > Math.floor(Date.now() / 1000) &&
       typeof data.id === 'string' &&
+      uuidPattern.test(data.id) &&
       typeof data.identificador === 'string' &&
+      data.identificador.trim().length > 0 &&
+      data.identificador.length <= 120 &&
       typeof data.rol === 'string' &&
+      rolesPermitidos.has(data.rol) &&
       typeof data.empresa_id === 'string' &&
-      typeof data.codigo_empresa === 'string'
+      uuidPattern.test(data.empresa_id) &&
+      typeof data.codigo_empresa === 'string' &&
+      data.codigo_empresa.trim().length > 0 &&
+      data.codigo_empresa.length <= 80
     );
   } catch (_) {
     return false;
