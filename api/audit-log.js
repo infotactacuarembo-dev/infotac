@@ -1,9 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 
-const INFOTAC_EMPRESA_ID =
-  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
-
 function db() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,6 +21,12 @@ function validId(value) {
   );
 }
 
+function getEmpresaId(user) {
+  return validId(user && user.empresa_id)
+    ? user.empresa_id
+    : null;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -35,11 +38,12 @@ module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
   const user = getSessionUser(req);
+  const empresaId = getEmpresaId(user);
 
-  if (!user) {
+  if (!user || !empresaId) {
     return res.status(401).json({
       ok: false,
-      error: 'Sesión inválida. Volvé a iniciar sesión.'
+      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
     });
   }
 
@@ -71,7 +75,7 @@ module.exports = async function handler(req, res) {
         .from('ordenes')
         .select('id, empresa_id')
         .eq('id', ordenId)
-        .eq('empresa_id', INFOTAC_EMPRESA_ID)
+        .eq('empresa_id', empresaId)
         .maybeSingle();
 
       if (ordenError) throw ordenError;
@@ -98,7 +102,7 @@ module.exports = async function handler(req, res) {
           `
         )
         .eq('orden_id', orden.id)
-        .eq('empresa_id', orden.empresa_id)
+        .eq('empresa_id', empresaId)
         .order('creado_en', { ascending: false })
         .limit(100);
 
@@ -111,7 +115,7 @@ module.exports = async function handler(req, res) {
     }
 
     // =========================================================
-    // MODO 2: auditoría general existente.
+    // MODO 2: auditoría general.
     // Permitida únicamente para administradores.
     // =========================================================
     if (user.rol !== 'admin') {
@@ -129,12 +133,14 @@ module.exports = async function handler(req, res) {
       supabase
         .from('login_audit')
         .select('id, creado_en, identificador, resultado, detalle')
+        .eq('empresa_id', empresaId)
         .order('creado_en', { ascending: false })
         .limit(30),
 
       supabase
         .from('password_changes')
         .select('id, cambiado_en, ip, resultado, detalle')
+        .eq('empresa_id', empresaId)
         .order('cambiado_en', { ascending: false })
         .limit(30),
 
@@ -143,6 +149,7 @@ module.exports = async function handler(req, res) {
         .select(
           'id, creado_en, actor_identificador, accion, usuario_afectado, detalle'
         )
+        .eq('empresa_id', empresaId)
         .order('creado_en', { ascending: false })
         .limit(30)
     ]);
