@@ -5060,21 +5060,22 @@ if (btnRegistrarPago) {
       "POST"
     )
       .then(function (res) {
-        if (!res.ok) {
-          throw new Error(res.error || "No se pudo registrar el pago");
-        }
-        // Refrescar lista de pagos
-        cargarPagosOrden(o.id);
-        // Recalcular saldo
-        calcularSaldoDesdeResumen();
-		cargarHistorialOrden(o.id);  
-      })
+  		if (!res.ok) {
+    		throw new Error(res.error || "No se pudo registrar el pago");
+  		}
+
+  		return cargarPagosOrden(o.id);
+		})
+		.then(function () {
+  		return cargarHistorialOrden(o.id);
+		})
+		
       .catch(function (err) {
         console.error("Error al registrar pago:", err);
         alert(err.message || "No se pudo registrar el pago");
       });
-  });
-}
+  	});
+	}
 	  
     var botonUsarTotal = document.getElementById(
     "btn-usar-total-items"
@@ -5482,7 +5483,7 @@ function cargarHistorialOrden(ordenId) {
     "<div class='historial-loading'>Cargando historial de la orden...</div>";
 
   pedirApi(
-    "/api/audit-log?orden_id=" + encodeURIComponent(ordenId)
+   return "/api/audit-log?orden_id=" + encodeURIComponent(ordenId)
   )
     .then(function (res) {
       if (!res.ok) {
@@ -5560,7 +5561,7 @@ function cargarPagosOrden(ordenId) {
     "<div class='historial-loading'>Cargando pagos...</div>";
 
   pedirApi(
-    "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
+    return "/api/pagos?orden_id=" + encodeURIComponent(ordenId)
   )
     .then(function (res) {
       if (!res.ok) {
