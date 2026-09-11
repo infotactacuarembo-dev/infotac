@@ -2,13 +2,20 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const { createSessionToken, sessionCookie } = require('./_auth');
 
-async function registrarAuditoria(supabase, identificador, resultado, detalle) {
+async function registrarAuditoria(
+  supabase,
+  empresaId,
+  identificador,
+  resultado,
+  detalle
+) {
   const { error } = await supabase
     .from('login_audit')
     .insert({
-      identificador,
-      resultado,
-      detalle
+      empresa_id: empresaId,
+      identificador: identificador,
+      resultado: resultado,
+      detalle: detalle
     });
 
   if (error) {
@@ -89,17 +96,15 @@ module.exports = async function handler(req, res) {
     if (empresaError) throw empresaError;
 
     if (!empresa) {
-      await registrarAuditoria(
-        supabase,
-        identificadorNormalizado,
-        'fallo',
-        'Código de empresa inválido'
+      console.warn(
+      'Intento de acceso con código de empresa inválido:',
+      identificadorNormalizado
       );
 
-      return res.status(401).json({
-        ok: false,
-        error: 'Empresa, usuario o contraseña incorrectos.'
-      });
+    return res.status(401).json({
+    ok: false,
+    error: 'Empresa, usuario o contraseña incorrectos.'
+    });
     }
 
     const { data: usuario, error: usuarioError } = await supabase
@@ -114,6 +119,7 @@ module.exports = async function handler(req, res) {
     if (usuarioError || !usuario) {
       await registrarAuditoria(
         supabase,
+        empresa.id,
         identificadorNormalizado,
         'fallo',
         'Usuario no encontrado para la empresa indicada'
@@ -128,6 +134,7 @@ module.exports = async function handler(req, res) {
     if (usuario.activo === false) {
       await registrarAuditoria(
         supabase,
+        empresa.id,
         identificadorNormalizado,
         'fallo',
         'Intento de acceso con usuario inactivo'
@@ -146,10 +153,11 @@ module.exports = async function handler(req, res) {
 
     if (!passwordCorrecta) {
       await registrarAuditoria(
-        supabase,
-        identificadorNormalizado,
-        'fallo',
-        'Contraseña incorrecta'
+      supabase,
+      empresa.id,
+      identificadorNormalizado,
+      'fallo',
+      'Contraseña incorrecta'
       );
 
       return res.status(401).json({
@@ -160,10 +168,11 @@ module.exports = async function handler(req, res) {
 
     await registrarAuditoria(
       supabase,
+      empresa.id,
       identificadorNormalizado,
       'exito',
       'Inicio de sesión correcto'
-    );
+      );
 
     const token = createSessionToken(
       usuario.id,
