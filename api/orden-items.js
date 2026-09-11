@@ -2,9 +2,6 @@ const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 const { registrarAuditoriaOrden } = require('./_orden-audit');
 
-const INFOTAC_EMPRESA_ID =
-  'ce95321a-ea37-47d1-81bb-f25f0dd58eeb';
-
 const TIPOS_PERMITIDOS = new Set([
   'repuesto',
   'mano_obra'
@@ -40,16 +37,31 @@ function numeroPositivo(value, valorPorDefecto) {
   return numero;
 }
 
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
+function getEmpresaId(user) {
+  return validId(user && user.empresa_id)
+    ? user.empresa_id
+    : null;
+}
+
 function esTecnico(user) {
   return user && user.rol === 'tecnico';
 }
 
-async function obtenerOrdenPermitida(supabase, ordenId, user) {
+async function obtenerOrdenPermitida(supabase, ordenId, user, empresaId) {
   let query = supabase
     .from('ordenes')
     .select('id, empresa_id, tecnico_id')
     .eq('id', ordenId)
-    .eq('empresa_id', INFOTAC_EMPRESA_ID);
+    .eq('empresa_id', empresaId);
 
   if (esTecnico(user)) {
     query = query.eq('tecnico_id', user.id);
@@ -75,11 +87,12 @@ module.exports = async function handler(req, res) {
   try {
     const supabase = db();
     const user = getSessionUser(req);
+    const empresaId = getEmpresaId(user);
 
-    if (!user) {
+    if (!user || !empresaId) {
       return res.status(401).json({
         ok: false,
-        error: 'Sesión inválida. Volvé a iniciar sesión.'
+        error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
       });
     }
 
@@ -97,7 +110,8 @@ module.exports = async function handler(req, res) {
       const orden = await obtenerOrdenPermitida(
         supabase,
         ordenId,
-        user
+        user,
+        empresaId
       );
 
       if (!orden) {
@@ -167,7 +181,8 @@ module.exports = async function handler(req, res) {
       const orden = await obtenerOrdenPermitida(
         supabase,
         ordenId,
-        user
+        user,
+        empresaId
       );
 
       if (!orden) {
@@ -191,7 +206,7 @@ module.exports = async function handler(req, res) {
         )
         .single();
 
-            if (error) throw error;
+      if (error) throw error;
 
       const tipoVisible =
         data.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
@@ -257,7 +272,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-        const { data: item, error: itemError } = await supabase
+      const { data: item, error: itemError } = await supabase
         .from('orden_items')
         .select(
           'id, orden_id, tipo, descripcion, cantidad, precio_unitario'
@@ -277,7 +292,8 @@ module.exports = async function handler(req, res) {
       const orden = await obtenerOrdenPermitida(
         supabase,
         item.orden_id,
-        user
+        user,
+        empresaId
       );
 
       if (!orden) {
@@ -306,7 +322,7 @@ module.exports = async function handler(req, res) {
         )
         .single();
 
-            if (error) throw error;
+      if (error) throw error;
 
       const datosAnteriores = {
         tipo: item.tipo,
@@ -363,7 +379,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-        const { data: item, error: itemError } = await supabase
+      const { data: item, error: itemError } = await supabase
         .from('orden_items')
         .select(
           'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
@@ -383,7 +399,8 @@ module.exports = async function handler(req, res) {
       const orden = await obtenerOrdenPermitida(
         supabase,
         item.orden_id,
-        user
+        user,
+        empresaId
       );
 
       if (!orden) {
@@ -398,7 +415,7 @@ module.exports = async function handler(req, res) {
         .delete()
         .eq('id', itemId);
 
-            if (deleteError) throw deleteError;
+      if (deleteError) throw deleteError;
 
       const tipoVisible =
         item.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
