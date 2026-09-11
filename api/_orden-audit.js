@@ -1,5 +1,6 @@
 function limpiarTexto(value, maximo) {
   if (value === null || value === undefined) return '';
+
   return String(value).trim().slice(0, maximo);
 }
 
@@ -17,7 +18,7 @@ function limpiarDatos(value) {
 
   const datos = { ...value };
 
-  // Nunca registrar claves, contraseñas o secretos del equipo.
+  // Nunca guardar claves, contraseñas o secretos técnicos del equipo.
   delete datos.pass;
   delete datos.password;
   delete datos.password_hash;
@@ -32,20 +33,44 @@ async function registrarAuditoriaOrden(
   evento
 ) {
   const ordenId = limpiarTexto(evento && evento.orden_id, 200);
-  const empresaId = limpiarTexto(evento && evento.empresa_id, 100);
+  const empresaIdEvento = limpiarTexto(
+    evento && evento.empresa_id,
+    100
+  );
+  const empresaIdSesion = limpiarTexto(
+    user && user.empresa_id,
+    100
+  );
   const accion = limpiarTexto(evento && evento.accion, 80);
   const detalle = limpiarTexto(evento && evento.detalle, 2000);
 
-  if (!ordenId || !empresaId || !accion) {
+  if (!ordenId || !accion) {
     console.error(
-      'orden_audit omitido: faltan orden_id, empresa_id o accion.'
+      'orden_audit omitido: faltan orden_id o accion.'
+    );
+    return;
+  }
+
+  if (!esUuid(empresaIdSesion)) {
+    console.error(
+      'orden_audit omitido: empresa de sesión inválida.'
+    );
+    return;
+  }
+
+  if (
+    empresaIdEvento &&
+    empresaIdEvento !== empresaIdSesion
+  ) {
+    console.error(
+      'orden_audit omitido: empresa del evento no coincide con la sesión.'
     );
     return;
   }
 
   const payload = {
     orden_id: ordenId,
-    empresa_id: empresaId,
+    empresa_id: empresaIdSesion,
     actor_id: esUuid(user && user.id) ? user.id : null,
     actor_identificador: limpiarTexto(
       user && user.identificador,
@@ -57,7 +82,9 @@ async function registrarAuditoriaOrden(
     datos_anteriores: limpiarDatos(
       evento && evento.datos_anteriores
     ),
-    datos_nuevos: limpiarDatos(evento && evento.datos_nuevos)
+    datos_nuevos: limpiarDatos(
+      evento && evento.datos_nuevos
+    )
   };
 
   const { error } = await supabase
