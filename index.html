@@ -6698,30 +6698,30 @@ html += "</div>";
         setInterval(verificarBackupAutomatico, 60000);
 
         /* ===== HELPERS ===== */
-        function fmtFecha(iso) {
-  		if (!iso) return "";
 
-  			try {
-    		var d = new Date(iso);
+function fmtFecha(iso) {
+  if (!iso) return "";
 
-    		if (Number.isNaN(d.getTime())) {
-      			return iso;
-    		}
+  try {
+    var d = new Date(iso);
 
-    		return new Intl.DateTimeFormat("es-UY", {
-      		timeZone: "America/Montevideo",
-      		day: "2-digit",
-      		month: "2-digit",
-      		year: "numeric",
-		    hour: "2-digit",
-      		minute: "2-digit",
-      		hour12: true
-    		}).format(d);
-  		} catch (error) {
-    		return iso;
- 		 }
-		}
+    if (Number.isNaN(d.getTime())) {
+      return iso;
+    }
 
+    return new Intl.DateTimeFormat("es-UY", {
+      timeZone: "America/Montevideo",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    }).format(d);
+  } catch (error) {
+    return iso;
+  }
+}
 
 
 // Eliminar usuario
@@ -6816,7 +6816,7 @@ function esc(s) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}		  
+}
 		  
 var datosAuditoriaActuales = {
   accesos: [],
