@@ -6805,6 +6805,18 @@ function fmtFechaAuditoria(fechaIso) {
     return fechaIso;
   }
 }
+
+function esc(s) {
+  if (s === null || s === undefined || s === "") {
+    return "";
+  }
+
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}		  
 		  
 var datosAuditoriaActuales = {
   accesos: [],
