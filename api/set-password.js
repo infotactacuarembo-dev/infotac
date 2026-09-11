@@ -3,6 +3,15 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const { requireSession, getSessionUser } = require('./_auth');
 
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
 function obtenerIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
 
@@ -22,21 +31,34 @@ function huellaIp(req) {
     .digest('hex');
 }
 
-async function registrarCambio(supabase, req, resultado, detalle) {
+async function registrarCambio(
+  supabase,
+  req,
+  empresaId,
+  resultado,
+  detalle
+) {
   try {
     const { error } = await supabase
       .from('password_changes')
       .insert({
+        empresa_id: empresaId,
         resultado: resultado,
         ip: huellaIp(req),
         detalle: detalle
       });
 
     if (error) {
-      console.error('No se pudo registrar auditoría de contraseña:', error);
+      console.error(
+        'No se pudo registrar auditoría de contraseña:',
+        error
+      );
     }
   } catch (error) {
-    console.error('Error al registrar auditoría de contraseña:', error);
+    console.error(
+      'Error al registrar auditoría de contraseña:',
+      error
+    );
   }
 }
 
@@ -48,16 +70,19 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  if (!requireSession(req, res)) {
-    return;
-  }
+  if (!requireSession(req, res)) return;
 
   const usuarioSesion = getSessionUser(req);
+  const empresaId = usuarioSesion && usuarioSesion.empresa_id;
 
-  if (!usuarioSesion || !usuarioSesion.id) {
+  if (
+    !usuarioSesion ||
+    !validId(usuarioSesion.id) ||
+    !validId(empresaId)
+  ) {
     return res.status(401).json({
       ok: false,
-      error: 'Sesión inválida. Volvé a iniciar sesión.'
+      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
     });
   }
 
@@ -82,7 +107,8 @@ module.exports = async function handler(req, res) {
   ) {
     return res.status(400).json({
       ok: false,
-      error: 'La nueva contraseña debe tener entre 10 y 256 caracteres.'
+      error:
+        'La nueva contraseña debe tener entre 10 y 256 caracteres.'
     });
   }
 
@@ -103,13 +129,14 @@ module.exports = async function handler(req, res) {
 
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
-      .select('id, identificador, password_hash, activo')
+      .select(
+        'id, empresa_id, identificador, password_hash, activo'
+      )
       .eq('id', usuarioSesion.id)
+      .eq('empresa_id', empresaId)
       .maybeSingle();
 
-    if (usuarioError) {
-      throw usuarioError;
-    }
+    if (usuarioError) throw usuarioError;
 
     if (!usuario || usuario.activo === false) {
       return res.status(401).json({
@@ -127,8 +154,10 @@ module.exports = async function handler(req, res) {
       await registrarCambio(
         supabase,
         req,
+        empresaId,
         'fallo',
-        'Contraseña actual incorrecta. Usuario: ' + usuario.identificador
+        'Contraseña actual incorrecta. Usuario: ' +
+          usuario.identificador
       );
 
       return res.status(401).json({
@@ -144,17 +173,18 @@ module.exports = async function handler(req, res) {
       .update({
         password_hash: nuevoHash
       })
-      .eq('id', usuarioSesion.id);
+      .eq('id', usuarioSesion.id)
+      .eq('empresa_id', empresaId);
 
-    if (updateError) {
-      throw updateError;
-    }
+    if (updateError) throw updateError;
 
     await registrarCambio(
       supabase,
       req,
+      empresaId,
       'exito',
-      'Contraseña actualizada. Usuario: ' + usuario.identificador
+      'Contraseña actualizada. Usuario: ' +
+        usuario.identificador
     );
 
     return res.status(200).json({
