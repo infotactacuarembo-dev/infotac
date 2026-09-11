@@ -5017,58 +5017,66 @@ if (senaInput && resumenSena) {
 
   var btnRegistrarPago = document.getElementById("btn-registrar-pago");
 
-  if (btnRegistrarPago) {
-    btnRegistrarPago.addEventListener("click", function () {
-      var monto = prompt("Monto del pago:");
-      if (!monto) return;
+if (btnRegistrarPago) {
+  btnRegistrarPago.addEventListener("click", function () {
+    var monto = prompt("Monto del pago:");
+    if (!monto) return;
 
-      var montoNum = parseFloat(monto.replace(",", "."));
-      if (!montoNum || montoNum <= 0) {
-        alert("Monto inválido.");
-        return;
-      }
+    var montoNum = parseFloat(monto.replace(",", "."));
+    if (!montoNum || montoNum <= 0) {
+      alert("Monto inválido.");
+      return;
+    }
 
-	  var saldoEl = document.getElementById("resumen-saldo");
+    var saldoEl = document.getElementById("resumen-saldo");
 
-	  var saldoPendiente = saldoEl
-  		? Number(
-      	(saldoEl.textContent || "0")
-        .replace("$", "")
-        .replace(/,/g, "")
-        .trim()
-    	) || 0
-  		: 0;
+    var saldoPendiente = saldoEl
+      ? Number(
+          (saldoEl.textContent || "0")
+            .replace("$", "")
+            .replace(/,/g, "")
+            .trim()
+        ) || 0
+      : 0;
 
-	if (montoNum > saldoPendiente) {
-  		alert(
-    	"El pago no puede ser mayor al saldo pendiente de $" +
-    	saldoPendiente.toFixed(2) + "."
-  	);
-  return;
-}	
+    if (montoNum > saldoPendiente) {
+      alert(
+        "El pago no puede ser mayor al saldo pendiente de $" +
+          saldoPendiente.toFixed(2) +
+          "."
+      );
+      return;
+    }
 
-      var notas = prompt("Notas (opcional):") || "";
+    var notas = prompt("Notas (opcional):") || "";
 
-      pedirApi("/api/pagos", {
+    pedirApi(
+      "/api/pagos",
+      {
         orden_id: o.id,
         monto: montoNum,
         notas: notas
-      }, "POST")
-        .then(function (res) {
-          if (!res.ok) {
-            throw new Error(res.error || "No se pudo registrar el pago");
-          }
-          return (o.id);
-        })
-        .then(function () {
+      },
+      "POST"
+    )
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error(res.error || "No se pudo registrar el pago");
+        }
+        return res;
+      })
+      .then(function () {
+        // Refrescar lista de pagos y luego recalcular saldo
+        return cargarPagosOrden(o.id).then(function () {
           calcularSaldoDesdeResumen();
-        })
-        .catch(function (err) {
-          console.error("Error al registrar pago:", err);
-          alert(err.message || "No se pudo registrar el pago");
         });
-    });
-  }
+      })
+      .catch(function (err) {
+        console.error("Error al registrar pago:", err);
+        alert(err.message || "No se pudo registrar el pago");
+      });
+  });
+}
 	  
     var botonUsarTotal = document.getElementById(
     "btn-usar-total-items"
