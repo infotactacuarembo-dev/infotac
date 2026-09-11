@@ -6781,14 +6781,14 @@ if (btnAbrirAdministracionConfig) {
   );
 }  
 
-function fmtFechaAuditoria(fechaIso) {
-  if (!fechaIso) return "";
+function fmtFecha(iso) {
+  if (!iso) return "";
 
   try {
-    var fecha = new Date(fechaIso);
+    var d = new Date(iso);
 
-    if (Number.isNaN(fecha.getTime())) {
-      return fechaIso;
+    if (Number.isNaN(d.getTime())) {
+      return iso;
     }
 
     return new Intl.DateTimeFormat("es-UY", {
@@ -6798,12 +6798,15 @@ function fmtFechaAuditoria(fechaIso) {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: true
-    }).format(fecha);
+    }).format(d);
   } catch (error) {
-    return fechaIso;
+    return iso;
   }
+}
+
+function fmtFechaAuditoria(fechaIso) {
+  return fmtFecha(fechaIso);
 }
 
 function esc(s) {
