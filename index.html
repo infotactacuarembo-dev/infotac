@@ -5060,14 +5060,16 @@ if (btnRegistrarPago) {
       "POST"
     )
       .then(function (res) {
-        if (!res.ok) {
-          throw new Error(res.error || "No se pudo registrar el pago");
-        }
-        // Refrescar lista de pagos
-        cargarPagosOrden(o.id);
-        // Recalcular saldo
-        calcularSaldoDesdeResumen();
-      })
+  	  if (!res.ok) {
+    	throw new Error(res.error || "No se pudo registrar el pago");
+  	}
+
+  	return cargarPagosOrden(o.id);
+	})
+	.then(function () {
+  	return cargarHistorialOrden(o.id);
+	})
+		
       .catch(function (err) {
         console.error("Error al registrar pago:", err);
         alert(err.message || "No se pudo registrar el pago");
