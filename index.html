@@ -6151,8 +6151,18 @@ pedirApi(
       );
     }
 
+	  // Mostrar mensaje de éxito con la cantidad importada
+    var cantidad = resultado.data && resultado.data.importadas
+      ? resultado.data.importadas
+      : filas.length;
+
+    alert(
+      "Se importaron " + cantidad + " órdenes correctamente."
+    );
+
     return cargarOrdenes();
   })
+	
   .then(renderizar)
   .catch(function (err) {
     console.error("Error al importar:", err);
