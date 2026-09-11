@@ -4463,7 +4463,7 @@ function exportarOrdenesCSV() {
     			return;
   			} 		
 			
-          var senaNum = parseFloat(val("f-sena")) || 0;
+          var senaNum = Number(val("f-sena")) || 0;
 
 		// Leer el total de ítems desde el resumen económico
 		var totalItemsEl = document.getElementById("resumen-total-items");
@@ -4481,8 +4481,8 @@ function exportarOrdenesCSV() {
  function insertarOrdenConCliente(clienteId) {
   var nombreCliente = val("f-nombre");
   var telCliente = val("f-whatsapp");
-  var senaNum = parseFloat(val("f-sena")) || 0;
-  var presupNum = parseFloat(val("f-presupuesto")) || 0;
+  var senaNum = Number(val("f-sena")) || 0;
+  var presupNum = Number(val("f-presupuesto")) || 0;
 
   var datosOrden = {
     fecha: new Date().toISOString(),
