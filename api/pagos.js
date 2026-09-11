@@ -144,8 +144,8 @@ module.exports = async function handler(req, res) {
       const ordenId = texto(body.orden_id, 200);
       const monto = numeroPositivo(body.monto, 0);
       const fecha = body.fecha
-        ? new Date(body.fecha).toISOString()
-        : new Date().toISOString();
+      ? new Date(body.fecha).toISOString()
+      : new Date().toISOString();
       const notas = texto(body.notas || '', 500);
 
       if (!validOrdenId(ordenId)) {
