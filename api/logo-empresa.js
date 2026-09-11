@@ -11,6 +11,15 @@ const TIPOS_PERMITIDOS = {
   'image/webp': 'webp'
 };
 
+function validId(value) {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    )
+  );
+}
+
 function obtenerClienteSupabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,8 +31,8 @@ function obtenerClienteSupabase() {
   return createClient(url, key);
 }
 
-function esAdministrador(req, res) {
-  if (!requireSession(req, res)) return false;
+function obtenerAdminDeSesion(req, res) {
+  if (!requireSession(req, res)) return null;
 
   const usuario = getSessionUser(req);
 
@@ -32,10 +41,20 @@ function esAdministrador(req, res) {
       ok: false,
       error: 'No tenés permisos de administrador.'
     });
-    return false;
+
+    return null;
   }
 
-  return true;
+  if (!validId(usuario.empresa_id)) {
+    res.status(401).json({
+      ok: false,
+      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
+    });
+
+    return null;
+  }
+
+  return usuario;
 }
 
 function leerFormulario(req) {
@@ -70,29 +89,18 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  if (!esAdministrador(req, res)) return;
+  const usuario = obtenerAdminDeSesion(req, res);
+
+  if (!usuario) return;
+
+  const empresaId = usuario.empresa_id;
 
   try {
     const resultado = await leerFormulario(req);
 
-    const empresaId = Array.isArray(resultado.fields.empresa_id)
-      ? resultado.fields.empresa_id[0]
-      : resultado.fields.empresa_id;
-
     const archivo = Array.isArray(resultado.files.logo)
       ? resultado.files.logo[0]
       : resultado.files.logo;
-
-    if (
-      !empresaId ||
-      typeof empresaId !== 'string' ||
-      empresaId.length > 100
-    ) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Empresa inválida.'
-      });
-    }
 
     if (!archivo) {
       return res.status(400).json({
@@ -117,25 +125,26 @@ module.exports = async function handler(req, res) {
 
     const supabase = obtenerClienteSupabase();
 
+    // Verifica que la empresa de la sesión existe.
     const { data: empresa, error: empresaError } = await supabase
       .from('empresas')
       .select('id')
       .eq('id', empresaId)
       .maybeSingle();
 
-    if (empresaError) {
-      throw empresaError;
-    }
+    if (empresaError) throw empresaError;
 
     if (!empresa) {
       return res.status(404).json({
         ok: false,
-        error: 'La empresa no existe.'
+        error: 'La empresa de la sesión no existe.'
       });
     }
 
     const extension = TIPOS_PERMITIDOS[archivo.mimetype];
-    const rutaArchivo = 'empresa/' + empresaId + '/logo.' + extension;
+    const rutaArchivo =
+      'empresa/' + empresaId + '/logo.' + extension;
+
     const contenido = fs.readFileSync(archivo.filepath);
 
     const { error: uploadError } = await supabase.storage
@@ -146,49 +155,56 @@ module.exports = async function handler(req, res) {
         cacheControl: '3600'
       });
 
-    if (uploadError) {
-      throw uploadError;
+    if (uploadError) throw uploadError;
+
+    const {
+      error: actualizacionError,
+      data: empresaActualizada
+    } = await supabase
+      .from('empresas')
+      .update({
+        logo_url: rutaArchivo,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', empresaId)
+      .select('logo_url')
+      .maybeSingle();
+
+    if (actualizacionError) {
+      console.error(
+        'Error al actualizar logo_url:',
+        actualizacionError
+      );
+      throw actualizacionError;
     }
 
-    // Guardar la ruta estable en la base
-const { error: actualizacionError, data: empresaActualizada } = await supabase
-  .from('empresas')
-  .update({
-    logo_url: rutaArchivo,
-    updated_at: new Date().toISOString()
-  })
-  .eq('id', empresaId)
-  .select('logo_url')
-  .maybeSingle();
+    if (
+      !empresaActualizada ||
+      !empresaActualizada.logo_url
+    ) {
+      console.error(
+        'logo_url no se actualizó correctamente:',
+        empresaActualizada
+      );
 
-if (actualizacionError) {
-  console.error('Error al actualizar logo_url:', actualizacionError);
-  throw actualizacionError;
-}
+      return res.status(500).json({
+        ok: false,
+        error: 'No se pudo guardar la ruta del logo.'
+      });
+    }
 
-if (!empresaActualizada || !empresaActualizada.logo_url) {
-  console.error('logo_url no se actualizó correctamente:', empresaActualizada);
-  return res.status(500).json({
-    ok: false,
-    error: 'No se pudo guardar la ruta del logo.'
-  });
-}
+    const { data: enlace, error: enlaceError } =
+      await supabase.storage
+        .from('logos')
+        .createSignedUrl(rutaArchivo, 60 * 60);
 
-// Generar URL firmada solo para la vista previa inmediata
-const { data: enlace, error: enlaceError } = await supabase.storage
-  .from('logos')
-  .createSignedUrl(rutaArchivo, 60 * 60); // 1 hora
+    if (enlaceError) throw enlaceError;
 
-if (enlaceError) {
-  throw enlaceError;
-}
-
-return res.status(200).json({
-  ok: true,
-  logo_url: enlace.signedUrl,
-  logo_path: rutaArchivo
-});
-    
+    return res.status(200).json({
+      ok: true,
+      logo_url: enlace.signedUrl,
+      logo_path: rutaArchivo
+    });
   } catch (error) {
     console.error('logo-empresa API error:', error);
 
