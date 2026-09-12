@@ -4473,23 +4473,29 @@ function exportarOrdenesCSV() {
 
 
 function actualizarBadgeNuevas(ordenes) {
-  var estadosNuevos = [
-    "ingresado",
-    "revision"
-  ];
-
-  var nuevas = ordenes.filter(function (o) {
-    var estado = String(o.estado || "")
-      .toLowerCase()
-      .trim();
-
-    return estadosNuevos.includes(estado);
-  }).length;
+  var rol = sessionStorage.getItem("rol") || "user";
 
   var badge = document.getElementById("badge-nuevas");
   var count = document.getElementById("count-nuevas");
 
   if (!badge || !count) return;
+
+  // El aviso está pensado para la sesión del técnico, no para admin/user.
+  if (rol !== "tecnico") {
+    badge.classList.add("hidden");
+    return;
+  }
+
+  var nuevas = ordenes.filter(function (o) {
+    var estado = String(o.estado || "").toLowerCase().trim();
+
+    // No mostrar como nueva una orden finalizada.
+    var sigueActiva =
+      estado !== "entregado" &&
+      estado !== "sinreparar";
+
+    return sigueActiva && !o.vista_por_tecnico_en;
+  }).length;
 
   if (nuevas > 0) {
     count.textContent = nuevas;
@@ -4736,6 +4742,46 @@ function renderStats() {
     .join("");
 }
 
+    function marcarOrdenComoVista(id) {
+  var rol = sessionStorage.getItem("rol") || "user";
+
+  // Solo un técnico debe marcar sus propias órdenes como vistas.
+  if (rol !== "tecnico") {
+    return Promise.resolve();
+  }
+
+  return pedirApi(
+    "/api/ordenes",
+    {
+      action: "marcar_vista",
+      id: id
+    },
+    "PATCH"
+  )
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(
+          resultado.error || "No se pudo marcar la orden como vista."
+        );
+      }
+
+      // Mantiene el dato local actualizado, sin requerir recarga inmediata.
+      var orden = ordenes.find(function (o) {
+        return o.id === id;
+      });
+
+      if (orden) {
+        orden.vista_por_tecnico_en = new Date().toISOString();
+      }
+
+      actualizarBadgeNuevas(ordenes);
+    })
+    .catch(function (error) {
+      // No impedimos abrir el detalle si falla la marca de leído.
+      console.error("Error al marcar la orden como vista:", error);
+    });
+}
+		  
  /* ===== DETAIL MODAL ===== */
   function abrirDetalle(id) {
 
@@ -4746,7 +4792,8 @@ function renderStats() {
   });
 
   if (!o) return;
-
+	  
+  marcarOrdenComoVista(id);
   ordenActivaId = id;
   estadoEditTemporal = o.estado;
 
