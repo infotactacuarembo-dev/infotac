@@ -4607,8 +4607,13 @@ function crearClienteYInsertar() {
 
           tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
-		    var totalItems = Number(o.total_items || 0);
-            var saldo = Number(o.saldo_real || 0); 
+		    var presupuesto = Number(o.presupuesto || 0);
+			var saldo = Math.max(
+  				0,
+  				presupuesto -
+    			Number(o.sena || 0) -
+    			Number(o.total_pagos || 0)
+			);
 			  
             return "<tr data-id='" + o.id + "'>"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
@@ -4616,7 +4621,7 @@ function crearClienteYInsertar() {
               + "<td>" + esc(o.equipo) + "</td>"
               + "<td>" + esc(o.serie) + "</td>"
               + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
-			  + "<td>$" + totalItems.toFixed(2) + "</td>"
+			  + "<td>$" + presupuesto.toFixed(2) + "</td>"
 			  + "<td>$" + saldo.toFixed(2) + "</td>"
 			  + "<td><span class='status-badge " + est.cls + "'>" + est.label + "</span></td>"
 			  + "<td>" + (o.tecnico_nombre ? esc(o.tecnico_nombre) : "—") + "</td>"
