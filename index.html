@@ -4194,7 +4194,8 @@ restaurarSesion();
     estetico: row.estetico,
     estado: row.estado,
     fechaEntrega: row.fecha_entrega,
-	tecnico_nombre: row.tecnico_nombre 
+	vistaPorTecnicoEn: row.vista_por_tecnico_en || null,  
+	tecnico_nombre: row.tecnico_nombre, 
 	 
   };
 }
@@ -4771,8 +4772,12 @@ function renderStats() {
       });
 
       if (orden) {
-        orden.vista_por_tecnico_en = new Date().toISOString();
-      }
+  		var fechaVista = new Date().toISOString();
+
+  		// Mantener ambos nombres por compatibilidad con mapearFila().
+  		orden.vista_por_tecnico_en = fechaVista;
+  		orden.vistaPorTecnicoEn = fechaVista;
+		}
 
       actualizarBadgeNuevas(ordenes);
     })
