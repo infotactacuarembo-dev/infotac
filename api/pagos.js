@@ -125,8 +125,9 @@ module.exports = async function handler(req, res) {
 
       const { data, error } = await supabase
         .from('pagos')
-        .select('id, orden_id, monto, fecha, notas, creado_en')
+        .select('id, orden_id, monto, fecha, notas, creado_en, empresa_id')
         .eq('orden_id', ordenId)
+        .eq('empresa_id', empresaId)
         .order('fecha', { ascending: true });
 
       if (error) throw error;
@@ -144,8 +145,8 @@ module.exports = async function handler(req, res) {
       const ordenId = texto(body.orden_id, 200);
       const monto = numeroPositivo(body.monto, 0);
       const fecha = body.fecha
-      ? new Date(body.fecha).toISOString()
-      : new Date().toISOString();
+        ? new Date(body.fecha).toISOString()
+        : new Date().toISOString();
       const notas = texto(body.notas || '', 500);
 
       if (!validOrdenId(ordenId)) {
@@ -179,11 +180,12 @@ module.exports = async function handler(req, res) {
         .from('pagos')
         .insert({
           orden_id: ordenId,
+          empresa_id: empresaId,
           monto: monto,
           fecha: fecha,
           notas: notas
         })
-        .select('id, orden_id, monto, fecha, notas, creado_en')
+        .select('id, orden_id, monto, fecha, notas, creado_en, empresa_id')
         .single();
 
       if (error) throw error;
@@ -231,8 +233,9 @@ module.exports = async function handler(req, res) {
 
       const { data: pagoExistente, error: pagoError } = await supabase
         .from('pagos')
-        .select('id, orden_id, monto, notas')
+        .select('id, orden_id, monto, notas, empresa_id')
         .eq('id', pagoId)
+        .eq('empresa_id', empresaId)
         .maybeSingle();
 
       if (pagoError) throw pagoError;
@@ -264,7 +267,8 @@ module.exports = async function handler(req, res) {
           notas: notas
         })
         .eq('id', pagoId)
-        .select('id, orden_id, monto, fecha, notas, creado_en')
+        .eq('empresa_id', empresaId)
+        .select('id, orden_id, monto, fecha, notas, creado_en, empresa_id')
         .single();
 
       if (error) throw error;
@@ -330,8 +334,9 @@ module.exports = async function handler(req, res) {
 
       const { data: pago, error: pagoError } = await supabase
         .from('pagos')
-        .select('id, orden_id, monto, fecha, notas, creado_en')
+        .select('id, orden_id, monto, fecha, notas, creado_en, empresa_id')
         .eq('id', pagoId)
+        .eq('empresa_id', empresaId)
         .maybeSingle();
 
       if (pagoError) throw pagoError;
@@ -359,7 +364,8 @@ module.exports = async function handler(req, res) {
       const { error: deleteError } = await supabase
         .from('pagos')
         .delete()
-        .eq('id', pagoId);
+        .eq('id', pagoId)
+        .eq('empresa_id', empresaId);
 
       if (deleteError) throw deleteError;
 
