@@ -5860,12 +5860,20 @@ if (!esTecnicoActual) {
     return;
   }
 }
-  var update = {
+    var update = {
     estado: nuevoEstado,
-    diagnostico: diagnosticoEl ? diagnosticoEl.value.trim() : "",
-    trabajo_realizar: trabajoEl ? trabajoEl.value.trim() : "",
-    sena: senaEl ? parseFloat(senaEl.value) || 0 : 0,
-    presupuesto: presupuestoEl ? parseFloat(presupuestoEl.value) || 0 : 0,
+    diagnostico: diagnosticoEl
+      ? diagnosticoEl.value.trim()
+      : "",
+    trabajo_realizar: trabajoEl
+      ? trabajoEl.value.trim()
+      : "",
+    sena: senaEl
+      ? Number(senaEl.value) || 0
+      : 0,
+    presupuesto: presupuestoEl
+      ? Number(presupuestoEl.value) || 0
+      : 0,
     aprobacion_presupuesto: aprobacionEl
       ? aprobacionEl.value
       : "pendiente"
@@ -5899,6 +5907,7 @@ if (!esTecnicoActual) {
     },
     "PATCH"
   )
+	  
     .then(function (resultado) {
       if (!resultado.ok) {
         throw new Error(
