@@ -4481,7 +4481,7 @@ function actualizarBadgeNuevas(ordenes) {
 
   if (!badge || !count) return;
 
-  // El aviso está pensado para la sesión del técnico, no para admin/user.
+  // El aviso solo corresponde a los técnicos.
   if (rol !== "tecnico") {
     badge.classList.add("hidden");
     return;
@@ -4490,12 +4490,17 @@ function actualizarBadgeNuevas(ordenes) {
   var nuevas = ordenes.filter(function (o) {
     var estado = String(o.estado || "").toLowerCase().trim();
 
-    // No mostrar como nueva una orden finalizada.
-    var sigueActiva =
-      estado !== "entregado" &&
-      estado !== "sinreparar";
+    // Las órdenes cerradas no se consideran nuevas.
+    if (estado === "entregado" || estado === "sinreparar") {
+      return false;
+    }
 
-    return sigueActiva && !o.vista_por_tecnico_en;
+    // mapearFila convierte vista_por_tecnico_en a vistaPorTecnicoEn.
+    var fueVista = Boolean(
+      o.vistaPorTecnicoEn || o.vista_por_tecnico_en
+    );
+
+    return !fueVista;
   }).length;
 
   if (nuevas > 0) {
