@@ -1469,6 +1469,16 @@ table {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}	
+
+/* Badge de órdenes nuevas */
+#badge-nuevas {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
 }		
 		
 </style>
@@ -1742,6 +1752,11 @@ table {
 				>
   				Exportar CSV
 			</button>  
+
+			 <!-- Badge de órdenes nuevas -->
+			<div id="badge-nuevas" class="hidden" style="margin: 12px 0;">
+  			Tenés <strong id="count-nuevas">0</strong> órdenes nuevas
+			</div> 
 
             <div class="table-scroll-top" id="table-scroll-top">
   			<div id="table-scroll-top-inner"></div>
@@ -4298,9 +4313,15 @@ function exportarOrdenesCSV() {
       ordenes = (resultado.data || []).map(mapearFila);
       totalOrdenes = resultado.total || 0;
       actualizarContadorPaginacion();
+		
+      // 👇 NUEVO: actualizar badge de órdenes nuevas
+      actualizarBadgeNuevas(ordenes); 
+		
       return resultado;
     });
 }
+
+		  
   function actualizarContadorPaginacion() {
   var totalPaginas = Math.ceil(totalOrdenes / ordenesPorPagina) || 1;
   var inicio = totalOrdenes === 0 ? 0 : (paginaActual - 1) * ordenesPorPagina + 1;
@@ -4449,7 +4470,35 @@ function exportarOrdenesCSV() {
     );
   });
 });
-        
+
+
+function actualizarBadgeNuevas(ordenes) {
+  var estadosNuevos = [
+    "ingresado",
+    "revision"
+  ];
+
+  var nuevas = ordenes.filter(function (o) {
+    var estado = String(o.estado || "")
+      .toLowerCase()
+      .trim();
+
+    return estadosNuevos.includes(estado);
+  }).length;
+
+  var badge = document.getElementById("badge-nuevas");
+  var count = document.getElementById("count-nuevas");
+
+  if (!badge || !count) return;
+
+  if (nuevas > 0) {
+    count.textContent = nuevas;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+		  
 
         /* ===== FORM SUBMIT ===== */
         formIngreso.addEventListener("submit", function (e) {
