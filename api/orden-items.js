@@ -124,9 +124,10 @@ module.exports = async function handler(req, res) {
       const { data, error } = await supabase
         .from('orden_items')
         .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
         )
         .eq('orden_id', ordenId)
+        .eq('empresa_id', empresaId)
         .order('creado_en', { ascending: true });
 
       if (error) throw error;
@@ -196,13 +197,14 @@ module.exports = async function handler(req, res) {
         .from('orden_items')
         .insert({
           orden_id: ordenId,
+          empresa_id: empresaId,
           tipo: tipo,
           descripcion: descripcion,
           cantidad: cantidad,
           precio_unitario: precioUnitario
         })
         .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
         )
         .single();
 
@@ -275,9 +277,10 @@ module.exports = async function handler(req, res) {
       const { data: item, error: itemError } = await supabase
         .from('orden_items')
         .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario'
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, empresa_id'
         )
         .eq('id', itemId)
+        .eq('empresa_id', empresaId)
         .maybeSingle();
 
       if (itemError) throw itemError;
@@ -317,8 +320,9 @@ module.exports = async function handler(req, res) {
           precio_unitario: precioUnitario
         })
         .eq('id', itemId)
+        .eq('empresa_id', empresaId)
         .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
         )
         .single();
 
@@ -382,9 +386,10 @@ module.exports = async function handler(req, res) {
       const { data: item, error: itemError } = await supabase
         .from('orden_items')
         .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en'
+          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
         )
         .eq('id', itemId)
+        .eq('empresa_id', empresaId)
         .maybeSingle();
 
       if (itemError) throw itemError;
@@ -413,7 +418,8 @@ module.exports = async function handler(req, res) {
       const { error: deleteError } = await supabase
         .from('orden_items')
         .delete()
-        .eq('id', itemId);
+        .eq('id', itemId)
+        .eq('empresa_id', empresaId);
 
       if (deleteError) throw deleteError;
 
