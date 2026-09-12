@@ -1714,7 +1714,7 @@ table {
                 <select id="filtro-saldo">
                   <option value="">Todos</option>
                   <option value="pendiente">Con saldo pendiente</option>
-                  <option value="cero">Sin saldo pendiente</option>
+                  <option value="pagado">Sin saldo pendiente</option>
                 </select>
               </div>
 
@@ -4468,7 +4468,7 @@ function exportarOrdenesCSV() {
 		// Leer el total de ítems desde el resumen económico
 		var totalItemsEl = document.getElementById("resumen-total-items");
 		var totalItemsTexto = totalItemsEl ? totalItemsEl.textContent : "0";
-		var totalItemsNum = parseFloat(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
+		var totalItemsNum = Number(totalItemsTexto.replace(/[^0-9.,-]/g, "").replace(",", ".")) || 0;
 
 		if (senaNum > totalItemsNum) {
   			alert("La seña no puede ser mayor que el total de servicios y repuestos.");
@@ -5022,7 +5022,7 @@ if (btnRegistrarPago) {
     var monto = prompt("Monto del pago:");
     if (!monto) return;
 
-    var montoNum = parseFloat(monto.replace(",", "."));
+    var montoNum = Number(monto.replace(",", "."));
     if (!montoNum || montoNum <= 0) {
       alert("Monto inválido.");
       return;
@@ -5685,9 +5685,7 @@ function cargarPagosOrden(ordenId) {
             return;
           }
 
-          var montoNuevo = parseFloat(
-            montoTexto.replace(",", ".")
-          );
+          var montoNuevo = Number(montoTexto.replace(",", "."));
 
           if (!montoNuevo || montoNuevo <= 0) {
             alert("Monto inválido.");
@@ -5836,17 +5834,17 @@ var esTecnicoActual = rolActual === 'tecnico';
 
 if (!esTecnicoActual) {
   var senaValidacion = senaEl
-    ? parseFloat(senaEl.value) || 0
-    : 0;
+  	? Number(senaEl.value) || 0
+  	: 0;
 
   var totalItemsEl = document.getElementById('resumen-total-items');
   var totalItemsTexto = totalItemsEl
     ? totalItemsEl.textContent
     : '0';
 
-  var totalItemsNum = parseFloat(
-    totalItemsTexto.replace(/[^0-9.,-]/g, '').replace(',', '.')
-  ) || 0;
+ var totalItemsNum = Number(
+  	totalItemsTexto.replace(/[^0-9.,-]/g, '').replace(',', '.')
+) || 0;
 
   if (senaValidacion > totalItemsNum) {
     alert(
@@ -6119,10 +6117,10 @@ if (btnExportarCsv) {
     tipo: o.equipo || o.tipo || "",
     serie: o.serie || "",
     pass: o.pin || o.pass || "",
-    sena: String(o.sena ?? "0"),
+    sena: Number(o.sena ?? 0) || 0,
     falla: o.falla || "",
-    presupuesto: String(o.presupuesto ?? "0"),
-    presupuesta: o.presupuesta || "",
+    presupuesto: Number(o.presupuesto ?? 0) || 0,
+    presupuesta: Number(o.presupuesta ?? 0) || 0,
     estetico: o.estetico || "",
     estado: o.estado || "ingresado",
 
@@ -6243,8 +6241,8 @@ function lineaEmpresaTicket(valores) {
 		  var nombreEmpresa = empresa.nombre_comercial || empresa.nombre || 'Empresa';	
           var idOrden = String(o.id).replace(/-/g, "").slice(-6).toUpperCase();
           var est = ESTADOS[o.estado] || ESTADOS.ingresado;
-          var p = parseFloat(o.presupuesto) || 0;
-          var s = parseFloat(o.sena) || 0;
+          var p = Number(o.presupuesto) || 0;
+		  var s = Number(o.sena) || 0;
           var saldo = Math.max(0, p - s).toFixed(2);
 		            var excedente = Math.max(
             0,
@@ -6548,8 +6546,8 @@ html += "</div>";
 
   var diagnostico = o.diagnostico || "A confirmar luego de la revisión técnica.";
   var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";
-  var presupuesto = parseFloat(o.presupuesto) || 0;
-  var sena = parseFloat(o.sena) || 0;
+  var presupuesto = Number(o.presupuesto) || 0;
+  var sena = Number(o.sena) || 0;
   var saldo = Math.max(
     0,
     presupuesto - sena
