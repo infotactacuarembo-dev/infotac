@@ -6,7 +6,8 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id, tecnico_id, tecnico_nombre`;
+  estado, fecha_entrega, empresa_id, tecnico_id,
+  vista_por_tecnico_en, tecnico_nombre`;
 
 const ORDER_FIELDS_WRITABLE = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
@@ -514,6 +515,59 @@ module.exports = async function handler(req, res) {
     if (req.method === 'PATCH') {
       const body = req.body || {};
 
+            // Un técnico marca una orden propia como vista al abrir su detalle.
+      if (body.action === 'marcar_vista') {
+        if (user.rol !== 'tecnico' || !validId(user.id)) {
+          return res.status(403).json({
+            ok: false,
+            error: 'Solo el técnico asignado puede marcar una orden como vista.'
+          });
+        }
+
+        if (!validId(body.id)) {
+          return res.status(400).json({
+            ok: false,
+            error: 'Identificador de orden inválido.'
+          });
+        }
+
+        const { data: ordenVista, error: ordenVistaError } =
+          await supabase
+            .from('ordenes')
+            .select('id, vista_por_tecnico_en')
+            .eq('id', body.id)
+            .eq('empresa_id', empresaId)
+            .eq('tecnico_id', user.id)
+            .maybeSingle();
+
+        if (ordenVistaError) throw ordenVistaError;
+
+        if (!ordenVista) {
+          return res.status(404).json({
+            ok: false,
+            error: 'Orden no encontrada o no asignada a este técnico.'
+          });
+        }
+
+        // No sobrescribimos la hora original si el técnico ya la había abierto.
+        if (!ordenVista.vista_por_tecnico_en) {
+          const { error: marcarVistaError } = await supabase
+            .from('ordenes')
+            .update({
+              vista_por_tecnico_en: new Date().toISOString()
+            })
+            .eq('id', body.id)
+            .eq('empresa_id', empresaId)
+            .eq('tecnico_id', user.id);
+
+          if (marcarVistaError) throw marcarVistaError;
+        }
+
+        return res.status(200).json({
+          ok: true
+        });
+      }
+
       if (!validId(body.id)) {
         return res.status(400).json({
           ok: false,
@@ -603,7 +657,9 @@ module.exports = async function handler(req, res) {
         Object.prototype.hasOwnProperty.call(body, 'tecnico_id') &&
         body.tecnico_id !== null &&
         body.tecnico_id !== ''
-      ) {
+      ) 
+      
+      {
         const { data: tecnico, error: tecnicoError } = await supabase
           .from('usuarios')
           .select('id, rol, activo')
@@ -655,12 +711,19 @@ module.exports = async function handler(req, res) {
         };
 
         if (
-          Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
+              Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
         ) {
-          update.tecnico_id = validId(body.tecnico_id)
+              const nuevoTecnicoId = validId(body.tecnico_id)
             ? body.tecnico_id
             : null;
-        }
+
+          update.tecnico_id = nuevoTecnicoId;
+
+  // Al reasignar, el técnico nuevo debe volver a ver la orden como no leída.
+  if (nuevoTecnicoId !== ordenActual.tecnico_id) {
+    update.vista_por_tecnico_en = null;
+  }
+}
       }
 
       const { error: updateError } = await supabase
