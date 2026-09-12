@@ -4607,7 +4607,7 @@ function crearClienteYInsertar() {
 
           tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
-		    var presupuesto = Number(o.presupuesto || 0);
+		    
 			var presupuesto = Number(o.total_items || 0);
 			var saldo = Math.max(
   				0,
