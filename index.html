@@ -5081,118 +5081,120 @@ if (senaInput && resumenSena) {
   }
    var botonAgregarItem = document.getElementById("btn-agregar-item");
 
-  if (botonAgregarItem) {
-    botonAgregarItem.addEventListener("click", function () {
-      var boton = botonAgregarItem;
-      var tipoEl = document.getElementById("item-tipo");
-      var descripcionEl = document.getElementById("item-descripcion");
-      var cantidadEl = document.getElementById("item-cantidad");
-      var precioEl = document.getElementById("item-precio");
+if (botonAgregarItem) {
+  botonAgregarItem.addEventListener("click", function () {
+    var boton = botonAgregarItem;
+    var tipoEl = document.getElementById("item-tipo");
+    var descripcionEl = document.getElementById("item-descripcion");
+    var cantidadEl = document.getElementById("item-cantidad");
+    var precioEl = document.getElementById("item-precio");
 
-      var tipo = tipoEl ? tipoEl.value : "";
-      var descripcion = descripcionEl
-        ? descripcionEl.value.trim()
-        : "";
-      var cantidad = cantidadEl ? Number(cantidadEl.value) : 0;
-      var precioUnitario = precioEl ? Number(precioEl.value) : 0;
-      var editandoId = boton.dataset.editandoId || "";
+    var tipo = tipoEl ? tipoEl.value : "";
+    var descripcion = descripcionEl
+      ? descripcionEl.value.trim()
+      : "";
+    var cantidad = cantidadEl ? Number(cantidadEl.value) : 0;
+    var precioUnitario = precioEl ? Number(precioEl.value) : 0;
+    var editandoId = boton.dataset.editandoId || "";
 
-      if (!descripcion) {
-        alert("Ingresá una descripción para el ítem.");
+    if (!descripcion) {
+      alert("Ingresá una descripción para el ítem.");
 
-        if (descripcionEl) {
-          descripcionEl.focus();
-        }
-
-        return;
+      if (descripcionEl) {
+        descripcionEl.focus();
       }
 
-      if (!Number.isFinite(cantidad) || cantidad <= 0) {
-        alert("La cantidad debe ser mayor que cero.");
+      return;
+    }
 
-        if (cantidadEl) {
-          cantidadEl.focus();
-        }
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      alert("La cantidad debe ser mayor que cero.");
 
-        return;
+      if (cantidadEl) {
+        cantidadEl.focus();
       }
 
-      if (!Number.isFinite(precioUnitario) || precioUnitario < 0) {
-        alert("El precio unitario no puede ser negativo.");
+      return;
+    }
 
-        if (precioEl) {
-          precioEl.focus();
-        }
+    if (!Number.isFinite(precioUnitario) || precioUnitario < 0) {
+      alert("El precio unitario no puede ser negativo.");
 
-        return;
+      if (precioEl) {
+        precioEl.focus();
       }
 
-      var textoOriginal = boton.textContent;
-      var metodo = editandoId ? "PATCH" : "POST";
+      return;
+    }
 
-      boton.disabled = true;
-      boton.textContent = editandoId
-        ? "Guardando..."
-        : "Agregando...";
+    var textoOriginal = boton.textContent;
+    var metodo = editandoId ? "PATCH" : "POST";
 
-      var datos = {
-        tipo: tipo,
-        descripcion: descripcion,
-        cantidad: cantidad,
-        precio_unitario: precioUnitario
-      };
+    boton.disabled = true;
+    boton.textContent = editandoId
+      ? "Guardando..."
+      : "Agregando...";
 
-      if (editandoId) {
-        datos.id = editandoId;
-      } else {
-        datos.orden_id = o.id;
-      }
+    var datos = {
+      tipo: tipo,
+      descripcion: descripcion,
+      cantidad: cantidad,
+      precio_unitario: precioUnitario
+    };
 
-      pedirApi(
-        "/api/orden-items",
-        datos,
-        metodo
-      )
-        .then(function (resultado) {
-          if (!resultado.ok) {
-            throw new Error(
-              resultado.error ||
-              "No se pudo guardar el ítem."
-            );
-          }
+    if (editandoId) {
+      datos.id = editandoId;
+    } else {
+      datos.orden_id = o.id;
+    }
 
-          delete boton.dataset.editandoId;
-
-          tipoEl.value = "servicio";
-          descripcionEl.value = "";
-          cantidadEl.value = "1";
-          precioEl.value = "0";
-          boton.textContent = "+ Agregar ítem";
-
-          return cargarItemsOrden(o.id);
-        })
-        .catch(function (error) {
-          console.error(
-            "Error al guardar ítem:",
-            error
-          );
-
-          alert(
-            error.message ||
+    pedirApi(
+      "/api/orden-items",
+      datos,
+      metodo
+    )
+      .then(function (resultado) {
+        if (!resultado.ok) {
+          throw new Error(
+            resultado.error ||
             "No se pudo guardar el ítem."
           );
-        })
-        .finally(function () {
-          boton.disabled = false;
+        }
 
-          if (!boton.dataset.editandoId) {
-            boton.textContent = "+ Agregar ítem";
-          } else {
-            boton.textContent = textoOriginal;
-          }
-        });
-    });
-  }
+        delete boton.dataset.editandoId;
+
+        // Limpiar formulario solo si los elementos existen
+        if (tipoEl) tipoEl.value = "servicio";
+        if (descripcionEl) descripcionEl.value = "";
+        if (cantidadEl) cantidadEl.value = "1";
+        if (precioEl) precioEl.value = "0";
+
+        boton.textContent = "+ Agregar ítem";
+
+        return cargarItemsOrden(o.id);
+      })
+      .catch(function (error) {
+        console.error(
+          "Error al guardar ítem:",
+          error
+        );
+
+        alert(
+          error.message ||
+          "No se pudo guardar el ítem."
+        );
+      })
+      .finally(function () {
+        boton.disabled = false;
+
+        if (!boton.dataset.editandoId) {
+          boton.textContent = "+ Agregar ítem";
+        } else {
+          boton.textContent = textoOriginal;
+        }
+      });
+  });
+}
 
   var btnRegistrarPago = document.getElementById("btn-registrar-pago");
 
