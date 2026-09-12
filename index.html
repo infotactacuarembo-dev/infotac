@@ -4496,7 +4496,7 @@ function exportarOrdenesCSV() {
     sena: senaNum,
     falla: val("f-falla"),
     presupuesto: presupNum,
-    presupuesta: "",
+    presupuesta: Number(val("f-presupuesta")) || 0,
     estetico: val("f-estetico"),
     estado: "ingresado",
     fecha_entrega: null
