@@ -595,7 +595,8 @@ module.exports = async function handler(req, res) {
             sena,
             presupuesto,
             aprobacion_presupuesto,
-            fecha_entrega
+            fecha_entrega,
+            vista_por_tecnico_en
           `
         )
         .eq('id', body.id)
