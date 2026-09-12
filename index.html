@@ -4729,8 +4729,9 @@ function crearClienteYInsertar() {
   			o.estado !== "entregado" &&
   			o.estado !== "sinreparar";
 
-			var etiquetaNueva = esNuevaParaTecnico
-  			? "<span class=''>Nueva</span>"
+			
+  			var etiquetaNueva = esNuevaParaTecnico
+  			? "<span class='orden-nueva-badge'>Nueva</span>"
   			: "";
 			  
 			var presupuesto = Number(o.total_items || 0);
@@ -4743,7 +4744,9 @@ function crearClienteYInsertar() {
 			  
             return "<tr data-id='" + o.id + "'>"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
-              + "<td><strong>" + esc(o.nombre) + "</strong>" + etiquetaNueva + "</td>"
+              + "<td><strong>" + esc(o.nombre) + "</strong>" +
+  				(etiquetaNueva ? " " + etiquetaNueva : "") +
+  			  "</td>"
               + "<td>" + esc(o.equipo) + "</td>"
               + "<td>" + esc(o.serie) + "</td>"
               + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
