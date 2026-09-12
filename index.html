@@ -1479,7 +1479,28 @@ table {
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
-}		
+}
+
+
+
+/* Etiqueta de orden nueva dentro de una fila */
+.orden-nueva-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
+</style>		
 		
 </style>
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
@@ -4281,7 +4302,37 @@ function exportarOrdenesCSV() {
       }	
     });
 }
-		  
+
+  function iniciarActualizacionAutomaticaTecnico() {
+  var rol = sessionStorage.getItem("rol") || "user";
+
+  if (rol !== "tecnico") {
+    return;
+  }
+
+  setInterval(function () {
+    // No refrescar detrás de un detalle abierto: evita cambiar la lista
+    // mientras el técnico está editando una orden.
+    if (modalDetalle && modalDetalle.classList.contains("visible")) {
+      return;
+    }
+
+    cargarOrdenes()
+      .then(function () {
+        renderizar();
+	    iniciarActualizacionAutomaticaTecnico();	  
+        actualizarBadgeNuevas(ordenes);
+      })
+		
+      .catch(function (error) {
+        console.error(
+          "No se pudieron actualizar automáticamente las órdenes:",
+          error
+        );
+      });
+  }, 30000);
+}
+	  
 		  
  function cargarOrdenes() {
   var params = {
@@ -4668,7 +4719,20 @@ function crearClienteYInsertar() {
 
           tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
-		    
+
+			var rolActual = sessionStorage.getItem("rol") || "user";
+
+			var esNuevaParaTecnico =
+  			rolActual === "tecnico" &&
+  			!o.vistaPorTecnicoEn &&
+  			!o.vista_por_tecnico_en &&
+  			o.estado !== "entregado" &&
+  			o.estado !== "sinreparar";
+
+			var etiquetaNueva = esNuevaParaTecnico
+  			? "<span class=''>Nueva</span>"
+  			: "";
+			  
 			var presupuesto = Number(o.total_items || 0);
 			var saldo = Math.max(
   				0,
@@ -4679,7 +4743,7 @@ function crearClienteYInsertar() {
 			  
             return "<tr data-id='" + o.id + "'>"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
-              + "<td><strong>" + esc(o.nombre) + "</strong></td>"
+              + "<td><strong>" + esc(o.nombre) + "</strong>" + etiquetaNueva + "</td>"
               + "<td>" + esc(o.equipo) + "</td>"
               + "<td>" + esc(o.serie) + "</td>"
               + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
