@@ -172,6 +172,7 @@ module.exports = async function handler(req, res) {
       const estado = req.query.estado;
       const saldo = req.query.saldo;
       const buscar = req.query.buscar;
+      const alerta = req.query.alerta || '';
 
       let query = supabase
         .from('ordenes_resumen')
@@ -251,6 +252,49 @@ module.exports = async function handler(req, res) {
             texto
         );
       }
+
+      // Filtros globales por alertas.
+// Se aplican en la base antes de ordenar y paginar.
+if (alerta === 'demoradas') {
+  var fechaDemora = new Date();
+  fechaDemora.setDate(fechaDemora.getDate() - 3);
+
+  query = query
+    .in('estado', [
+      'ingresado',
+      'revision',
+      'presupuesto',
+      'reparando'
+    ])
+    .lt('fecha', fechaDemora.toISOString());
+}
+
+if (alerta === 'retiro') {
+  var fechaRetiro = new Date();
+  fechaRetiro.setDate(fechaRetiro.getDate() - 3);
+
+  query = query
+    .eq('estado', 'terminado')
+    .not('terminado_en', 'is', null)
+    .lt('terminado_en', fechaRetiro.toISOString());
+}
+
+if (alerta === 'criticas') {
+  var fechaCritica = new Date();
+  fechaCritica.setDate(fechaCritica.getDate() - 5);
+
+  // Dos grupos:
+  // - Órdenes en proceso creadas hace más de 5 días.
+  // - Órdenes listas para retirar hace más de 5 días.
+  query = query.or(
+    'and(estado.in.(ingresado,revision,presupuesto,reparando),fecha.lt.' +
+      fechaCritica.toISOString() +
+      '),' +
+      'and(estado.eq.terminado,terminado_en.lt.' +
+      fechaCritica.toISOString() +
+      ')'
+  );
+}
 
       query = query.order('fecha', { ascending: false });
       query = query.range(offset, offset + limite - 1);
@@ -332,23 +376,30 @@ module.exports = async function handler(req, res) {
     var diffTiempo = ahora - fechaOrden;
     orden.dias_en_proceso = Math.floor(diffTiempo / (1000 * 60 * 60 * 24));
     
-    // Calcular días pendiente de entrega (si está terminada)
-    if (orden.estado === 'terminado' && orden.fecha_entrega) {
-      var fechaEntrega = new Date(orden.fecha_entrega);
-      var diffEntrega = ahora - fechaEntrega;
-      var diasPendiente = Math.floor(diffEntrega / (1000 * 60 * 60 * 24));
-      
-      if (diasPendiente > 2) {
-        orden.alerta_entrega = true;
-        orden.dias_pendiente_entrega = diasPendiente;
-      }
-    }
+    // Calcular días lista para retirar desde terminado_en.
+if (orden.estado === 'terminado' && orden.terminado_en) {
+  var fechaTerminado = new Date(orden.terminado_en);
+  var diffRetiro = ahora - fechaTerminado;
+  var diasPendiente = Math.floor(
+    diffRetiro / (1000 * 60 * 60 * 24)
+  );
+
+  orden.dias_pendiente_entrega = Math.max(0, diasPendiente);
+  orden.alerta_entrega = orden.dias_pendiente_entrega > 3;
+}
     
-    // Marcar órdenes críticas (más de 5 días en proceso)
-    if (orden.dias_en_proceso > 5 && 
-        ['ingresado', 'revision', 'presupuesto', 'reparando', 'terminado'].includes(orden.estado)) {
-      orden.es_critica = true;
-    }
+    // Marcar críticas con la misma regla usada por el frontend.
+orden.es_critica =
+  (
+    ['ingresado', 'revision', 'presupuesto', 'reparando'].includes(
+      orden.estado
+    ) &&
+    orden.dias_en_proceso > 5
+  ) ||
+  (
+    orden.estado === 'terminado' &&
+    Number(orden.dias_pendiente_entrega || 0) > 5
+  );
     // =====================================
 
     return orden;
