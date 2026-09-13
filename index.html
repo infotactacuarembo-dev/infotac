@@ -1694,24 +1694,46 @@ table {
   padding-bottom: 0.45rem;
 }
 
-/* Filtros en una única fila horizontal.
-   Si el ancho no alcanza, permite desplazarse lateralmente. */
+/* Filtros adaptables: sin barra de scroll horizontal */
 #seccion-ordenes .filters-bar {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 0.45rem;
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.35rem;
   padding: 0.55rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 #seccion-ordenes .filters-bar .filter-group {
-  flex: 0 0 auto;
-  min-width: 135px;
+  flex: 1 1 125px;
+  min-width: 120px;
 }
 
+#seccion-ordenes .filters-bar .filter-group input,
+#seccion-ordenes .filters-bar .filter-group select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Botón Exportar CSV fuera de los filtros, alineado a la derecha */
+#seccion-ordenes .export-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 34px;
+  margin: 0 0 0.45rem;
+}
+
+#seccion-ordenes .export-bar #btn-exportar-csv {
+  flex: 0 0 auto;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0.65rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}		
+		
 #seccion-ordenes .filters-bar .filter-group label {
   margin-bottom: 0.18rem;
   font-size: 0.66rem;
@@ -1738,7 +1760,7 @@ table {
 
 
 
-/* En teléfono conservamos legibilidad y permitimos scroll horizontal */
+/* En teléfono se reducen los márgenes manteniendo filtros adaptables */
 @media (max-width: 700px) {
   #seccion-ordenes .panel-body {
     padding: 0.65rem;
@@ -2011,23 +2033,23 @@ table {
 				</div>	
 
               <button
-                type="button"
-                id="btn-limpiar-filtros"
-                class="btn-clear-filters"
-              >
-                Limpiar filtros
-              </button>
-
-			 
-			<button
   				type="button"
-  				id="btn-exportar-csv"
+  				id="btn-limpiar-filtros"
   				class="btn-clear-filters"
-  				
-				>
-  				Exportar CSV
-			</button>  	
-        </div>
+			>
+  				Limpiar filtros
+				</button>
+				</div>
+
+				<div class="export-bar">
+  				<button
+    			type="button"
+    			id="btn-exportar-csv"
+    			class="btn-clear-filters"
+  				>
+    			Exportar CSV
+  			</button>
+			</div>
 
 			 <!-- Badge de órdenes nuevas -->
 			<div id="badge-nuevas" class="hidden" style="margin: 12px 0;">
