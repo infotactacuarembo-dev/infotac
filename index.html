@@ -4729,63 +4729,9 @@ function crearClienteYInsertar() {
           if (acDrop) acDrop.classList.remove("visible");
         });
 
-		  
 
-         function diasDesdeFecha(fecha) {
-  if (!fecha) return 0;
-
-  var fechaOrden = new Date(fecha);
-
-  if (Number.isNaN(fechaOrden.getTime())) {
-    return 0;
-  }
-
-  var ahora = new Date();
-  var diferencia = ahora.getTime() - fechaOrden.getTime();
-
-  if (diferencia <= 0) {
-    return 0;
-  }
-
-  return Math.floor(
-    diferencia / (1000 * 60 * 60 * 24)
-  );
-}
-
-function obtenerAlertaOrden(orden) {
-  var estadosEnProceso = [
-    "ingresado",
-    "revision",
-    "presupuesto",
-    "reparando"
-  ];
-
-  if (!estadosEnProceso.includes(orden.estado)) {
-    return null;
-  }
-
-  var dias = diasDesdeFecha(orden.fecha);
-
-  if (dias > 5) {
-    return {
-      nivel: "critica",
-      texto: "Crítica: " + dias + " días en proceso",
-      dias: dias
-    };
-  }
-
-  if (dias > 3) {
-    return {
-      nivel: "atencion",
-      texto: "Demorada: " + dias + " días en proceso",
-      dias: dias
-    };
-  }
-
-  return null;
-}  
              
-		  function diasDesdeFecha(fecha) {
+function diasDesdeFecha(fecha) {
   if (!fecha) return 0;
 
   var fechaOrden = new Date(fecha);
@@ -4839,7 +4785,7 @@ function obtenerAlertaOrden(orden) {
   return null;
 }
 
-		function obtenerAlertaTerminado(orden) {
+function obtenerAlertaTerminado(orden) {
   if (orden.estado !== 'terminado') {
     return null;
   }
