@@ -1500,9 +1500,34 @@ table {
   vertical-align: middle;
 }
 
-</style>		
+  /* Alertas de antigüedad de una orden */
+.orden-alerta-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.orden-alerta-atencion {
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+}
+
+.orden-alerta-critica {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}		
+
 		
-</style>
+
+</style>		
+
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -4190,7 +4215,7 @@ restaurarSesion();
     });
 }
 
-  function mapearFila(row) {
+function mapearFila(row) {
   return {
     id: row.id,
     clienteId: row.cliente_id,
@@ -4215,9 +4240,15 @@ restaurarSesion();
     estetico: row.estetico,
     estado: row.estado,
     fechaEntrega: row.fecha_entrega,
-	vistaPorTecnicoEn: row.vista_por_tecnico_en || null,  
-	tecnico_nombre: row.tecnico_nombre, 
-	 
+    vistaPorTecnicoEn: row.vista_por_tecnico_en || null,
+    tecnico_nombre: row.tecnico_nombre,
+
+    // Métricas que recibimos desde /api/ordenes.
+    diasEnProceso: Number(row.dias_en_proceso) || 0,
+    alertaEntrega: row.alerta_entrega === true,
+    diasPendienteEntrega:
+      Number(row.dias_pendiente_entrega) || 0,
+    esCritica: row.es_critica === true
   };
 }
 
@@ -4698,6 +4729,116 @@ function crearClienteYInsertar() {
           if (acDrop) acDrop.classList.remove("visible");
         });
 
+		  
+
+         function diasDesdeFecha(fecha) {
+  if (!fecha) return 0;
+
+  var fechaOrden = new Date(fecha);
+
+  if (Number.isNaN(fechaOrden.getTime())) {
+    return 0;
+  }
+
+  var ahora = new Date();
+  var diferencia = ahora.getTime() - fechaOrden.getTime();
+
+  if (diferencia <= 0) {
+    return 0;
+  }
+
+  return Math.floor(
+    diferencia / (1000 * 60 * 60 * 24)
+  );
+}
+
+function obtenerAlertaOrden(orden) {
+  var estadosEnProceso = [
+    "ingresado",
+    "revision",
+    "presupuesto",
+    "reparando"
+  ];
+
+  if (!estadosEnProceso.includes(orden.estado)) {
+    return null;
+  }
+
+  var dias = diasDesdeFecha(orden.fecha);
+
+  if (dias > 5) {
+    return {
+      nivel: "critica",
+      texto: "Crítica: " + dias + " días en proceso",
+      dias: dias
+    };
+  }
+
+  if (dias > 3) {
+    return {
+      nivel: "atencion",
+      texto: "Demorada: " + dias + " días en proceso",
+      dias: dias
+    };
+  }
+
+  return null;
+}  
+             
+		  function diasDesdeFecha(fecha) {
+  if (!fecha) return 0;
+
+  var fechaOrden = new Date(fecha);
+
+  if (Number.isNaN(fechaOrden.getTime())) {
+    return 0;
+  }
+
+  var ahora = new Date();
+  var diferencia = ahora.getTime() - fechaOrden.getTime();
+
+  if (diferencia <= 0) {
+    return 0;
+  }
+
+  return Math.floor(
+    diferencia / (1000 * 60 * 60 * 24)
+  );
+}
+
+function obtenerAlertaOrden(orden) {
+  var estadosEnProceso = [
+    "ingresado",
+    "revision",
+    "presupuesto",
+    "reparando"
+  ];
+
+  if (!estadosEnProceso.includes(orden.estado)) {
+    return null;
+  }
+
+  var dias = diasDesdeFecha(orden.fecha);
+
+  if (dias > 5) {
+    return {
+      nivel: "critica",
+      texto: "Crítica: " + dias + " días en proceso",
+      dias: dias
+    };
+  }
+
+  if (dias > 3) {
+    return {
+      nivel: "atencion",
+      texto: "Demorada: " + dias + " días en proceso",
+      dias: dias
+    };
+  }
+
+  return null;
+}
+
         /* ===== RENDER TABLE ===== */
         function renderizar() {
 		var filtradas = ordenes;
@@ -4733,6 +4874,21 @@ function crearClienteYInsertar() {
   			var etiquetaNueva = esNuevaParaTecnico
   			? "<span class='orden-nueva-badge'>Nueva</span>"
   			: "";
+
+			  
+
+			var alertaOrden = obtenerAlertaOrden(o);
+
+			var etiquetaAlerta = alertaOrden
+  			? "<span class='orden-alerta-badge orden-alerta-" +
+      		alertaOrden.nivel +
+      		"' title='" +
+      		esc(alertaOrden.texto) +
+      		"'>" +
+      		esc(alertaOrden.texto) +
+    		"</span>"
+  			: "";		
+
 			  
 			var presupuesto = Number(o.total_items || 0);
 			var saldo = Math.max(
@@ -4745,7 +4901,8 @@ function crearClienteYInsertar() {
             return "<tr data-id='" + o.id + "'>"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
               + "<td><strong>" + esc(o.nombre) + "</strong>" +
-  				(etiquetaNueva ? " " + etiquetaNueva : "") +
+  			  (etiquetaNueva ? " " + etiquetaNueva : "") +
+  		  	 (etiquetaAlerta ? "<br>" + etiquetaAlerta : "") +
   			  "</td>"
               + "<td>" + esc(o.equipo) + "</td>"
               + "<td>" + esc(o.serie) + "</td>"
