@@ -5062,27 +5062,19 @@ function obtenerAlertaTerminado(orden) {
     var alertaRetiro = obtenerAlertaTerminado(o);
     var alerta = alertaProceso || alertaRetiro;
 
-    // Órdenes en estados de trabajo que ya superaron 3 días.
-    if (
-      alertaProceso &&
-      alertaProceso.dias > 3
-    ) {
+    // En proceso: Ingresado, En revisión, Presupuesto o Reparando,
+    // con más de 3 días desde la fecha de ingreso.
+    if (alertaProceso && alertaProceso.dias > 3) {
       enProcesoDemoradas++;
     }
 
-    // Órdenes "Listo para retirar" que llevan más de 3 días.
-    if (
-      alertaRetiro &&
-      alertaRetiro.dias > 3
-    ) {
+    // Listo para retirar con más de 3 días desde terminado_en.
+    if (alertaRetiro && alertaRetiro.dias > 3) {
       listasParaRetirarDemoradas++;
     }
 
-    // Toda alerta crítica: más de 5 días.
-    if (
-      alerta &&
-      alerta.nivel === "critica"
-    ) {
+    // Crítica: más de 5 días en proceso o lista para retirar.
+    if (alerta && alerta.nivel === "critica") {
       criticas++;
     }
   });
@@ -5092,55 +5084,49 @@ function obtenerAlertaTerminado(orden) {
     listasParaRetirarDemoradas > 0 ||
     criticas > 0;
 
-  if (!hayAlertas) {
-    resumenAlertas.innerHTML =
-      "<div class='alerta-resumen-aclaracion'>" +
-      "Sin alertas de demora en las órdenes mostradas." +
-      "</div>";
-
-    resumenAlertas.classList.remove("hidden");
-    return;
-  }
+  var mensajeResumen = hayAlertas
+    ? "Hacé clic en una tarjeta para filtrar todas las órdenes de la empresa."
+    : "No hay alertas de demora en las órdenes mostradas.";
 
   resumenAlertas.innerHTML =
-  "<button type='button' class='alerta-resumen-card alerta-resumen-demora' data-alerta='demoradas'>" +
-    "<span class='alerta-resumen-icono'>⏳</span>" +
-    "<span><strong>" + enProcesoDemoradas + "</strong> demoradas en proceso</span>" +
-  "</button>" +
-  "<button type='button' class='alerta-resumen-card alerta-resumen-retiro' data-alerta='retiro'>" +
-    "<span class='alerta-resumen-icono'>📦</span>" +
-    "<span><strong>" + listasParaRetirarDemoradas + "</strong> listas para retirar +3 días</span>" +
-  "</button>" +
-  "<button type='button' class='alerta-resumen-card alerta-resumen-critica' data-alerta='criticas'>" +
-    "<span class='alerta-resumen-icono'>⚠</span>" +
-    "<span><strong>" + criticas + "</strong> órdenes críticas +5 días</span>" +
-  "</button>" +
-  (
-    filtroAlertaActivo
-      ? "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
-          "Ver todas las órdenes" +
-        "</button>"
-      : ""
-  ) +
-  "<div class='alerta-resumen-aclaracion'>" +
-    "Hacé clic en una tarjeta para filtrar todas las órdenes de la empresa." +
-  "</div>";
+    "<button type='button' class='alerta-resumen-card alerta-resumen-demora' data-alerta='demoradas'>" +
+      "<span class='alerta-resumen-icono'>⏳</span>" +
+      "<span><strong>" + enProcesoDemoradas + "</strong> demoradas en proceso</span>" +
+    "</button>" +
+    "<button type='button' class='alerta-resumen-card alerta-resumen-retiro' data-alerta='retiro'>" +
+      "<span class='alerta-resumen-icono'>📦</span>" +
+      "<span><strong>" + listasParaRetirarDemoradas + "</strong> listas para retirar +3 días</span>" +
+    "</button>" +
+    "<button type='button' class='alerta-resumen-card alerta-resumen-critica' data-alerta='criticas'>" +
+      "<span class='alerta-resumen-icono'>⚠</span>" +
+      "<span><strong>" + criticas + "</strong> órdenes críticas +5 días</span>" +
+    "</button>" +
+    (
+      filtroAlertaActivo
+        ? "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
+            "Ver todas las órdenes" +
+          "</button>"
+        : ""
+    ) +
+    "<div class='alerta-resumen-aclaracion'>" +
+      mensajeResumen +
+    "</div>";
 
-   resumenAlertas.querySelectorAll("[data-alerta]").forEach(function (boton) {
-  boton.addEventListener("click", function () {
-    filtroAlertaActivo = boton.getAttribute("data-alerta") || "";
-    paginaActual = 1;
+  resumenAlertas.querySelectorAll("[data-alerta]").forEach(function (boton) {
+    boton.addEventListener("click", function () {
+      filtroAlertaActivo = boton.getAttribute("data-alerta") || "";
+      paginaActual = 1;
 
-    cargarOrdenes()
-      .then(function () {
-        renderizar();
-      })
-      .catch(function (error) {
-        console.error("Error al filtrar alertas:", error);
-        alert("No se pudieron cargar las órdenes filtradas.");
-      });
+      cargarOrdenes()
+        .then(function () {
+          renderizar();
+        })
+        .catch(function (error) {
+          console.error("Error al filtrar alertas:", error);
+          alert("No se pudieron cargar las órdenes filtradas.");
+        });
+    });
   });
-});	 
 
   resumenAlertas.classList.remove("hidden");
 }		  
