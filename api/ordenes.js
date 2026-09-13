@@ -6,14 +6,14 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id, tecnico_id,
+  estado, fecha_entrega, terminado_en, empresa_id, tecnico_id,
   vista_por_tecnico_en, tecnico_nombre`;
 
 const ORDER_FIELDS_WRITABLE = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, empresa_id, tecnico_id`;
+  estado, fecha_entrega, terminado_en, empresa_id, tecnico_id`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -710,34 +710,51 @@ module.exports = async function handler(req, res) {
 
       let update;
 
-      if (user.rol === 'tecnico') {
-        update = {
-          estado: body.estado,
-          diagnostico: text(body.diagnostico, 4000),
-          trabajo_realizar: text(body.trabajo_realizar, 4000),
-          fecha_entrega: null
-        };
-      } else {
-        update = {
-          estado: body.estado,
-          diagnostico: text(body.diagnostico, 4000),
-          trabajo_realizar: text(body.trabajo_realizar, 4000),
-          sena: number(body.sena),
-          presupuesto: number(body.presupuesto),
-          aprobacion_presupuesto: text(
-            body.aprobacion_presupuesto || 'pendiente',
-            20
-          ),
-          fecha_entrega:
-            body.estado === 'entregado' ||
-            body.estado === 'sinreparar'
-              ? isoDate(
-                  body.fecha_entrega,
-                  new Date().toISOString()
-                )
-              : null
-        };
+// Determinar nuevo valor de terminado_en
+let terminadoEn = null;
 
+if (body.estado === 'terminado') {
+  // Si ya tiene terminado_en, lo conservamos; si no, ponemos ahora.
+  if (ordenActual.terminado_en) {
+    terminadoEn = ordenActual.terminado_en;
+  } else {
+    terminadoEn = new Date().toISOString();
+  }
+} else {
+  // Si el estado ya no es "terminado", limpiamos terminado_en.
+  terminadoEn = null;
+}
+
+if (user.rol === 'tecnico') {
+  update = {
+    estado: body.estado,
+    diagnostico: text(body.diagnostico, 4000),
+    trabajo_realizar: text(body.trabajo_realizar, 4000),
+    fecha_entrega: null,
+    terminado_en: terminadoEn
+  };
+} else {
+  update = {
+    estado: body.estado,
+    diagnostico: text(body.diagnostico, 4000),
+    trabajo_realizar: text(body.trabajo_realizar, 4000),
+    sena: number(body.sena),
+    presupuesto: number(body.presupuesto),
+    aprobacion_presupuesto: text(
+      body.aprobacion_presupuesto || 'pendiente',
+      20
+    ),
+    fecha_entrega:
+      body.estado === 'entregado' ||
+      body.estado === 'sinreparar'
+        ? isoDate(
+            body.fecha_entrega,
+            new Date().toISOString()
+          )
+        : null,
+    terminado_en: terminadoEn
+  };
+  
         if (
               Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
         ) {
