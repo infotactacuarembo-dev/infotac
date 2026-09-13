@@ -7219,19 +7219,33 @@ html += "</div>";
     .toUpperCase();
 
   var diagnostico = o.diagnostico || "A confirmar luego de la revisión técnica.";
-  var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";
+  var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";  
   var presupuesto = Number(o.presupuesto) || 0;
   var sena = Number(o.sena) || 0;
-  var saldo = Math.max(
-    0,
-    presupuesto - sena
-  ).toFixed(2);
-    var excedente = Math.max(
-    0,
-    sena - presupuesto
-  ).toFixed(2);
+
+/* Estimación inicial para el mensaje de presupuesto */
+var saldoEstimado = Math.max(
+  0,
+  presupuesto - sena
+).toFixed(2);
+
+/*
+  Saldo efectivo recibido desde /api/ordenes.
+  Incluye importes de la orden y todos los pagos registrados.
+*/
+var saldoReal = Math.max(
+  0,
+  Number(o.saldo_real) || 0
+).toFixed(2);
+
+var excedente = Math.max(
+  0,
+  sena - presupuesto
+).toFixed(2);
 	  
-    items = items || [];
+  
+	  
+  items = items || [];
 
   var textoItems = "";
   var totalItems = 0;	
