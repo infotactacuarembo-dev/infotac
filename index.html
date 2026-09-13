@@ -1518,6 +1518,12 @@ table {
   border: 1px solid #fde68a;
 }
 
+.orden-alerta-lista {
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}		
+
 .orden-alerta-critica {
   color: #991b1b;
   background: #fee2e2;
@@ -4786,12 +4792,16 @@ function obtenerAlertaOrden(orden) {
 }
 
 function obtenerAlertaTerminado(orden) {
-  if (orden.estado !== 'terminado') {
+  if (orden.estado !== "terminado") {
     return null;
   }
 
   if (!orden.terminado_en) {
-    return null;
+    return {
+      nivel: "atencion",
+      texto: "Lista para retirar",
+      dias: 0
+    };
   }
 
   var dias = diasDesdeFecha(orden.terminado_en);
@@ -4812,7 +4822,12 @@ function obtenerAlertaTerminado(orden) {
     };
   }
 
-  return null;
+  return {
+    nivel: "lista",
+    texto: "Lista para retirar hace " + dias + " día" +
+      (dias === 1 ? "" : "s"),
+    dias: dias
+  };
 }
 
 		  
