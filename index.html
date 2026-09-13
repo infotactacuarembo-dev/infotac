@@ -4824,7 +4824,10 @@ function obtenerAlertaTerminado(orden) {
 
   return {
     nivel: "lista",
-    texto: "Lista para retirar hace " + dias + " día" +
+    texto:
+      "Lista para retirar hace " +
+      dias +
+      " día" +
       (dias === 1 ? "" : "s"),
     dias: dias
   };
