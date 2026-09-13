@@ -1629,6 +1629,144 @@ table {
   border-color: var(--primary);
 }
 
+
+/* ===== PANEL DE ÓRDENES COMPACTO ===== */
+
+/* Menos espacio vertical dentro del panel derecho */
+#seccion-ordenes .panel-body {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+/* Estados: una sola franja horizontal con desplazamiento si falta ancho */
+#seccion-ordenes .stats-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+#seccion-ordenes .stat-chip {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* Alertas en una línea compacta */
+#seccion-ordenes .alertas-resumen {
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+#seccion-ordenes .alerta-resumen-card {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+#seccion-ordenes .alerta-resumen-card strong {
+  font-size: 0.8rem;
+}
+
+#seccion-ordenes .alerta-resumen-aclaracion {
+  display: none;
+}
+
+/* Buscador con menos altura y margen */
+#seccion-ordenes .search-bar {
+  margin: 0 0 0.5rem;
+  min-height: 38px;
+}
+
+#seccion-ordenes .search-bar input {
+  min-height: 38px;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+/* Filtros en una única fila horizontal.
+   Si el ancho no alcanza, permite desplazarse lateralmente. */
+#seccion-ordenes .filters-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 0.45rem;
+  margin: 0 0 0.55rem;
+  padding: 0.55rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+#seccion-ordenes .filters-bar .filter-group {
+  flex: 0 0 auto;
+  min-width: 135px;
+}
+
+#seccion-ordenes .filters-bar .filter-group label {
+  margin-bottom: 0.18rem;
+  font-size: 0.66rem;
+  line-height: 1;
+}
+
+#seccion-ordenes .filters-bar .filter-group input,
+#seccion-ordenes .filters-bar .filter-group select {
+  height: 34px;
+  min-height: 34px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+/* Botón Limpiar filtros dentro de la misma fila */
+#seccion-ordenes .btn-clear-filters {
+  flex: 0 0 auto;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 0.65rem;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+/* Exportar CSV: se compacta y queda alineado a la derecha. */
+#seccion-ordenes #btn-exportar-csv {
+  float: right;
+  min-height: 32px;
+  height: 32px;
+  margin: -0.05rem 0 0.45rem !important;
+  padding: 0 0.65rem;
+  font-size: 0.75rem;
+}
+
+/* Evita que el float del botón afecte la tabla */
+#seccion-ordenes #btn-exportar-csv::after {
+  content: "";
+  clear: both;
+}
+
+/* En teléfono conservamos legibilidad y permitimos scroll horizontal */
+@media (max-width: 700px) {
+  #seccion-ordenes .panel-body {
+    padding: 0.65rem;
+  }
+
+  #seccion-ordenes .filters-bar {
+    padding: 0.45rem;
+  }
+
+  #seccion-ordenes .search-bar {
+    min-height: 36px;
+  }
+}
+		
 		
 </style>		
 
