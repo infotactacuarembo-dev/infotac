@@ -259,74 +259,101 @@ module.exports = async function handler(req, res) {
 
       if (error) throw error;
 
-      if (data && Array.isArray(data)) {
-        data = data.map(function (orden) {
-          if (!orden.fecha) return orden;
+     if (data && Array.isArray(data)) {
+  data = data.map(function (orden) {
+    if (!orden.fecha) return orden;
 
-          const fechaUTC = new Date(orden.fecha);
+    const fechaUTC = new Date(orden.fecha);
 
-          if (Number.isNaN(fechaUTC.getTime())) {
-            return orden;
-          }
+    if (Number.isNaN(fechaUTC.getTime())) {
+      return orden;
+    }
 
-          const opciones = {
-            timeZone: zonaHoraria,
-            hour12: false,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          };
+    const opciones = {
+      timeZone: zonaHoraria,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
 
-          const formatter = new Intl.DateTimeFormat(
-            'es-UY',
-            opciones
-          );
+    const formatter = new Intl.DateTimeFormat(
+      'es-UY',
+      opciones
+    );
 
-          const partes = formatter.formatToParts(fechaUTC);
+    const partes = formatter.formatToParts(fechaUTC);
 
-          const año = partes.find(function (p) {
-            return p.type === 'year';
-          }).value;
+    const año = partes.find(function (p) {
+      return p.type === 'year';
+    }).value;
 
-          const mes = partes.find(function (p) {
-            return p.type === 'month';
-          }).value;
+    const mes = partes.find(function (p) {
+      return p.type === 'month';
+    }).value;
 
-          const dia = partes.find(function (p) {
-            return p.type === 'day';
-          }).value;
+    const dia = partes.find(function (p) {
+      return p.type === 'day';
+    }).value;
 
-          const hora = partes.find(function (p) {
-            return p.type === 'hour';
-          }).value;
+    const hora = partes.find(function (p) {
+      return p.type === 'hour';
+    }).value;
 
-          const minuto = partes.find(function (p) {
-            return p.type === 'minute';
-          }).value;
+    const minuto = partes.find(function (p) {
+      return p.type === 'minute';
+    }).value;
 
-          const segundo = partes.find(function (p) {
-            return p.type === 'second';
-          }).value;
+    const segundo = partes.find(function (p) {
+      return p.type === 'second';
+    }).value;
 
-          orden.fecha =
-            año +
-            '-' +
-            mes +
-            '-' +
-            dia +
-            'T' +
-            hora +
-            ':' +
-            minuto +
-            ':' +
-            segundo;
+    orden.fecha =
+      año +
+      '-' +
+      mes +
+      '-' +
+      dia +
+      'T' +
+      hora +
+      ':' +
+      minuto +
+      ':' +
+      segundo;
 
-          return orden;
-        });
+    // ===== MÉTRICAS DE PRODUCTIVIDAD =====
+    var ahora = new Date();
+    var fechaOrden = new Date(orden.fecha);
+    
+    // Calcular días en proceso desde la creación
+    var diffTiempo = ahora - fechaOrden;
+    orden.dias_en_proceso = Math.floor(diffTiempo / (1000 * 60 * 60 * 24));
+    
+    // Calcular días pendiente de entrega (si está terminada)
+    if (orden.estado === 'terminado' && orden.fecha_entrega) {
+      var fechaEntrega = new Date(orden.fecha_entrega);
+      var diffEntrega = ahora - fechaEntrega;
+      var diasPendiente = Math.floor(diffEntrega / (1000 * 60 * 60 * 24));
+      
+      if (diasPendiente > 2) {
+        orden.alerta_entrega = true;
+        orden.dias_pendiente_entrega = diasPendiente;
       }
+    }
+    
+    // Marcar órdenes críticas (más de 5 días en proceso)
+    if (orden.dias_en_proceso > 5 && 
+        ['ingresado', 'revision', 'presupuesto', 'reparando', 'terminado'].includes(orden.estado)) {
+      orden.es_critica = true;
+    }
+    // =====================================
+
+    return orden;
+  });
+}
 
       return res.status(200).json({
         ok: true,
