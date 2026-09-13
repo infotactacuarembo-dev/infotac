@@ -4793,8 +4793,13 @@ function obtenerAlertaOrden(orden) {
 
 function obtenerAlertaTerminado(orden) {
   if (orden.estado !== "terminado") {
-    return null;
-  }
+    return {
+  			nivel: "lista",
+  			texto: "Lista para retirar hace " + dias + " día" +
+    		(dias === 1 ? "" : "s"),
+  			dias: dias
+			};
+  		}
 
   if (!orden.terminado_en) {
     return {
