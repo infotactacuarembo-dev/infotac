@@ -7220,29 +7220,16 @@ html += "</div>";
 
   var diagnostico = o.diagnostico || "A confirmar luego de la revisión técnica.";
   var trabajo = o.trabajoRealizar || "A confirmar según el diagnóstico.";  
-  var presupuesto = Number(o.presupuesto) || 0;
   var sena = Number(o.sena) || 0;
 
-/* Estimación inicial para el mensaje de presupuesto */
-var saldoEstimado = Math.max(
-  0,
-  presupuesto - sena
-).toFixed(2);
-
 /*
-  Saldo efectivo recibido desde /api/ordenes.
-  Incluye importes de la orden y todos los pagos registrados.
+  Saldo real recibido desde /api/ordenes.
+  Considera el total de ítems y todos los pagos registrados.
 */
 var saldoReal = Math.max(
   0,
   Number(o.saldo_real) || 0
 ).toFixed(2);
-
-var excedente = Math.max(
-  0,
-  sena - presupuesto
-).toFixed(2);
-	  
   
 	  
   items = items || [];
@@ -7284,12 +7271,17 @@ var excedente = Math.max(
     });
   }	  
 
-    if (items.length > 0) {
-    textoItems +=
-      "Total de servicios y repuestos: $" +
-      totalItems.toFixed(2) +
-      "\n";
-  }	  
+   var totalPresupuesto = totalItems;
+
+   var saldoPendiente = Math.max(
+   0,
+  totalPresupuesto - sena
+  ).toFixed(2);
+
+  var excedente = Math.max(
+  0,
+  sena - totalPresupuesto
+  ).toFixed(2); 	  
 
   switch (o.estado) {
     case "ingresado":
@@ -7311,26 +7303,24 @@ var excedente = Math.max(
       );
 
     case "presupuesto":
-      return (
-        "Hola " + nombre + ", ya tenemos novedades sobre tu equipo " +
-        equipo + ".\n\n" +
-        "Nro. de orden: " + idOrden + "\n\n" +
-        "Diagnóstico:\n" + diagnostico + "\n\n" +
-        "Trabajo a realizar:\n" + trabajo + "\n\n" +
-        textoItems +
-        "\nPresupuesto: $" +
-        presupuesto.toFixed(2) +
-        "\n" +
-        "Seña registrada: $" + sena.toFixed(2) + "\n" +
-        "Saldo estimado: $" + saldo + "\n" +
-        (excedente > 0
-          ? "Excedente registrado: $" +
-            excedente +
-            "\n\n"
-          : "\n") +
-        "Por favor, confirmán si aprobás el trabajo para que podamos avanzar.\n\n" +
-        "Saludos, Infotac."
-      );
+  return (
+    "Hola " + nombre + ", ya tenemos novedades sobre tu equipo " +
+    equipo + ".\n\n" +
+    "Nro. de orden: " + idOrden + "\n\n" +
+    "Diagnóstico:\n" + diagnostico + "\n\n" +
+    "Trabajo a realizar:\n" + trabajo + "\n\n" +
+    textoItems +
+    "\nTotal de servicios y repuestos: $" +
+    totalPresupuesto.toFixed(2) +
+    "\n" +
+    "Seña registrada: $" + sena.toFixed(2) + "\n" +
+    "Saldo pendiente: $" + saldoPendiente + "\n" +
+    (Number(excedente) > 0
+      ? "Saldo a favor: $" + excedente + "\n"
+      : "") +
+    "\nPor favor, confirmá si aprobás el trabajo para que podamos avanzar.\n\n" +
+    "Saludos, Infotac."
+  );
 
     case "reparando":
       return (
