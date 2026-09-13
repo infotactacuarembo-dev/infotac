@@ -4839,6 +4839,37 @@ function obtenerAlertaOrden(orden) {
   return null;
 }
 
+		function obtenerAlertaTerminado(orden) {
+  if (orden.estado !== 'terminado') {
+    return null;
+  }
+
+  if (!orden.terminado_en) {
+    return null;
+  }
+
+  var dias = diasDesdeFecha(orden.terminado_en);
+
+  if (dias > 5) {
+    return {
+      nivel: "critica",
+      texto: "Crítica: lista para retirar hace " + dias + " días",
+      dias: dias
+    };
+  }
+
+  if (dias > 3) {
+    return {
+      nivel: "atencion",
+      texto: "Lista para retirar hace " + dias + " días",
+      dias: dias
+    };
+  }
+
+  return null;
+}
+
+		  
         /* ===== RENDER TABLE ===== */
         function renderizar() {
 		var filtradas = ordenes;
@@ -4878,16 +4909,19 @@ function obtenerAlertaOrden(orden) {
 			  
 
 			var alertaOrden = obtenerAlertaOrden(o);
+			var alertaTerminado = obtenerAlertaTerminado(o);
 
-			var etiquetaAlerta = alertaOrden
+			var alertaFinal = alertaOrden || alertaTerminado;
+
+			var etiquetaAlerta = alertaFinal
   			? "<span class='orden-alerta-badge orden-alerta-" +
-      		alertaOrden.nivel +
+      		alertaFinal.nivel +
       		"' title='" +
-      		esc(alertaOrden.texto) +
+      		esc(alertaFinal.texto) +
       		"'>" +
-      		esc(alertaOrden.texto) +
+		      esc(alertaFinal.texto) +
     		"</span>"
-  			: "";		
+  			: "";
 
 			  
 			var presupuesto = Number(o.total_items || 0);
