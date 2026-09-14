@@ -6579,36 +6579,80 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var presupuestoEl = document.getElementById("modal-presupuesto");
   var aprobacionEl = document.getElementById("modal-aprobacion");
 
-  var rolActual = sessionStorage.getItem('rol') || 'user';
-var esTecnicoActual = rolActual === 'tecnico';
+  var rolActual = sessionStorage.getItem("rol") || "user";
+  var esTecnicoActual = rolActual === "tecnico";
 
-if (!esTecnicoActual) {
-  var senaValidacion = senaEl
-  	? Number(senaEl.value) || 0
-  	: 0;
+  if (!esTecnicoActual) {
+    var senaValidacion = senaEl
+      ? Number(senaEl.value) || 0
+      : 0;
 
-  var totalItemsEl = document.getElementById('resumen-total-items');
-  var totalItemsTexto = totalItemsEl
-    ? totalItemsEl.textContent
-    : '0';
-
- var totalItemsNum = Number(
-  	totalItemsTexto.replace(/[^0-9.,-]/g, '').replace(',', '.')
-) || 0;
-
-  if (senaValidacion > totalItemsNum) {
-    alert(
-      'La seña no puede ser mayor que el total de servicios y repuestos.'
+    var totalItemsEl = document.getElementById(
+      "resumen-total-items"
     );
 
-    if (senaEl) {
-      senaEl.focus();
-    }
+    var totalItemsTexto = totalItemsEl
+      ? totalItemsEl.textContent
+      : "0";
 
-    return;
+    var totalItemsNum = Number(
+      totalItemsTexto
+        .replace(/[^0-9.,-]/g, "")
+        .replace(",", ".")
+    ) || 0;
+
+    if (senaValidacion > totalItemsNum) {
+      alert(
+        "La seña no puede ser mayor que el total de servicios y repuestos."
+      );
+
+      if (senaEl) {
+        senaEl.focus();
+      }
+
+      return;
+    }
   }
-}
-    var update = {
+
+    // Tomar el saldo actual que muestra el resumen del modal.
+  // Este valor ya contempla: ítems - seña - pagos visibles.
+  var saldoResumenEl = document.getElementById("resumen-saldo");
+
+  function leerMontoResumen(texto) {
+    var limpio = String(texto || "")
+      .replace("$", "")
+      .replace(/,/g, "")
+      .trim();
+
+    return Number(limpio) || 0;
+  }
+
+  var saldoPendiente = leerMontoResumen(
+    saldoResumenEl ? saldoResumenEl.textContent : "0"
+  );
+
+  // Advertir solo al pasar por primera vez a "entregado"
+  // y cuando todavía existe una deuda.
+  if (
+    nuevoEstado === "entregado" &&
+    estadoPrevio !== "entregado" &&
+    saldoPendiente > 0
+  ) {
+    var confirmarEntregaConSaldo = window.confirm(
+      "ATENCIÓN: esta orden tiene un saldo pendiente de $" +
+        saldoPendiente.toFixed(2) +
+        ".\n\n" +
+        "El equipo quedará marcado como ENTREGADO, " +
+        "pero la deuda seguirá pendiente.\n\n" +
+        "¿Confirmás que querés entregarlo igual?"
+    );
+
+    if (!confirmarEntregaConSaldo) {
+      return;
+    }
+  }
+
+  var update = {
     estado: nuevoEstado,
     diagnostico: diagnosticoEl
       ? diagnosticoEl.value.trim()
@@ -6655,7 +6699,6 @@ if (!esTecnicoActual) {
     },
     "PATCH"
   )
-	  
     .then(function (resultado) {
       if (!resultado.ok) {
         throw new Error(
@@ -6677,51 +6720,6 @@ if (!esTecnicoActual) {
       );
     });
 });
-		  
-  modalEliminar.addEventListener("click", function () {
-  var rolActual = sessionStorage.getItem('rol') || 'user';
-
-  if (rolActual !== 'admin') {
-    alert('Solo un administrador puede eliminar órdenes.');
-    return;
-  }
-
-  if (ordenActivaId) {
-    borrarOrden(ordenActivaId);
-  }
-
-  modalDetalle.classList.remove("visible");
-});
-
-      /* ===== DELETE ===== */
-  function borrarOrden(id) {
-  if (!confirm("¿Eliminar esta orden definitivamente?")) {
-    return;
-  }
-
-  return pedirApi(
-    "/api/ordenes?id=" + encodeURIComponent(id),
-    undefined,
-    "DELETE"
-  )
-    .then(function (resultado) {
-      if (!resultado.ok) {
-        throw new Error(
-          resultado.error || "No se pudo eliminar la orden"
-        );
-      }
-
-      return cargarOrdenes().then(renderizar);
-    })
-    .catch(function (error) {
-      console.error("Error al eliminar la orden:", error);
-      alert(
-        "No se pudo eliminar la orden: " +
-        (error.message || "intentá nuevamente.")
-      );
-    });
-}
-
    
 
     /* ===== SEARCH ===== */		  
