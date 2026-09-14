@@ -715,22 +715,35 @@ orden.es_critica =
       }
 
       if (user.rol === 'tecnico') {
-        const estadosTecnicoPermitidos = new Set([
-          'ingresado',
-          'revision',
-          'presupuesto',
-          'reparando',
-          'terminado'
-        ]);
+  const estadosTecnicoPermitidos = new Set([
+    'ingresado',
+    'revision',
+    'presupuesto',
+    'reparando',
+    'terminado'
+  ]);
 
-        if (!estadosTecnicoPermitidos.has(body.estado)) {
-          return res.status(403).json({
-            ok: false,
-            error:
-              'Los técnicos no pueden marcar órdenes como entregadas o devueltas.'
-          });
-        }
-      }
+  // Un técnico no puede gestionar salida, devolución ni reabrir
+  // una orden que ya fue cerrada por administración.
+  if (!estadosTecnicoPermitidos.has(body.estado)) {
+    return res.status(403).json({
+      ok: false,
+      error:
+        'Los técnicos no pueden marcar órdenes como entregadas o devueltas.'
+    });
+  }
+
+  if (
+    ordenActual.estado === 'entregado' ||
+    ordenActual.estado === 'sinreparar'
+  ) {
+    return res.status(403).json({
+      ok: false,
+      error:
+        'Esta orden ya fue cerrada. Solo un administrador o usuario puede modificar su estado.'
+    });
+  }
+}
 
       if (
         user.rol === 'tecnico' &&
