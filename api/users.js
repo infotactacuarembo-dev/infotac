@@ -387,6 +387,30 @@ module.exports = async function handler(req, res) {
 
       if (error) throw error;
 
+      // Registrar el restablecimiento administrativo en la auditoría
+// de cambios de contraseña. Nunca se guarda la clave ni su hash.
+if (password !== undefined) {
+  const { error: passwordAuditError } = await supabase
+    .from('password_changes')
+    .insert({
+      empresa_id: empresaId,
+      resultado: 'exitoso',
+      detalle:
+        'Contraseña restablecida por el administrador "' +
+        user.identificador +
+        '" para el usuario "' +
+        data.identificador +
+        '".'
+    });
+
+  if (passwordAuditError) {
+    console.error(
+      'No se pudo registrar la auditoría de cambio de contraseña:',
+      passwordAuditError
+    );
+  }
+}
+
       const cambios = [];
 
       if (rol !== undefined && rol !== usuarioExistente.rol) {
