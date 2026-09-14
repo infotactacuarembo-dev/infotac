@@ -3429,6 +3429,7 @@ if (tableWrap && tableScrollTop) {
         var ordenes = [];
         var ordenActivaId = null;
         var estadoEditTemporal = "ingresado";
+		var ordenOrigenHistorialId = null;  
         var clientes = [];
         var clienteSeleccionadoId = null;
 
@@ -5898,8 +5899,16 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     return;
   }
 
+  /*
+    Guardamos la orden que estaba abierta antes de consultar
+    un trabajo histórico, pero no la reemplazamos si ya existía.
+  */
+  if (!ordenOrigenHistorialId) {
+    ordenOrigenHistorialId = ordenActivaId;
+  }
+
   abrirDetalle(ordenId, true);
-});		  
+});	  
 
  function cargarItemsOrden(ordenId) {
   pedirApi(
@@ -6523,6 +6532,19 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
 		  
 		  
   modalCerrar.addEventListener("click", function () {
+  /*
+    Si se estaba consultando una orden histórica, volvemos
+    a la orden desde la cual se abrió el historial.
+  */
+  if (ordenOrigenHistorialId) {
+    var idParaVolver = ordenOrigenHistorialId;
+
+    ordenOrigenHistorialId = null;
+
+    abrirDetalle(idParaVolver);
+    return;
+  }
+
   modalDetalle.classList.remove("visible");
 });
 
