@@ -60,19 +60,44 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const { data, error } = await supabase
-        .from('clientes')
-        .select('id, nombre, whatsapp')
-        .eq('empresa_id', empresaId)
-        .order('nombre', { ascending: true });
+  const buscar = req.query && req.query.buscar;
+  const pagina = parseInt(req.query.pagina || '1', 10);
+  const limite = Math.min(
+    parseInt(req.query.limite || '100', 10),
+    500
+  );
+  const offset = (pagina - 1) * limite;
 
-      if (error) throw error;
+  let query = supabase
+    .from('clientes')
+    .select('id, nombre, whatsapp', { count: 'exact' })
+    .eq('empresa_id', empresaId);
 
-      return res.status(200).json({
-        ok: true,
-        data: data || []
-      });
-    }
+  // Búsqueda por nombre (opcional).
+  if (buscar && typeof buscar === 'string') {
+    const texto = '%' + buscar.trim().slice(0, 160) + '%';
+    query = query.ilike('nombre', texto);
+  }
+
+  query = query.order('nombre', { ascending: true });
+
+  // Paginación solo si se pide búsqueda o se especifica página.
+  if (buscar || req.query.pagina || req.query.limite) {
+    query = query.range(offset, offset + limite - 1);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) throw error;
+
+  return res.status(200).json({
+    ok: true,
+    data: data || [],
+    total: count || 0,
+    pagina: pagina,
+    limite: limite
+  });
+}
 
     if (req.method === 'POST') {
       const body = req.body || {};
