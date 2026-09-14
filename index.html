@@ -5526,13 +5526,31 @@ if (!esTecnicoActual) {
   html += "</div>";
 }
 
+var soloLecturaHistorial = desdeHistorialCliente === true;	  
+
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
+
+if (soloLecturaHistorial) {
+  modalContenido.querySelectorAll(
+    "input, textarea, select, button"
+  ).forEach(function (elemento) {
+    elemento.disabled = true;
+  });
+}	  
+	  
 var rolActual = sessionStorage.getItem('rol') || 'user';
+
+if (modalGuardar) {
+  modalGuardar.style.display =
+    desdeHistorialCliente ? "none" : "";
+}
 
 if (modalEliminar) {
   modalEliminar.style.display =
-    rolActual === 'admin' ? '' : 'none';
+    !desdeHistorialCliente && rolActual === "admin"
+      ? ""
+      : "none";
 }	  
 
 // Los técnicos no tienen acceso a pagos ni al historial de auditoría.
