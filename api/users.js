@@ -394,7 +394,7 @@ if (password !== undefined) {
     .from('password_changes')
     .insert({
       empresa_id: empresaId,
-      resultado: 'exitoso',
+      resultado: 'exito',
       detalle:
         'Contraseña restablecida por el administrador "' +
         user.identificador +
