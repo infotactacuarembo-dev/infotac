@@ -5859,6 +5859,22 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     });
 }
 
+
+  document.addEventListener("click", function (event) {
+  var boton = event.target.closest(".btn-ver-orden-historial");
+
+  if (!boton) return;
+
+  var ordenId = boton.getAttribute("data-orden-id");
+
+  if (!ordenId) {
+    alert("No se encontró la orden seleccionada.");
+    return;
+  }
+
+  abrirDetalle(ordenId);
+});		  
+
  function cargarItemsOrden(ordenId) {
   pedirApi(
     "/api/orden-items?orden_id=" +
