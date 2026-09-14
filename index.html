@@ -5833,9 +5833,14 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
             est.label +
             "</span>" +
             "<span class='h-falla'>" +
-            esc(r.falla || "") +
-            "</span>" +
-            "</li>"
+			esc(r.falla || "") +
+			"</span>" +
+			"<button type='button' " +
+			"class='btn-ver-orden-historial' " +
+			"data-orden-id='" + esc(r.id) + "'>" +
+			"Ver / editar" +
+			"</button>" +
+			"</li>"
           );
         }).join("") +
         "</ul>";
