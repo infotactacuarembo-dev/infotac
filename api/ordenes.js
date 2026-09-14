@@ -138,30 +138,41 @@ module.exports = async function handler(req, res) {
 
       // Órdenes de un cliente de la misma empresa.
       if (clienteId) {
-        if (!validId(clienteId)) {
-          return res.status(400).json({
-            ok: false,
-            error: 'Identificador de cliente inválido.'
-          });
-        }
+  if (!validId(clienteId)) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Identificador de cliente inválido.'
+    });
+  }
 
-        const { data, error } = await supabase
-          .from('ordenes')
-          .select(
-            'id, fecha, tipo, falla, estado, cliente_id',
-            { count: 'exact' }
-          )
-          .eq('empresa_id', empresaId)
-          .eq('cliente_id', clienteId)
-          .order('fecha', { ascending: false });
+  const idActual = req.query && req.query.id_actual;
 
-        if (error) throw error;
+  let query = supabase
+    .from('ordenes')
+    .select(
+      'id, fecha, tipo, falla, estado, cliente_id',
+      { count: 'exact' }
+    )
+    .eq('empresa_id', empresaId)
+    .eq('cliente_id', clienteId);
 
-        return res.status(200).json({
-          ok: true,
-          data: data || []
-        });
-      }
+  // Excluir la orden que está abierta, si se indica.
+  if (idActual && validId(idActual)) {
+    query = query.neq('id', idActual);
+  }
+
+  query = query.order('fecha', { ascending: false });
+  query = query.limit(20);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return res.status(200).json({
+    ok: true,
+    data: data || []
+  });
+}
 
       const pagina = parseInt(req.query.pagina || '1', 10);
       const limite = parseInt(req.query.limite || '25', 10);
