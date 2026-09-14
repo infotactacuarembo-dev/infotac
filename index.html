@@ -5353,10 +5353,10 @@ function renderStats() {
 }
 		  
  /* ===== DETAIL MODAL ===== */
-  function abrirDetalle(id) {
-
-  
-	  
+  function abrirDetalle(id, desdeHistorialCliente) {
+    
+  desdeHistorialCliente = desdeHistorialCliente === true;
+    
   var o = ordenes.find(function (x) {
     return x.id === id;
   });
@@ -5508,21 +5508,23 @@ if (!esTecnicoActual) {
 }
 
     // Historial de cambios de esta orden: solo administración.
-  if (!esTecnicoActual) {
-    html += "<div class='historial-section'>";
-    html += "<div class='historial-title'>Historial de esta orden</div>";
-    html += "<div id='orden-audit-contenido'>";
-    html += "<div class='historial-loading'>Cargando historial de la orden...</div>";
-    html += "</div>";
-    html += "</div>";
-  }
+  if (!esTecnicoActual && !desdeHistorialCliente) {
+  html += "<div class='historial-section'>";
+  html += "<div class='historial-title'>Historial de esta orden</div>";
+  html += "<div id='orden-audit-contenido'>";
+  html += "<div class='historial-loading'>Cargando historial de la orden...</div>";
+  html += "</div>";
+  html += "</div>";
+}
 	  
+  if (!desdeHistorialCliente && !esTecnicoActual) {
   html += "<div class='historial-section'>";
   html += "<div class='historial-title'>Historial de trabajos del cliente</div>";
   html += "<div id='historial-contenido'>";
   html += "<div class='historial-loading'>Cargando historial...</div>";
   html += "</div>";
   html += "</div>";
+}
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
@@ -5536,7 +5538,10 @@ if (modalEliminar) {
 // Los técnicos no tienen acceso a pagos ni al historial de auditoría.
 if (!esTecnicoActual) {
   cargarPagosOrden(o.id);
-  cargarHistorialOrden(o.id);
+
+  if (!desdeHistorialCliente) {
+    cargarHistorialOrden(o.id);
+  }
 }
 	  
 var senaInput = document.getElementById("modal-sena");
@@ -5562,6 +5567,7 @@ if (senaInput && resumenSena) {
     });
   }
 
+  if (!desdeHistorialCliente && !esTecnicoActual) {
   if (o.clienteId) {
     cargarHistorialCliente(o.clienteId, o.id);
   } else {
@@ -5572,6 +5578,8 @@ if (senaInput && resumenSena) {
         "<div class='historial-loading'>Este cliente no tiene historial vinculado.</div>";
     }
   }
+}
+	  
    var botonAgregarItem = document.getElementById("btn-agregar-item");
 
 if (botonAgregarItem) {
@@ -5872,7 +5880,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
     return;
   }
 
-  abrirDetalle(ordenId);
+  abrirDetalle(ordenId, true);
 });		  
 
  function cargarItemsOrden(ordenId) {
