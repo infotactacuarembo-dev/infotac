@@ -723,8 +723,6 @@ orden.es_critica =
     'terminado'
   ]);
 
-  // Un técnico no puede gestionar salida, devolución ni reabrir
-  // una orden que ya fue cerrada por administración.
   if (!estadosTecnicoPermitidos.has(body.estado)) {
     return res.status(403).json({
       ok: false,
@@ -733,6 +731,8 @@ orden.es_critica =
     });
   }
 
+  // Una orden que ya salió del taller no puede volver al flujo técnico.
+  // Solo administración puede corregir o reabrir una orden cerrada.
   if (
     ordenActual.estado === 'entregado' ||
     ordenActual.estado === 'sinreparar'
@@ -740,7 +740,7 @@ orden.es_critica =
     return res.status(403).json({
       ok: false,
       error:
-        'Esta orden ya fue cerrada. Solo un administrador o usuario puede modificar su estado.'
+        'Esta orden ya fue cerrada. Solo administración puede modificarla.'
     });
   }
 }
