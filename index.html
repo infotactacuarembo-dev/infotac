@@ -5815,9 +5815,16 @@ if (btnRegistrarPago) {
 }
 
 function cargarHistorialCliente(clienteId, ordenActualId) {
-  pedirApi(
-    "/api/ordenes?cliente_id=" + encodeURIComponent(clienteId)
-  )
+  var url =
+    "/api/ordenes?cliente_id=" +
+    encodeURIComponent(clienteId);
+
+  // Enviar también la orden que está abierta.
+  if (ordenActualId) {
+    url += "&id_actual=" + encodeURIComponent(ordenActualId);
+  }
+
+  pedirApi(url)
     .then(function (res) {
       var histEl = document.getElementById("historial-contenido");
 
@@ -5829,6 +5836,7 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
         return;
       }
 
+      // Filtro de seguridad por si acaso (el backend ya excluye la orden).
       var otras = (res.data || []).filter(function (r) {
         return r.id !== ordenActualId;
       });
@@ -5860,14 +5868,14 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
             est.label +
             "</span>" +
             "<span class='h-falla'>" +
-			esc(r.falla || "") +
-			"</span>" +
-			"<button type='button' " +
-			"class='btn-ver-orden-historial' " +
-			"data-orden-id='" + esc(r.id) + "'>" +
-			"Ver / editar" +
-			"</button>" +
-			"</li>"
+            esc(r.falla || "") +
+            "</span>" +
+            "<button type='button' " +
+            "class='btn-ver-orden-historial' " +
+            "data-orden-id='" + esc(r.id) + "'>" +
+            "Ver / editar" +
+            "</button>" +
+            "</li>"
           );
         }).join("") +
         "</ul>";
@@ -5885,7 +5893,6 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
       }
     });
 }
-
 
   document.addEventListener("click", function (event) {
   var boton = event.target.closest(".btn-ver-orden-historial");
