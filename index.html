@@ -7982,6 +7982,7 @@ document.getElementById('metrica-total-eventos-sesion-7d').textContent = totalEv
       }
 
       var cambios = datos.cambiosClave || [];
+	  console.log('Últimos cambios de clave recibidos:', cambios);	
       var tbodyCambios = document.querySelector('#tabla-ultimos-cambios-clave tbody');
       tbodyCambios.innerHTML = '';
 
