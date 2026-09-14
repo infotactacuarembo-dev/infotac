@@ -5382,6 +5382,13 @@ function renderStats() {
   html += "<div class='detail-row'><div class='detail-label'>Equipo</div><div class='detail-value'>" + (esc(o.equipo) || "—") + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>Nro Serie</div><div class='detail-value'>" + (esc(o.serie) || "—") + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>PIN</div><div class='detail-value'>" + (esc(o.pin) || "—") + "</div></div>";
+  if (ordenCerradaParaTecnico) {
+  html +=
+    "<div class='historial-loading'>" +
+    "Esta orden ya fue cerrada por administración. " +
+    "Podés consultarla, pero no modificarla." +
+    "</div>";
+}	  
 
   if (!esTecnicoActual) {
   html += "<div class='form-group full'>";
@@ -5531,24 +5538,28 @@ if (!esTecnicoActual) {
   html += "</div>";
 }
 
-var soloLecturaHistorial = desdeHistorialCliente === true;	  
+var soloLecturaHistorial = desdeHistorialCliente === true;
+var soloLectura =
+  soloLecturaHistorial || ordenCerradaParaTecnico;
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
 
-if (soloLecturaHistorial) {
+if (soloLectura) {
   modalContenido.querySelectorAll(
     "input, textarea, select, button"
   ).forEach(function (elemento) {
     elemento.disabled = true;
   });
-}	  
+}  
 	  
 var rolActual = sessionStorage.getItem('rol') || 'user';
 
 if (modalGuardar) {
   modalGuardar.style.display =
-    desdeHistorialCliente ? "none" : "";
+    desdeHistorialCliente || ordenCerradaParaTecnico
+      ? "none"
+      : "";
 }
 
 if (modalEliminar) {
