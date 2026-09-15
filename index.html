@@ -6330,12 +6330,19 @@ function renderStats() {
 	  
 // Fecha prometida de entrega: visible para todos, solo lectura.
 if (o.fechaPrometidaEntrega) {
-  var hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  // Usamos solo la parte YYYY-MM-DD, sin hora ni zona.
+  var hoyYMD = new Date();
+  hoyYMD.setHours(0, 0, 0, 0);
 
-  var fechaProm = new Date(o.fechaPrometidaEntrega + "T00:00:00");
+  // o.fechaPrometidaEntrega viene como "YYYY-MM-DD" desde la API.
+  var partes = (o.fechaPrometidaEntrega || "").split("-");
+  var fechaProm = partes.length === 3
+    ? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+    : null;
+
   var esDemorada =
-    fechaProm < hoy &&
+    fechaProm &&
+    fechaProm < hoyYMD &&
     o.estado !== "entregado" &&
     o.estado !== "sinreparar";
 
@@ -6345,11 +6352,15 @@ if (o.fechaPrometidaEntrega) {
     "'>" +
     "<div class='detail-label'>Fecha prometida de entrega</div>" +
     "<div class='detail-value'>" +
-    fmtFecha(o.fechaPrometidaEntrega) +
+    (fechaProm
+      ? (fechaProm.getDate().toString().padStart(2, "0") + "/" +
+         ((fechaProm.getMonth() + 1).toString().padStart(2, "0")) + "/" +
+         fechaProm.getFullYear())
+      : esc(o.fechaPrometidaEntrega)) +
     (esDemorada ? " ⚠ Demorada" : "") +
     "</div>" +
     "</div>";
-} 
+}
 
   	  
   html += "<div class='detail-row'><div class='detail-label'>Cliente</div><div class='detail-value'>" + esc(o.nombre) + "</div></div>";
