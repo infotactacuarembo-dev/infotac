@@ -5410,7 +5410,8 @@ function mapearFila(row) {
     estetico: row.estetico,
     estado: row.estado,
     fechaEntrega: row.fecha_entrega,
-	terminado_en: row.terminado_en || null,  
+	fechaPrometidaEntrega: row.fecha_prometida_entrega || null,
+	terminado_en: row.terminado_en || null,
     vistaPorTecnicoEn: row.vista_por_tecnico_en || null,
     tecnico_nombre: row.tecnico_nombre,
 
@@ -6310,7 +6311,19 @@ function renderStats() {
   if (!esTecnicoActual) {
   html += "<div class='form-group full'>";
   html += "<label for='modal-sena'>Seña</label>";
+  if (!esTecnicoActual) {
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-sena'>Seña</label>";
   html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
+  html += "</div>";
+
+  html += "<div class='form-group full'>";
+  html += "<label for='modal-fecha-prometida-entrega'>Fecha prometida de entrega</label>";
+  html += "<input type='date' id='modal-fecha-prometida-entrega' value='" +
+    esc(o.fechaPrometidaEntrega || "") +
+    "'>";
+  html += "</div>";
+} value='" + (o.sena || "") + "'>";
   html += "</div>";
 }
 			
@@ -7510,6 +7523,9 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var senaEl = document.getElementById("modal-sena");
   var presupuestoEl = document.getElementById("modal-presupuesto");
   var aprobacionEl = document.getElementById("modal-aprobacion");
+  var fechaPrometidaEl = document.getElementById(
+  "modal-fecha-prometida-entrega"
+	);	  
 
   var rolActual = sessionStorage.getItem("rol") || "user";
   var esTecnicoActual = rolActual === "tecnico";
@@ -7584,75 +7600,78 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
     }
   }
 
-  var update = {
-    estado: nuevoEstado,
-    diagnostico: diagnosticoEl
-      ? diagnosticoEl.value.trim()
-      : "",
-    trabajo_realizar: trabajoEl
-      ? trabajoEl.value.trim()
-      : "",
-    sena: senaEl
-      ? Number(senaEl.value) || 0
-      : 0,
-    presupuesto: presupuestoEl
-      ? Number(presupuestoEl.value) || 0
-      : 0,
-    aprobacion_presupuesto: aprobacionEl
-      ? aprobacionEl.value
-      : "pendiente"
-  };
+ var update = {
+  estado: nuevoEstado,
+  diagnostico: diagnosticoEl
+    ? diagnosticoEl.value.trim()
+    : "",
+  trabajo_realizar: trabajoEl
+    ? trabajoEl.value.trim()
+    : "",
+  sena: senaEl
+    ? Number(senaEl.value) || 0
+    : 0,
+  presupuesto: presupuestoEl
+    ? Number(presupuestoEl.value) || 0
+    : 0,
+  aprobacion_presupuesto: aprobacionEl
+    ? aprobacionEl.value
+    : "pendiente",
+  fecha_prometida_entrega: fechaPrometidaEl
+    ? fechaPrometidaEl.value
+    : null
+};
 
-  if (
-    (nuevoEstado === "entregado" || nuevoEstado === "sinreparar") &&
-    estadoPrevio !== nuevoEstado
-  ) {
-    update.fecha_entrega = new Date().toISOString();
-  }
+if (
+  (nuevoEstado === "entregado" || nuevoEstado === "sinreparar") &&
+  estadoPrevio !== nuevoEstado
+) {
+  update.fecha_entrega = new Date().toISOString();
+}
 
-  if (
-    nuevoEstado !== "entregado" &&
-    nuevoEstado !== "sinreparar"
-  ) {
-    update.fecha_entrega = null;
-  }
+if (
+  nuevoEstado !== "entregado" &&
+  nuevoEstado !== "sinreparar"
+) {
+  update.fecha_entrega = null;
+}
 
-  pedirApi(
-    "/api/ordenes",
-    {
-      id: o.id,
-      estado: update.estado,
-      fecha_entrega: update.fecha_entrega || null,
-      diagnostico: update.diagnostico,
-      trabajo_realizar: update.trabajo_realizar,
-      sena: update.sena,
-      presupuesto: update.presupuesto,
-      aprobacion_presupuesto: update.aprobacion_presupuesto
-    },
-    "PATCH"
-  )
-    .then(function (resultado) {
-      if (!resultado.ok) {
-        throw new Error(
-          resultado.error || "No se pudieron guardar los cambios"
-        );
-      }
-
-      return cargarOrdenes();
-    })
-    .then(function () {
-      renderizar();
-      modalDetalle.classList.remove("visible");
-    })
-    .catch(function (err) {
-      console.error("Error al guardar cambios:", err);
-      alert(
-        "No se pudieron guardar los cambios: " +
-        (err.message || "intentá nuevamente.")
+pedirApi(
+  "/api/ordenes",
+  {
+    id: o.id,
+    estado: update.estado,
+    fecha_entrega: update.fecha_entrega || null,
+    fecha_prometida_entrega: update.fecha_prometida_entrega,
+    diagnostico: update.diagnostico,
+    trabajo_realizar: update.trabajo_realizar,
+    sena: update.sena,
+    presupuesto: update.presupuesto,
+    aprobacion_presupuesto: update.aprobacion_presupuesto
+  },
+  "PATCH"
+)
+  .then(function (resultado) {
+    if (!resultado.ok) {
+      throw new Error(
+        resultado.error || "No se pudieron guardar los cambios"
       );
-    });
+    }
+
+    return cargarOrdenes();
+  })
+  .then(function () {
+    renderizar();
+    modalDetalle.classList.remove("visible");
+  })
+  .catch(function (err) {
+    console.error("Error al guardar cambios:", err);
+    alert(
+      "No se pudieron guardar los cambios: " +
+      (err.message || "intentá nuevamente.")
+    );
+  });
 });
-   
 
     /* ===== SEARCH ===== */		  
 function reiniciarPaginaYRenderizar() {
