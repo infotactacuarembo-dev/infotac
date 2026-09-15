@@ -2189,6 +2189,16 @@ table {
 .detail-row-demorada .detail-value {
   color: #b71c1c;
   font-weight: 800;
+}	
+
+ .orden-demorada-icon {
+  color: #d32f2f;
+  font-weight: 700;
+  margin-right: 4px;
+  cursor: help;
+}
+tr.orden-demorada {
+  background: #fff5f5;
 }		
 		
 </style>		
@@ -5497,6 +5507,20 @@ function exportarOrdenesCSV() {
 
       // Filas del CSV
       ordenes.forEach(function (o) {
+        var hoyYMD = new Date();
+		hoyYMD.setHours(0, 0, 0, 0);
+
+		var partes = (o.fechaPrometidaEntrega || "").split("-");
+		var fechaProm = partes.length === 3
+  		? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+  		: null;
+
+		var esDemorada =
+  		fechaProm &&
+  		fechaProm < hoyYMD &&
+  		o.estado !== "entregado" &&
+  		o.estado !== "sinreparar";
+		  
         var fecha = o.fecha ? o.fecha.split('T')[0] : '';  // Solo la fecha sin hora
         var cliente = o.cliente || '';
         var equipo = o.tipo || '';
@@ -6058,6 +6082,20 @@ function obtenerAlertaTerminado(orden) {
 
           tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
+            var hoyYMD = new Date();
+			hoyYMD.setHours(0, 0, 0, 0);
+
+			var partes = (o.fechaPrometidaEntrega || "").split("-");
+			var fechaProm = partes.length === 3
+  			? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+  			: null;
+
+			var esDemorada =
+  			fechaProm &&
+  			fechaProm < hoyYMD &&
+  			o.estado !== "entregado" &&
+  			o.estado !== "sinreparar";
+			  
 
 			var rolActual = sessionStorage.getItem("rol") || "user";
 
@@ -6099,7 +6137,7 @@ function obtenerAlertaTerminado(orden) {
     			Number(o.total_pagos || 0)
 			);
 			  
-            return "<tr data-id='" + o.id + "'>"
+              return "<tr data-id='" + o.id + "'" + (esDemorada ? " class='orden-demorada'" : "") + ">"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
               + "<td><strong>" + esc(o.nombre) + "</strong>" +
   			  (etiquetaNueva ? " " + etiquetaNueva : "") +
@@ -6110,7 +6148,10 @@ function obtenerAlertaTerminado(orden) {
               + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
 			  + "<td>$" + presupuesto.toFixed(2) + "</td>"
 			  + "<td>$" + saldo.toFixed(2) + "</td>"
-			  + "<td><span class='status-badge " + est.cls + "'>" + est.label + "</span></td>"
+			  + "<td>" +
+  			  (esDemorada ? "<span class='orden-demorada-icon' title='Orden demorada'>⚠ </span>" : "") +
+  			  "<span class='status-badge " + est.cls + "'>" + est.label + "</span>" +
+  			  "</td>"
 			  + "<td>" + (o.tecnico_nombre ? esc(o.tecnico_nombre) : "—") + "</td>"
 			  
               + "<td><div class='row-actions'>"
