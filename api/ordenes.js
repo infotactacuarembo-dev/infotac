@@ -329,6 +329,27 @@ if (alerta === 'criticas') {
   );
 }
 
+
+  if (alerta === 'fecha-prometida') {
+  // Fecha prometida vencida:
+  // - fecha_prometida_entrega < hoy
+  // - estado NO en ('entregado', 'sinreparar')
+  var hoy = new Date();
+  var hoyYMD =
+    hoy.getFullYear() +
+    '-' +
+    String(hoy.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(hoy.getDate()).padStart(2, '0') +
+    'T00:00:00';
+
+  query = query
+    .lt('fecha_prometida_entrega', hoyYMD)
+    .neq('estado', 'entregado')
+    .neq('estado', 'sinreparar')
+    .not('fecha_prometida_entrega', 'is', null);
+}
+
       query = query.order('fecha', { ascending: false });
       query = query.range(offset, offset + limite - 1);
 
