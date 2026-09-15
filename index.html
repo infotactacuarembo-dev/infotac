@@ -6311,9 +6311,6 @@ function renderStats() {
   if (!esTecnicoActual) {
   html += "<div class='form-group full'>";
   html += "<label for='modal-sena'>Seña</label>";
-  if (!esTecnicoActual) {
-  html += "<div class='form-group full'>";
-  html += "<label for='modal-sena'>Seña</label>";
   html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
   html += "</div>";
 
@@ -6322,8 +6319,6 @@ function renderStats() {
   html += "<input type='date' id='modal-fecha-prometida-entrega' value='" +
     esc(o.fechaPrometidaEntrega || "") +
     "'>";
-  html += "</div>";
-} value='" + (o.sena || "") + "'>";
   html += "</div>";
 }
 			
