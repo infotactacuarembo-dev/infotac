@@ -2158,6 +2158,38 @@ table {
     line-height: 1.2 !important;
   }
 }
+
+  .detail-row-highlight {
+  background: #fff8e1; /* fondo suave tipo “aviso” */
+  border-left: 4px solid #ffb300;
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin: 6px 0;
+}
+
+.detail-row-highlight .detail-label {
+  font-weight: 600;
+  color: #996f00;
+}
+
+.detail-row-highlight .detail-value {
+  font-weight: 700;
+  color: #000;
+}		
+
+.detail-row-demorada {
+  background: #ffebee; /* fondo rojizo suave */
+  border-left-color: #d32f2f;
+}
+
+.detail-row-demorada .detail-label {
+  color: #b71c1c;
+}
+
+.detail-row-demorada .detail-value {
+  color: #b71c1c;
+  font-weight: 800;
+}		
 		
 </style>		
 
@@ -6295,6 +6327,31 @@ function renderStats() {
   (o.estado === 'entregado' || o.estado === 'sinreparar');	  
 
   html += "<div class='detail-row'><div class='detail-label'>Fecha de Ingreso</div><div class='detail-value'>" + fmtFecha(o.fecha) + "</div></div>";
+	  
+// Fecha prometida de entrega: visible para todos, solo lectura.
+if (o.fechaPrometidaEntrega) {
+  var hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  var fechaProm = new Date(o.fechaPrometidaEntrega + "T00:00:00");
+  var esDemorada =
+    fechaProm < hoy &&
+    o.estado !== "entregado" &&
+    o.estado !== "sinreparar";
+
+  html +=
+    "<div class='detail-row detail-row-highlight" +
+    (esDemorada ? " detail-row-demorada" : "") +
+    "'>" +
+    "<div class='detail-label'>Fecha prometida de entrega</div>" +
+    "<div class='detail-value'>" +
+    fmtFecha(o.fechaPrometidaEntrega) +
+    (esDemorada ? " ⚠ Demorada" : "") +
+    "</div>" +
+    "</div>";
+} 
+
+  	  
   html += "<div class='detail-row'><div class='detail-label'>Cliente</div><div class='detail-value'>" + esc(o.nombre) + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>WhatsApp</div><div class='detail-value'>" + (esc(o.whatsapp) || "—") + "</div></div>";
   html += "<div class='detail-row'><div class='detail-label'>Equipo</div><div class='detail-value'>" + (esc(o.equipo) || "—") + "</div></div>";
