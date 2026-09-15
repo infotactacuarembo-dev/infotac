@@ -2907,7 +2907,189 @@ table {
       por las del archivo seleccionado.
     </p>
   </div>
+
+	
 </section>
+
+   <!-- Contable / Balance del taller -->
+<section
+  class="panel"
+  id="configuracion-contable"
+  style="display:none;"
+>
+  <div class="panel-header">
+    <h2>Balance del taller</h2>
+
+    <button
+      type="button"
+      class="btn-sm"
+      id="btn-volver-menu-contable"
+    >
+      Volver a configuración
+    </button>
+  </div>
+
+  <div class="panel-body">
+    <p style="margin:0 0 1.25rem;color:var(--text-muted);">
+      Consultá el resumen económico de las órdenes entregadas en un período.
+      Los importes se calculan a partir de los servicios, repuestos, señas y
+      pagos registrados en cada orden.
+    </p>
+
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="form-group">
+        <label for="balance-desde">Desde</label>
+        <input
+          type="date"
+          id="balance-desde"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="balance-hasta">Hasta</label>
+        <input
+          type="date"
+          id="balance-hasta"
+        >
+      </div>
+
+      <div
+        class="form-group"
+        style="display:flex;align-items:flex-end;"
+      >
+        <button
+          type="button"
+          class="btn-primary"
+          id="btn-consultar-balance"
+          style="width:100%;"
+        >
+          Consultar balance
+        </button>
+      </div>
+    </div>
+
+    <p
+      id="balance-mensaje"
+      role="status"
+      aria-live="polite"
+      style="margin:0 0 1rem;color:var(--text-muted);"
+    >
+      Seleccioná un período para consultar el balance.
+    </p>
+
+    <div
+      id="balance-resumen"
+      style="display:none;"
+    >
+      <div class="config-section-title">
+        <h3>Resumen del período</h3>
+        <p id="balance-periodo">
+          —
+        </p>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Órdenes entregadas</label>
+          <div
+            id="balance-cantidad-ordenes"
+            class="balance-value"
+          >
+            0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mano de obra facturada</label>
+          <div
+            id="balance-mano-obra"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Repuestos facturados</label>
+          <div
+            id="balance-repuestos"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Servicios facturados</label>
+          <div
+            id="balance-servicios"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Total facturado</label>
+          <div
+            id="balance-total-facturado"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Señas recibidas</label>
+          <div
+            id="balance-senas"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Pagos registrados</label>
+          <div
+            id="balance-pagos"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Total cobrado</label>
+          <div
+            id="balance-total-cobrado"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Saldo pendiente</label>
+          <div
+            id="balance-saldo-pendiente"
+            class="balance-value"
+          >
+            $0.00
+          </div>
+        </div>
+      </div>
+
+      <p
+        style="margin:1rem 0 0;font-size:0.82rem;color:var(--text-muted);"
+      >
+        Este balance incluye solamente órdenes con estado “Entregado” y fecha
+        de entrega dentro del período seleccionado.
+      </p>
+    </div>
+  </div>
+</section>
+	  
   </main>
 </div>
 
@@ -4239,6 +4421,19 @@ if (btnMenuSecundario && menuSecundario) {
 		);
 		var btnImportarBackupConfig = document.getElementById(
   		'btn-importar-backup-config'
+		);  
+
+		/* ===== CONTABLE / BALANCE DEL TALLER ===== */
+		var seccionConfiguracionContable = document.getElementById(
+  		'configuracion-contable'
+		);
+
+		var btnAbrirContableConfig = document.getElementById(
+  		'btn-abrir-contable-config'
+		);
+
+		var btnVolverMenuContable = document.getElementById(
+  		'btn-volver-menu-contable'
 		);  
 		  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
