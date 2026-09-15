@@ -2200,6 +2200,48 @@ table {
 tr.orden-demorada {
   background: #fff5f5;
 }		
+
+
+/* Estilo base de las tarjetas de alerta (si ya lo tenés, no lo dupliques) */
+.alerta-resumen-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.alerta-resumen-card:hover {
+  background: #f9fafb;
+  border-color: #c0c0c0;
+}
+
+/* Icono dentro de las tarjetas */
+.alerta-resumen-icono {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Tarjeta “fecha prometida vencida” */
+.alerta-resumen-fecha-prometida {
+  background: #fff8e1; /* fondo amarillo suave */
+  border-color: #ffb300;
+  color: #996f00;
+}
+
+.alerta-resumen-fecha-prometida:hover {
+  background: #ffe082;
+  border-color: #f57f17;
+}
+
+.alerta-resumen-fecha-prometida .alerta-resumen-icono {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}		
 		
 </style>		
 
