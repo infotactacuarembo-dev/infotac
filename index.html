@@ -2342,6 +2342,17 @@ table {
     				<option value="">Sin asignar</option>
   					</select>
 				</div>  
+
+				  <div class="form-group">
+  					<label for="f-fecha-prometida-entrega">
+    				Fecha prometida de entrega
+  					</label>
+
+  					<input
+    				type="date"
+    				id="f-fecha-prometida-entrega"
+  					>
+				</div>
                 
                 <div class="form-group full">
                   <label for="f-falla">Falla declarada</label>
@@ -5799,8 +5810,9 @@ function actualizarBadgeNuevas(ordenes) {
     tipo: val("f-equipo"),
     serie: val("f-serie"),
     pass: val("f-pin"),
-	tecnico_id: val("f-tecnico") || null,  
-    sena: senaNum,
+	tecnico_id: val("f-tecnico") || null,
+	fecha_prometida_entrega: val("f-fecha-prometida-entrega") || null,
+	sena: senaNum,
     falla: val("f-falla"),
     presupuesto: presupNum,
     presupuesta: Number(val("f-presupuesta")) || 0,
