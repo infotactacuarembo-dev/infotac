@@ -2090,6 +2090,40 @@ table {
     margin-top: 0.25rem !important;
   }
 }
+
+/* ===== COMPACTAR EXPORTAR CSV Y TABLA DE ÓRDENES ===== */
+@media (max-width: 600px) {
+  /* El botón queda pegado al contenido anterior. */
+  #seccion-ordenes .export-bar {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0.35rem 0 0.5rem !important;
+    padding: 0 !important;
+  }
+
+  #seccion-ordenes .export-bar #btn-exportar-csv {
+    min-height: 40px !important;
+    height: 40px !important;
+    margin: 0 !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+
+  /* El contenedor de la tabla no agrega espacio superior. */
+  #seccion-ordenes .table-wrap {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #seccion-ordenes .table-wrap table {
+    margin: 0 !important;
+  }
+
+  /* Elimina posibles separaciones del primer encabezado. */
+  #seccion-ordenes .table-wrap thead {
+    margin: 0 !important;
+  }
+}
+
 		
 </style>		
 
