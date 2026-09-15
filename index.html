@@ -2056,6 +2056,40 @@ table {
     white-space: nowrap !important;
   }
 }		
+
+/* ===== AJUSTE FINAL DEL PANEL DE ÓRDENES EN CELULAR ===== */
+@media (max-width: 600px) {
+  /* Selectores: texto más pequeño y espacio para el icono. */
+  #seccion-ordenes .filters-bar select {
+    min-width: 0 !important;
+    padding-left: 0.55rem !important;
+    padding-right: 2rem !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  /* Exportar CSV más compacto. */
+  #seccion-ordenes .export-bar {
+    justify-content: flex-end !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  #seccion-ordenes .export-bar #btn-exportar-csv {
+    width: auto !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0.45rem 0.8rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Un poco menos de espacio antes de la tabla. */
+  #seccion-ordenes .table-wrap {
+    margin-top: 0.25rem !important;
+  }
+}
 		
 </style>		
 
