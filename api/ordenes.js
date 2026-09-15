@@ -6,14 +6,15 @@ const ORDER_FIELDS = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, terminado_en, empresa_id, tecnico_id,
-  vista_por_tecnico_en, tecnico_nombre`;
+  estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
+  empresa_id, tecnico_id, vista_por_tecnico_en, tecnico_nombre`;
 
 const ORDER_FIELDS_WRITABLE = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, terminado_en, empresa_id, tecnico_id`;
+  estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
+  empresa_id, tecnico_id`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -52,6 +53,24 @@ function isoDate(value, fallback) {
   return date && !Number.isNaN(date.getTime())
     ? date.toISOString()
     : fallback;
+}
+
+function dateOnly(value) {
+  if (!value) return null;
+
+  const texto = String(value).trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+    return null;
+  }
+
+  const fecha = new Date(texto + 'T00:00:00Z');
+
+  if (Number.isNaN(fecha.getTime())) {
+    return null;
+  }
+
+  return texto;
 }
 
 function validId(value) {
@@ -100,11 +119,13 @@ function orderInput(body, options, empresaId) {
       20
     ),
     estado,
-    fecha_entrega:
-      estado === 'entregado' || estado === 'sinreparar'
-        ? isoDate(source.fecha_entrega, now)
-        : null
-  };
+   fecha_entrega:
+   estado === 'entregado' || estado === 'sinreparar'
+    ? isoDate(source.fecha_entrega, now)
+    : null,
+  fecha_prometida_entrega: dateOnly(
+  source.fecha_prometida_entrega
+ )
 
   if (validId(source.cliente_id)) {
     order.cliente_id = source.cliente_id;
@@ -685,7 +706,9 @@ orden.es_critica =
             presupuesto,
             aprobacion_presupuesto,
             fecha_entrega,
-            vista_por_tecnico_en
+            fecha_prometida_entrega,
+            terminado_en,
+            
           `
         )
         .eq('id', body.id)
@@ -827,7 +850,12 @@ if (user.rol === 'tecnico') {
             new Date().toISOString()
           )
         : null,
-    terminado_en: terminadoEn
+    terminado_en: terminadoEn,
+
+    /* Fecha comprometida con el cliente: solo admin/user puede modificarla. */
+    fecha_prometida_entrega: dateOnly(
+      body.fecha_prometida_entrega
+    )
   };
   
         if (
