@@ -2224,6 +2224,56 @@ tr.orden-demorada {
 .alerta-resumen-fecha-prometida .alerta-resumen-icono {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
 }
+
+
+/* ===== FIX: TARJETAS DE ALERTAS EN ESCRITORIO ===== */
+.alerta-resumen-card {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  white-space: nowrap;
+  flex: 0 0 auto !important;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  appearance: none;
+}
+
+.alerta-resumen-demora {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.alerta-resumen-retiro {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.alerta-resumen-critica {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.alerta-resumen-fecha-prometida {
+  background: #fff8e1;
+  border-color: #ffb300;
+  color: #996f00;
+}
+
+.alerta-resumen-fecha-prometida:hover {
+  background: #ffe082;
+  border-color: #f57f17;
+}		
 		
 </style>		
 
