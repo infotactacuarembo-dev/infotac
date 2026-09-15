@@ -1964,6 +1964,48 @@ table {
     min-height: 44px !important;
   }
 }		
+
+/* ===== ÚLTIMOS CAMBIOS DE CLAVE: SCROLL EN CELULAR ===== */
+@media (max-width: 600px) {
+  #tabla-ultimos-cambios-clave {
+    min-width: 680px !important;
+  }
+
+  #tabla-ultimos-cambios-clave th,
+  #tabla-ultimos-cambios-clave td {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    vertical-align: top !important;
+  }
+
+  #tabla-ultimos-cambios-clave th,
+  #tabla-ultimos-cambios-clave td {
+    padding: 0.65rem 0.75rem !important;
+  }
+
+  #tabla-ultimos-cambios-clave th:nth-child(1),
+  #tabla-ultimos-cambios-clave td:nth-child(1) {
+    width: 120px !important;
+  }
+
+  #tabla-ultimos-cambios-clave th:nth-child(2),
+  #tabla-ultimos-cambios-clave td:nth-child(2) {
+    width: 100px !important;
+  }
+
+  #tabla-ultimos-cambios-clave th:nth-child(3),
+  #tabla-ultimos-cambios-clave td:nth-child(3) {
+    width: 340px !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  #tabla-ultimos-cambios-clave th:nth-child(4),
+  #tabla-ultimos-cambios-clave td:nth-child(4) {
+    width: 160px !important;
+  }
+}
+		
 		
 </style>		
 
@@ -3354,7 +3396,7 @@ table {
             </table>
           </div>
 
-          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
             <h3 style="margin:0 0 12px;font-size:1rem;font-weight:700;color:#1e293b;">Últimos cambios de clave</h3>
             <table id="tabla-ultimos-cambios-clave" style="width:100%;border-collapse:collapse;font-size:.85rem;">
               <thead>
