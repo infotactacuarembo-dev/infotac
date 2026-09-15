@@ -4959,6 +4959,50 @@ if (btnVolverMenuBackup) {
     }
   });
 }
+
+
+/* ===== CONTABLE: ABRIR Y VOLVER ===== */
+
+if (btnAbrirContableConfig) {
+  btnAbrirContableConfig.addEventListener('click', function () {
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'none';
+    }
+
+    if (seccionConfiguracionEmpresa) {
+      seccionConfiguracionEmpresa.style.display = 'none';
+    }
+
+    if (seccionConfiguracionBackup) {
+      seccionConfiguracionBackup.style.display = 'none';
+    }
+
+
+      
+
+    if (auditoriaPanel) {
+      auditoriaPanel.style.display = 'none';
+    }
+
+	  
+
+    if (seccionConfiguracionContable) {
+      seccionConfiguracionContable.style.display = 'block';
+    }
+  });
+}
+
+if (btnVolverMenuContable) {
+  btnVolverMenuContable.addEventListener('click', function () {
+    if (seccionConfiguracionContable) {
+      seccionConfiguracionContable.style.display = 'none';
+    }
+
+    if (menuConfiguracion) {
+      menuConfiguracion.style.display = 'block';
+    }
+  });
+}		  
 		  
 function restaurarSesion() {
   fetch("/api/session", {
