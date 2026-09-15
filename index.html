@@ -6223,11 +6223,30 @@ function obtenerAlertaTerminado(orden) {
   var enProcesoDemoradas = 0;
   var listasParaRetirarDemoradas = 0;
   var criticas = 0;
+  var fechaPrometidaVencida = 0;
 
   ordenes.forEach(function (o) {
     var alertaProceso = obtenerAlertaOrden(o);
     var alertaRetiro = obtenerAlertaTerminado(o);
     var alerta = alertaProceso || alertaRetiro;
+
+    // Fecha prometida vencida: existe fecha, ya pasó, y no está entregada/sinreparar
+    var hoyYMD = new Date();
+    hoyYMD.setHours(0, 0, 0, 0);
+
+    var partes = (o.fechaPrometidaEntrega || "").split("-");
+    var fechaProm = partes.length === 3
+      ? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+      : null;
+
+    if (
+      fechaProm &&
+      fechaProm < hoyYMD &&
+      o.estado !== "entregado" &&
+      o.estado !== "sinreparar"
+    ) {
+      fechaPrometidaVencida++;
+    }
 
     // En proceso: Ingresado, En revisión, Presupuesto o Reparando,
     // con más de 3 días desde la fecha de ingreso.
@@ -6249,7 +6268,8 @@ function obtenerAlertaTerminado(orden) {
   var hayAlertas =
     enProcesoDemoradas > 0 ||
     listasParaRetirarDemoradas > 0 ||
-    criticas > 0;
+    criticas > 0 ||
+    fechaPrometidaVencida > 0;
 
   var mensajeResumen = hayAlertas
     ? "Hacé clic en una tarjeta para filtrar todas las órdenes de la empresa."
@@ -6267,6 +6287,10 @@ function obtenerAlertaTerminado(orden) {
     "<button type='button' class='alerta-resumen-card alerta-resumen-critica' data-alerta='criticas'>" +
       "<span class='alerta-resumen-icono'>⚠</span>" +
       "<span><strong>" + criticas + "</strong> órdenes críticas +5 días</span>" +
+    "</button>" +
+    "<button type='button' class='alerta-resumen-card alerta-resumen-fecha-prometida' data-alerta='fecha-prometida'>" +
+      "<span class='alerta-resumen-icono'>📅</span>" +
+      "<span><strong>" + fechaPrometidaVencida + "</strong> fecha prometida vencida</span>" +
     "</button>" +
     (
       filtroAlertaActivo
@@ -6296,7 +6320,7 @@ function obtenerAlertaTerminado(orden) {
   });
 
   resumenAlertas.classList.remove("hidden");
-}		  
+}
 
 function renderStats() {
   var counts = {
