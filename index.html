@@ -1540,25 +1540,7 @@ table {
   align-items: center;
 }
 
-.alerta-resumen-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 42px;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  flex: 0 0 auto;
-}
-		
-.alerta-resumen-card strong {
-  font-size: 1.05rem;
-  line-height: 1;
-}
+
 
 .alerta-resumen-icono {
   font-size: 1rem;
@@ -1596,23 +1578,7 @@ table {
   }
 }
 
-.alerta-resumen-card {
-  appearance: none;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
 
-.alerta-resumen-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
-}
-
-.alerta-resumen-card:focus-visible {
-  outline: 3px solid rgba(14, 116, 144, 0.28);
-  outline-offset: 2px;
-}
 
 .alerta-resumen-limpiar {
   min-height: 42px;
@@ -2205,23 +2171,36 @@ tr.orden-demorada {
 }		
 
 
-/* Estilo base de las tarjetas de alerta (si ya lo tenés, no lo dupliques) */
 .alerta-resumen-card {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 42px;
   padding: 10px 14px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
-  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
   font-size: 14px;
-  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
 }
 
 .alerta-resumen-card:hover {
   background: #f9fafb;
   border-color: #c0c0c0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+.alerta-resumen-card:focus-visible {
+  outline: 3px solid rgba(14, 116, 144, 0.28);
+  outline-offset: 2px;
 }
 
 /* Icono dentro de las tarjetas */
