@@ -5997,7 +5997,7 @@ function obtenerAlertaOrden(orden) {
     return null;
   }
 
-  var dias = diasDesdeFecha(orden.fecha);
+  var dias = diasDeDemora(orden);
 
   if (dias > 5) {
     return {
@@ -6017,6 +6017,34 @@ function obtenerAlertaOrden(orden) {
 
   return null;
 }
+
+function diasDeDemora(orden) {
+  var hoyYMD = new Date();
+  hoyYMD.setHours(0, 0, 0, 0);
+
+  // Si hay fecha prometida, usamos esa como referencia.
+  if (orden.fechaPrometidaEntrega) {
+    var partes = (orden.fechaPrometidaEntrega || "").split("-");
+    var fechaProm = partes.length === 3
+      ? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+      : null;
+
+    if (fechaProm) {
+      var diff = hoyYMD.getTime() - fechaProm.getTime();
+      var dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return dias;
+    }
+  }
+
+  // Si no hay fecha prometida, usamos la lógica anterior:
+  // - Para órdenes en proceso: días desde fecha de ingreso.
+  // - Para terminadas: días desde terminado_en.
+  if (orden.estado === "terminado" && orden.terminado_en) {
+    return diasDesdeFecha(orden.terminado_en);
+  }
+
+  return diasDesdeFecha(orden.fecha);
+}		  
 
 function obtenerAlertaTerminado(orden) {
   if (orden.estado !== "terminado") {
