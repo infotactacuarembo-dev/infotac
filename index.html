@@ -1537,10 +1537,11 @@ table {
   flex-wrap: wrap;
   gap: 0.65rem;
   margin: 0.75rem 0 1rem;
+  align-items: center;
 }
 
 .alerta-resumen-card {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   min-height: 42px;
@@ -1550,8 +1551,10 @@ table {
   background: var(--surface);
   color: var(--text);
   font-size: 0.8rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
-
+		
 .alerta-resumen-card strong {
   font-size: 1.05rem;
   line-height: 1;
@@ -2229,7 +2232,7 @@ tr.orden-demorada {
 
 /* Tarjeta “fecha prometida vencida” */
 .alerta-resumen-fecha-prometida {
-  background: #fff8e1; /* fondo amarillo suave */
+  background: #fff8e1;
   border-color: #ffb300;
   color: #996f00;
 }
@@ -2241,7 +2244,7 @@ tr.orden-demorada {
 
 .alerta-resumen-fecha-prometida .alerta-resumen-icono {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
-}		
+}
 		
 </style>		
 
