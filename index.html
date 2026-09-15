@@ -2005,7 +2005,38 @@ table {
     width: 160px !important;
   }
 }
-		
+
+
+/* ===== ACCIONES DE USUARIOS: VISTA CELULAR ===== */
+@media (max-width: 600px) {
+  #tabla-usuarios {
+    min-width: 780px !important;
+  }
+
+  #tabla-usuarios th,
+  #tabla-usuarios td {
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+  }
+
+  /* La celda mantiene los tres botones en una fila compacta. */
+  #tabla-usuarios td.acciones-usuarios {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    min-width: 320px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Anula el margen inline de Desactivar/Activar. */
+  #tabla-usuarios td.acciones-usuarios .btn-sm {
+    min-height: 38px !important;
+    margin-left: 0 !important;
+    padding: 0.45rem 0.65rem !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+  }
+}		
 		
 </style>		
 
@@ -3217,7 +3248,7 @@ table {
           Buscar usuario
           </label>
          <input
-         ype="text"
+         type="text"
          id="filtro-buscar-usuarios"
         class="input-filtro"
         placeholder="Buscar por identificador o rol"
@@ -9345,7 +9376,7 @@ if (usuarioActual &&
     eliminarUsuario(usuario);
   });
 }
-
+    tdAcciones.className = 'acciones-usuarios';
     tdAcciones.appendChild(btnEditar);
 
 var btnEstado = document.createElement('button');
