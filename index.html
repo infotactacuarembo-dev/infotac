@@ -2124,6 +2124,40 @@ table {
   }
 }
 
+
+/* ===== TABLA DE ÓRDENES: ESTADO LARGO EN CELULAR ===== */
+@media (max-width: 600px) {
+  /* Fecha más compacta. */
+  #seccion-ordenes .table-wrap th:nth-child(1),
+  #seccion-ordenes .table-wrap td:nth-child(1) {
+    width: 23% !important;
+  }
+
+  /* Cliente conserva espacio suficiente para el nombre. */
+  #seccion-ordenes .table-wrap th:nth-child(2),
+  #seccion-ordenes .table-wrap td:nth-child(2) {
+    width: 35% !important;
+  }
+
+  /* Estado recibe más ancho para “Listo para retirar”. */
+  #seccion-ordenes .table-wrap th:nth-child(8),
+  #seccion-ordenes .table-wrap td:nth-child(8) {
+    width: 42% !important;
+  }
+
+  /* Badge: puede usar dos líneas dentro de la celda, no salirse. */
+  #seccion-ordenes .table-wrap td:nth-child(8) .status-badge,
+  #seccion-ordenes .table-wrap td:nth-child(8) .badge,
+  #seccion-ordenes .table-wrap td:nth-child(8) span {
+    display: inline-block !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+  }
+}
 		
 </style>		
 
