@@ -118,14 +118,15 @@ function orderInput(body, options, empresaId) {
       source.aprobacion_presupuesto || 'pendiente',
       20
     ),
-    estado,
-   fecha_entrega:
-   estado === 'entregado' || estado === 'sinreparar'
-    ? isoDate(source.fecha_entrega, now)
-    : null,
-  fecha_prometida_entrega: dateOnly(
-  source.fecha_prometida_entrega
- )
+        estado,
+    fecha_entrega:
+      estado === 'entregado' || estado === 'sinreparar'
+        ? isoDate(source.fecha_entrega, now)
+        : null,
+    fecha_prometida_entrega: dateOnly(
+      source.fecha_prometida_entrega
+    )
+  };
 
   if (validId(source.cliente_id)) {
     order.cliente_id = source.cliente_id;
@@ -707,7 +708,7 @@ orden.es_critica =
             aprobacion_presupuesto,
             fecha_entrega,
             fecha_prometida_entrega,
-            terminado_en,
+            terminado_en
             
           `
         )
