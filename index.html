@@ -4435,6 +4435,14 @@ if (btnMenuSecundario && menuSecundario) {
 		var btnVolverMenuContable = document.getElementById(
   		'btn-volver-menu-contable'
 		);  
+
+		var balanceDesde = document.getElementById('balance-desde');
+		var balanceHasta = document.getElementById('balance-hasta');
+		var btnConsultarBalance = document.getElementById(
+  		'btn-consultar-balance'
+		);
+		var balanceMensaje = document.getElementById('balance-mensaje');
+		var balanceResumen = document.getElementById('balance-resumen');  
 		  
 		var campoPaisEmpresa = document.getElementById('empresa-pais');
 		var campoTipoFiscalEmpresa = document.getElementById('empresa-tax-id-type');
@@ -5006,7 +5014,262 @@ if (btnVolverMenuContable) {
   });
 }
 	  
+/* ===== CONTABLE: CÁLCULO DEL BALANCE ===== */
 
+function balanceNumero(valor) {
+  return Number(valor) || 0;
+}
+
+function balanceMoneda(valor) {
+  return "$" + balanceNumero(valor).toFixed(2);
+}
+
+function balanceFechaLocal(fechaTexto) {
+  if (!fechaTexto) {
+    return "";
+  }
+
+  /*
+    Tomamos YYYY-MM-DD directamente del valor ISO.
+    Evita que una fecha de entrega cambie de día por zona horaria.
+  */
+  return String(fechaTexto).slice(0, 10);
+}
+
+function balanceActualizarTexto(id, valor) {
+  var elemento = document.getElementById(id);
+
+  if (elemento) {
+    elemento.textContent = valor;
+  }
+}
+
+function balanceMostrarResumen(datos) {
+  balanceActualizarTexto(
+    'balance-cantidad-ordenes',
+    String(datos.cantidadOrdenes)
+  );
+  balanceActualizarTexto(
+    'balance-mano-obra',
+    balanceMoneda(datos.manoObra)
+  );
+  balanceActualizarTexto(
+    'balance-repuestos',
+    balanceMoneda(datos.repuestos)
+  );
+  balanceActualizarTexto(
+    'balance-servicios',
+    balanceMoneda(datos.servicios)
+  );
+  balanceActualizarTexto(
+    'balance-total-facturado',
+    balanceMoneda(datos.totalFacturado)
+  );
+  balanceActualizarTexto(
+    'balance-senas',
+    balanceMoneda(datos.senas)
+  );
+  balanceActualizarTexto(
+    'balance-pagos',
+    balanceMoneda(datos.pagos)
+  );
+  balanceActualizarTexto(
+    'balance-total-cobrado',
+    balanceMoneda(datos.totalCobrado)
+  );
+  balanceActualizarTexto(
+    'balance-saldo-pendiente',
+    balanceMoneda(datos.saldoPendiente)
+  );
+
+  var periodoEl = document.getElementById('balance-periodo');
+
+  if (periodoEl) {
+    periodoEl.textContent =
+      'Período: ' + datos.desde + ' al ' + datos.hasta;
+  }
+
+  if (balanceResumen) {
+    balanceResumen.style.display = 'block';
+  }
+}
+
+function consultarBalanceTaller() {
+  var desde = balanceDesde ? balanceDesde.value : "";
+  var hasta = balanceHasta ? balanceHasta.value : "";
+
+  if (!desde || !hasta) {
+    if (balanceMensaje) {
+      balanceMensaje.textContent =
+        'Seleccioná una fecha de inicio y una fecha de fin.';
+    }
+
+    if (balanceResumen) {
+      balanceResumen.style.display = 'none';
+    }
+
+    return;
+  }
+
+  if (desde > hasta) {
+    if (balanceMensaje) {
+      balanceMensaje.textContent =
+        'La fecha “Desde” no puede ser posterior a “Hasta”.';
+    }
+
+    if (balanceResumen) {
+      balanceResumen.style.display = 'none';
+    }
+
+    return;
+  }
+
+  if (btnConsultarBalance) {
+    btnConsultarBalance.disabled = true;
+    btnConsultarBalance.textContent = 'Calculando balance...';
+  }
+
+  if (balanceMensaje) {
+    balanceMensaje.textContent =
+      'Consultando órdenes entregadas, ítems y pagos...';
+  }
+
+  if (balanceResumen) {
+    balanceResumen.style.display = 'none';
+  }
+
+  pedirApi('/api/ordenes?pagina=1&limite=10000')
+    .then(function (resultado) {
+      if (!resultado.ok) {
+        throw new Error(
+          resultado.error || 'No se pudieron cargar las órdenes.'
+        );
+      }
+
+      var ordenesBalance = (resultado.data || []).filter(function (orden) {
+        var estado = String(orden.estado || '').toLowerCase();
+        var fechaEntrega = balanceFechaLocal(orden.fecha_entrega);
+
+        return (
+          estado === 'entregado' &&
+          fechaEntrega &&
+          fechaEntrega >= desde &&
+          fechaEntrega <= hasta
+        );
+      });
+
+      return Promise.all(
+        ordenesBalance.map(function (orden) {
+          return Promise.all([
+            pedirApi(
+              '/api/orden-items?orden_id=' +
+              encodeURIComponent(orden.id)
+            ),
+            pedirApi(
+              '/api/pagos?orden_id=' +
+              encodeURIComponent(orden.id)
+            )
+          ])
+            .then(function (respuestas) {
+              return {
+                orden: orden,
+                items: respuestas[0].data || [],
+                pagos: respuestas[1].data || []
+              };
+            });
+        })
+      );
+    })
+    .then(function (ordenesConDetalle) {
+      var datos = {
+        cantidadOrdenes: ordenesConDetalle.length,
+        manoObra: 0,
+        repuestos: 0,
+        servicios: 0,
+        totalFacturado: 0,
+        senas: 0,
+        pagos: 0,
+        totalCobrado: 0,
+        saldoPendiente: 0,
+        desde: desde,
+        hasta: hasta
+      };
+
+      ordenesConDetalle.forEach(function (detalle) {
+        var totalOrden = 0;
+        var senaOrden = balanceNumero(detalle.orden.sena);
+        var pagosOrden = 0;
+
+        detalle.items.forEach(function (item) {
+          var cantidad = balanceNumero(item.cantidad);
+          var precioUnitario = balanceNumero(item.precio_unitario);
+          var subtotal = cantidad * precioUnitario;
+          var tipo = String(item.tipo || 'servicio').toLowerCase();
+
+          totalOrden += subtotal;
+
+          if (tipo === 'mano_obra') {
+            datos.manoObra += subtotal;
+          } else if (tipo === 'repuesto') {
+            datos.repuestos += subtotal;
+          } else {
+            datos.servicios += subtotal;
+          }
+        });
+
+        detalle.pagos.forEach(function (pago) {
+          pagosOrden += balanceNumero(pago.monto);
+        });
+
+        var cobradoOrden = senaOrden + pagosOrden;
+        var saldoOrden = Math.max(0, totalOrden - cobradoOrden);
+
+        datos.totalFacturado += totalOrden;
+        datos.senas += senaOrden;
+        datos.pagos += pagosOrden;
+        datos.totalCobrado += cobradoOrden;
+        datos.saldoPendiente += saldoOrden;
+      });
+
+      balanceMostrarResumen(datos);
+
+      if (balanceMensaje) {
+        if (datos.cantidadOrdenes === 0) {
+          balanceMensaje.textContent =
+            'No se encontraron órdenes entregadas en el período seleccionado.';
+        } else {
+          balanceMensaje.textContent =
+            'Balance calculado correctamente.';
+        }
+      }
+    })
+    .catch(function (error) {
+      console.error('Error al calcular el balance:', error);
+
+      if (balanceMensaje) {
+        balanceMensaje.textContent =
+          'No se pudo calcular el balance: ' +
+          (error.message || 'intentá nuevamente.');
+      }
+
+      if (balanceResumen) {
+        balanceResumen.style.display = 'none';
+      }
+    })
+    .then(function () {
+      if (btnConsultarBalance) {
+        btnConsultarBalance.disabled = false;
+        btnConsultarBalance.textContent = 'Consultar balance';
+      }
+    });
+}
+
+if (btnConsultarBalance) {
+  btnConsultarBalance.addEventListener(
+    'click',
+    consultarBalanceTaller
+  );
+}
  	  
 		  
 function restaurarSesion() {
