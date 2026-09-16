@@ -6390,20 +6390,35 @@ function obtenerAlertaTerminado(orden) {
     }
   });
 
+   /* Mientras está aplicado un filtro, usar el total que devolvió la API
+   para que la tarjeta seleccionada no muestre cero. */
+   if (filtroAlertaActivo === "demoradas") {
+  		enProcesoDemoradas = totalOrdenes;
+	}
+
+   if (filtroAlertaActivo === "retiro") {
+  		listasParaRetirarDemoradas = totalOrdenes;
+	}
+
+	if (filtroAlertaActivo === "criticas") {
+  		criticas = totalOrdenes;
+	}
+
+	if (filtroAlertaActivo === "fecha-prometida") {
+  		fechaPrometidaVencida = totalOrdenes;
+	}	 
+
   var hayAlertas =
-    enProcesoDemoradas > 0 ||
-    listasParaRetirarDemoradas > 0 ||
-    criticas > 0 ||
-    fechaPrometidaVencida > 0;
+  enProcesoDemoradas > 0 ||
+  listasParaRetirarDemoradas > 0 ||
+  criticas > 0 ||
+  fechaPrometidaVencida > 0;
 
   var mensajeResumen = hayAlertas
     ? "Hacé clic en una tarjeta para filtrar todas las órdenes de la empresa."
     : "No hay alertas de demora en las órdenes mostradas.";
 	 
-	if (filtroAlertaActivo === "demoradas") {
-  		mensajeResumen += " Se encontraron " + totalOrdenes + " órdenes demoradas.";
-	}
-
+	
   resumenAlertas.innerHTML =
     "<button type='button' class='alerta-resumen-card alerta-resumen-demora' data-alerta='demoradas'>" +
       "<span class='alerta-resumen-icono'>⏳</span>" +
