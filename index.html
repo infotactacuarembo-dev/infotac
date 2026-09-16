@@ -6350,6 +6350,17 @@ function obtenerAlertaTerminado(orden) {
   var criticas = 0;
   var fechaPrometidaVencida = 0;
 
+  var estadosEnProceso = [
+  "ingresado",
+  "revision",
+  "presupuesto",
+  "reparando"
+  ];
+
+var haceTresDias = new Date();
+haceTresDias.setHours(0, 0, 0, 0);
+haceTresDias.setDate(haceTresDias.getDate() - 3);	 
+
   ordenes.forEach(function (o) {
     var alertaProceso = obtenerAlertaOrden(o);
     var alertaRetiro = obtenerAlertaTerminado(o);
@@ -6373,11 +6384,27 @@ function obtenerAlertaTerminado(orden) {
       fechaPrometidaVencida++;
     }
 
-    // En proceso: Ingresado, En revisión, Presupuesto o Reparando,
-    // con más de 3 días desde la fecha de ingreso.
-    if (alertaProceso && alertaProceso.dias > 3) {
-      enProcesoDemoradas++;
-    }
+    // En proceso: misma regla que /api/ordenes?alerta=demoradas.
+// Estados activos y más de 3 días desde la fecha de ingreso.
+var estadosEnProceso = [
+  "ingresado",
+  "revision",
+  "presupuesto",
+  "reparando"
+];
+
+var fechaIngreso = new Date(o.fecha);
+var haceTresDias = new Date();
+haceTresDias.setHours(0, 0, 0, 0);
+haceTresDias.setDate(haceTresDias.getDate() - 3);
+
+if (
+  estadosEnProceso.indexOf(o.estado) !== -1 &&
+  !Number.isNaN(fechaIngreso.getTime()) &&
+  fechaIngreso < haceTresDias
+) {
+  enProcesoDemoradas++;
+}
 
     // Listo para retirar con más de 3 días desde terminado_en.
     if (alertaRetiro && alertaRetiro.dias > 3) {
@@ -6462,6 +6489,8 @@ function renderStats() {
     sinreparar: 0
   };
 
+    
+	
     ordenes.forEach(function (o) {
     if (counts[o.estado] !== undefined) {
       counts[o.estado]++;
