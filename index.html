@@ -2247,11 +2247,11 @@ tr.orden-demorada {
   line-height: 1;
 }
 
-/* ===== ALERTAS: MANTENER TARJETAS EN UNA FILA EN PC ===== */
+/* ===== ALERTAS: TARJETAS EN UNA FILA + MENSAJE ABAJO EN PC ===== */
 @media (min-width: 601px) {
   div:has(> .alerta-resumen-card) {
     display: flex !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
     align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
@@ -2262,13 +2262,15 @@ tr.orden-demorada {
     flex: 0 0 auto !important;
   }
 
+  /* El texto informativo ocupa una fila completa debajo de las tarjetas. */
   div:has(> .alerta-resumen-card) .alerta-resumen-aclaracion {
-    flex-basis: 100% !important;
+    flex: 0 0 100% !important;
     width: 100% !important;
-    margin-top: 2px !important;
+    margin: 0 !important;
+    padding-top: 2px !important;
+    white-space: normal !important;
   }
 }
-	
 		
 </style>		
 
