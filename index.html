@@ -2333,27 +2333,27 @@ tr.orden-demorada {
 }		
 
 
-/* ===== ESTADOS: SIETE TARJETAS EN UNA FILA EN PC ===== */
+/* ===== ESTADOS DEL PANEL: 7 TARJETAS EN UNA FILA EN PC ===== */
 @media (min-width: 601px) {
-  /* Selecciona el contenedor directo de las tarjetas de estado. */
-  div:has(> [class*="status-"]) {
+  #seccion-ordenes #stats-row {
     display: flex !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 8px !important;
     width: 100% !important;
     max-width: none !important;
   }
 
-  /* Las tarjetas pueden encogerse levemente en PC. */
-  div:has(> [class*="status-"]) > [class*="status-"] {
+  #seccion-ordenes #stats-row > * {
     flex: 0 1 auto !important;
     min-width: 0 !important;
-    padding: 9px 10px !important;
+    padding: 9px 11px !important;
     font-size: 12px !important;
     white-space: nowrap !important;
   }
-}	
+}
+
+
 		
 </style>		
 
