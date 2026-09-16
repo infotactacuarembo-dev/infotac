@@ -2333,19 +2333,27 @@ tr.orden-demorada {
 }		
 
 
-/* ===== ESTADOS: MANTENER “SIN REPARAR / DEVUELTO” EN LA PRIMERA FILA ===== */
+/* ===== ESTADOS: SIETE TARJETAS EN UNA FILA EN PC ===== */
 @media (min-width: 601px) {
-  .status-sinreparar {
-    margin-top: 0 !important;
+  /* Selecciona el contenedor directo de las tarjetas de estado. */
+  div:has(> [class*="status-"]) {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: none !important;
   }
 
-  /* Achica ligeramente todas las tarjetas de estado para que entren juntas. */
-  [class*="status-"] {
-    padding: 9px 12px !important;
-    font-size: 13px !important;
+  /* Las tarjetas pueden encogerse levemente en PC. */
+  div:has(> [class*="status-"]) > [class*="status-"] {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    padding: 9px 10px !important;
+    font-size: 12px !important;
     white-space: nowrap !important;
   }
-}		
+}	
 		
 </style>		
 
