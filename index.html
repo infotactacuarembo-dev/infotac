@@ -2171,6 +2171,10 @@ tr.orden-demorada {
 }		
 
 
+
+
+
+/* ===== TARJETAS DE ALERTAS ===== */
 .alerta-resumen-card {
   display: inline-flex;
   align-items: center;
@@ -2203,49 +2207,7 @@ tr.orden-demorada {
   outline-offset: 2px;
 }
 
-/* Icono dentro de las tarjetas */
-.alerta-resumen-icono {
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* Tarjeta “fecha prometida vencida” */
-.alerta-resumen-fecha-prometida {
-  background: #fff8e1;
-  border-color: #ffb300;
-  color: #996f00;
-}
-
-.alerta-resumen-fecha-prometida:hover {
-  background: #ffe082;
-  border-color: #f57f17;
-}
-
-.alerta-resumen-fecha-prometida .alerta-resumen-icono {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
-}
-
-
-/* ===== FIX: TARJETAS DE ALERTAS EN ESCRITORIO ===== */
-.alerta-resumen-card {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 14px;
-  white-space: nowrap;
-  flex: 0 0 auto !important;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  appearance: none;
-}
-
+/* Colores por tipo de alerta */
 .alerta-resumen-demora {
   color: #92400e;
   background: #fffbeb;
@@ -2273,7 +2235,18 @@ tr.orden-demorada {
 .alerta-resumen-fecha-prometida:hover {
   background: #ffe082;
   border-color: #f57f17;
-}		
+}
+
+.alerta-resumen-fecha-prometida .alerta-resumen-icono {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+
+/* Icono dentro de las tarjetas */
+.alerta-resumen-icono {
+  font-size: 18px;
+  line-height: 1;
+}
+	
 		
 </style>		
 
