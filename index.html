@@ -2274,6 +2274,29 @@ tr.orden-demorada {
     white-space: normal !important;
   }
 }
+
+/* Botón para quitar el filtro de alertas */
+.alerta-resumen-limpiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.alerta-resumen-limpiar:hover {
+  background: #f1f5f9;
+  border-color: #475569;
+}		
 		
 </style>		
 
@@ -6367,31 +6390,31 @@ function obtenerAlertaTerminado(orden) {
       "<span><strong>" + fechaPrometidaVencida + "</strong> fecha prometida vencida</span>" +
     "</button>" +
     (
-      filtroAlertaActivo
-        ? "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
-            "Ver todas las órdenes" +
-          "</button>"
-        : ""
-    ) +
-    "<div class='alerta-resumen-aclaracion'>" +
-      mensajeResumen +
+      "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
+  		"Ver todas las órdenes" +
+		"</button>"
+    	"<div class='alerta-resumen-aclaracion'>" +
+      	mensajeResumen +
     "</div>";
 
   resumenAlertas.querySelectorAll("[data-alerta]").forEach(function (boton) {
-    boton.addEventListener("click", function () {
-      filtroAlertaActivo = boton.getAttribute("data-alerta") || "";
-      paginaActual = 1;
+  boton.addEventListener("click", function () {
+    var alertaSeleccionada = boton.getAttribute("data-alerta") || "";
 
-      cargarOrdenes()
-        .then(function () {
-          renderizar();
-        })
-        .catch(function (error) {
-          console.error("Error al filtrar alertas:", error);
-          alert("No se pudieron cargar las órdenes filtradas.");
-        });
-    });
+    /* Si tocás “Ver todas las órdenes”, elimina solo el filtro de alertas. */
+    filtroAlertaActivo = alertaSeleccionada;
+    paginaActual = 1;
+
+    cargarOrdenes()
+      .then(function () {
+        renderizar();
+      })
+      .catch(function (error) {
+        console.error("Error al filtrar alertas:", error);
+        alert("No se pudieron cargar las órdenes filtradas.");
+      });
   });
+});
 
   resumenAlertas.classList.remove("hidden");
 }
