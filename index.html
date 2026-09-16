@@ -2297,6 +2297,32 @@ tr.orden-demorada {
   background: #f1f5f9;
   border-color: #475569;
 }		
+
+/* Botón para restablecer alertas: queda junto al mensaje inferior */
+.alerta-resumen-aclaracion .alerta-resumen-limpiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  margin-left: 8px;
+  padding: 5px 10px;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.alerta-resumen-aclaracion .alerta-resumen-limpiar:hover {
+  background: #f1f5f9;
+  border-color: #475569;
+}
 		
 </style>		
 
@@ -6317,12 +6343,7 @@ function obtenerAlertaTerminado(orden) {
     return;
   }
 
-  /* Si la tabla está filtrada por una alerta, no recalcular contadores
-     usando solo las órdenes filtradas. */
-  if (filtroAlertaActivo) {
-    resumenAlertas.classList.remove("hidden");
-    return;
-  }	 
+  
 
   var enProcesoDemoradas = 0;
   var listasParaRetirarDemoradas = 0;
@@ -6378,6 +6399,10 @@ function obtenerAlertaTerminado(orden) {
   var mensajeResumen = hayAlertas
     ? "Hacé clic en una tarjeta para filtrar todas las órdenes de la empresa."
     : "No hay alertas de demora en las órdenes mostradas.";
+	 
+	if (filtroAlertaActivo === "demoradas") {
+  		mensajeResumen += " Se encontraron " + totalOrdenes + " órdenes demoradas.";
+	}
 
   resumenAlertas.innerHTML =
     "<button type='button' class='alerta-resumen-card alerta-resumen-demora' data-alerta='demoradas'>" +
@@ -6396,11 +6421,13 @@ function obtenerAlertaTerminado(orden) {
       "<span class='alerta-resumen-icono'>📅</span>" +
       "<span><strong>" + fechaPrometidaVencida + "</strong> fecha prometida vencida</span>" +
     "</button>" +
-        "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
-      "Ver todas las órdenes" +
-    "</button>" +
     "<div class='alerta-resumen-aclaracion'>" +
       mensajeResumen +
+      (
+        filtroAlertaActivo
+          ? " <button type='button' class='alerta-resumen-limpiar' data-alerta=''>Ver todas las órdenes</button>"
+          : ""
+      ) +
     "</div>";
 
   resumenAlertas.querySelectorAll("[data-alerta]").forEach(function (boton) {
