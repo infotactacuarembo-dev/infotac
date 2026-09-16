@@ -6389,12 +6389,11 @@ function obtenerAlertaTerminado(orden) {
       "<span class='alerta-resumen-icono'>📅</span>" +
       "<span><strong>" + fechaPrometidaVencida + "</strong> fecha prometida vencida</span>" +
     "</button>" +
-    (
-      "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
-  		"Ver todas las órdenes" +
-		"</button>"
-    	"<div class='alerta-resumen-aclaracion'>" +
-      	mensajeResumen +
+        "<button type='button' class='alerta-resumen-limpiar' data-alerta=''>" +
+      "Ver todas las órdenes" +
+    "</button>" +
+    "<div class='alerta-resumen-aclaracion'>" +
+      mensajeResumen +
     "</div>";
 
   resumenAlertas.querySelectorAll("[data-alerta]").forEach(function (boton) {
