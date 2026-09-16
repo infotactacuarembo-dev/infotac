@@ -2246,6 +2246,28 @@ tr.orden-demorada {
   font-size: 18px;
   line-height: 1;
 }
+
+/* ===== ALERTAS: MANTENER TARJETAS EN UNA FILA EN PC ===== */
+@media (min-width: 601px) {
+  div:has(> .alerta-resumen-card) {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  div:has(> .alerta-resumen-card) .alerta-resumen-card {
+    flex: 0 0 auto !important;
+  }
+
+  div:has(> .alerta-resumen-card) .alerta-resumen-aclaracion {
+    flex-basis: 100% !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+}
 	
 		
 </style>		
