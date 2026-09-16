@@ -6317,6 +6317,13 @@ function obtenerAlertaTerminado(orden) {
     return;
   }
 
+  /* Si la tabla está filtrada por una alerta, no recalcular contadores
+     usando solo las órdenes filtradas. */
+  if (filtroAlertaActivo) {
+    resumenAlertas.classList.remove("hidden");
+    return;
+  }	 
+
   var enProcesoDemoradas = 0;
   var listasParaRetirarDemoradas = 0;
   var criticas = 0;
