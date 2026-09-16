@@ -2247,27 +2247,30 @@ tr.orden-demorada {
   line-height: 1;
 }
 
-/* ===== ALERTAS: TARJETAS EN UNA FILA + MENSAJE ABAJO EN PC ===== */
+/* ===== ALERTAS: 4 TARJETAS EN FILA + ACLARACIÓN ABAJO EN PC ===== */
 @media (min-width: 601px) {
   div:has(> .alerta-resumen-card) {
     display: flex !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
     max-width: none !important;
+    position: relative !important;
+    padding-bottom: 26px !important;
   }
 
   div:has(> .alerta-resumen-card) .alerta-resumen-card {
     flex: 0 0 auto !important;
   }
 
-  /* El texto informativo ocupa una fila completa debajo de las tarjetas. */
+  /* El mensaje queda debajo, fuera de la fila flex. */
   div:has(> .alerta-resumen-card) .alerta-resumen-aclaracion {
-    flex: 0 0 100% !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: 0 !important;
     width: 100% !important;
     margin: 0 !important;
-    padding-top: 2px !important;
     white-space: normal !important;
   }
 }
