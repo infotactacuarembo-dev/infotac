@@ -2331,6 +2331,21 @@ tr.orden-demorada {
   height: 40px;
   box-sizing: border-box;
 }		
+
+
+/* ===== ESTADOS: MANTENER “SIN REPARAR / DEVUELTO” EN LA PRIMERA FILA ===== */
+@media (min-width: 601px) {
+  .status-sinreparar {
+    margin-top: 0 !important;
+  }
+
+  /* Achica ligeramente todas las tarjetas de estado para que entren juntas. */
+  [class*="status-"] {
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+  }
+}		
 		
 </style>		
 
