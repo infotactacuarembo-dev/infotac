@@ -8285,6 +8285,7 @@ function lineaEmpresaTicket(valores) {
           var est = ESTADOS[o.estado] || ESTADOS.ingresado;
           var p = Number(o.presupuesto) || 0;
 		  var s = Number(o.sena) || 0;
+		  var totalPagos = Number(o.total_pagos) || 0;	
 
 		  /* Saldo calculado por /api/ordenes:
    		  total de ítems menos todos los pagos registrados. */
@@ -8443,11 +8444,14 @@ html += "</div>";
           si aún no hay ítems, conserva el presupuesto informado. */
 		  var totalCobrar = totalItems > 0 ? totalItems : p;
 
-		  var saldo = saldoReal;
+		  /* El backend ya calcula ítems - seña - pagos a cuenta. */
+			var saldo = saldoReal;
 
-		  /* El excedente no viene calculado desde la API, por lo que se conserva
-   		  solamente si la seña inicial supera el total de ítems/presupuesto. */
-		  var excedente = Math.max(0, s - totalCobrar).toFixed(2);
+		 /* Muestra excedente solo si el total recibido supera el total a cobrar. */
+			var excedente = Math.max(
+  			0,
+  			s + totalPagos - totalCobrar
+			).toFixed(2);
 			
           html += "<div class='tk-section-title'>Resumen Económico</div>";
 		  var aprobacion =
@@ -8478,13 +8482,14 @@ html += "</div>";
             "</span>";
           html += "</div>";
 
-          html += "<div class='tk-row'>";
-          html += "<span class='tk-label'>Presupuesto:</span>";
-          html += "<span class='tk-val'>$" +
-            p.toFixed(2) +
-            "</span>";
-          html += "</div>";
+		  html += "<div class='tk-row'>";
+		  html += "<span class='tk-label'>Total pagos:</span>";
+	      html += "<span class='tk-val'>$" +
+  		  totalPagos +
+  		  "</span>";
+		  html += "</div>";	
 
+          
           html += "<div class='tk-row'>";
           html += "<span class='tk-label'>Seña:</span>";
           html += "<span class='tk-val'>$" +
