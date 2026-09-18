@@ -8286,6 +8286,13 @@ function lineaEmpresaTicket(valores) {
           var p = Number(o.presupuesto) || 0;
 		  var s = Number(o.sena) || 0;
 
+		  /* Saldo calculado por /api/ordenes:
+   		  total de ítems menos todos los pagos registrados. */
+		  var saldoReal = Math.max(
+  		  0,
+  		  Number(o.saldo_real) || 0
+		  ).toFixed(2);	
+
           var html = "";
 		            var items = [];
 
@@ -8436,8 +8443,10 @@ html += "</div>";
           si aún no hay ítems, conserva el presupuesto informado. */
 		  var totalCobrar = totalItems > 0 ? totalItems : p;
 
-		  var saldo = Math.max(0, totalCobrar - s).toFixed(2);
+		  var saldo = saldoReal;
 
+		  /* El excedente no viene calculado desde la API, por lo que se conserva
+   		  solamente si la seña inicial supera el total de ítems/presupuesto. */
 		  var excedente = Math.max(0, s - totalCobrar).toFixed(2);
 			
           html += "<div class='tk-section-title'>Resumen Económico</div>";
