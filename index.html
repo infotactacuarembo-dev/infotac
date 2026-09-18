@@ -8285,11 +8285,6 @@ function lineaEmpresaTicket(valores) {
           var est = ESTADOS[o.estado] || ESTADOS.ingresado;
           var p = Number(o.presupuesto) || 0;
 		  var s = Number(o.sena) || 0;
-          var saldo = Math.max(0, p - s).toFixed(2);
-		            var excedente = Math.max(
-            0,
-            s - p
-          ).toFixed(2);	
 
           var html = "";
 		            var items = [];
@@ -8435,12 +8430,16 @@ html += "</div>";
             });
           }
 
-          html += "<div class='tk-row'>";
-          html += "<span class='tk-label'>Total ítems:</span>";
-          html += "<span class='tk-val'>$" +
-            totalItems.toFixed(2) +
-            "</span>";
-          html += "</div>";
+
+          /* Total real a cobrar:
+   		  si existen ítems, usa la suma de servicios/repuestos;
+          si aún no hay ítems, conserva el presupuesto informado. */
+		  var totalCobrar = totalItems > 0 ? totalItems : p;
+
+		  var saldo = Math.max(0, totalCobrar - s).toFixed(2);
+
+		  var excedente = Math.max(0, s - totalCobrar).toFixed(2);
+			
           html += "<div class='tk-section-title'>Resumen Económico</div>";
 		  var aprobacion =
           o.aprobacionPresupuesto ||
