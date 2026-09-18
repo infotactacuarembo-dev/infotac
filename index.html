@@ -8652,17 +8652,22 @@ var saldoReal = Math.max(
     });
   }	  
 
-   var totalPresupuesto = totalItems;
+var totalPresupuesto = totalItems;
 
-   var saldoPendiente = Math.max(
-   0,
-  totalPresupuesto - sena
-  ).toFixed(2);
+/* La seña y los pagos a cuenta son conceptos separados. */
+var totalPagos = Number(o.total_pagos) || 0;
 
-  var excedente = Math.max(
+/* Saldo calculado por /api/ordenes:
+   total de ítems - seña - todos los pagos registrados. */
+var saldoPendiente = Math.max(
   0,
-  sena - totalPresupuesto
-  ).toFixed(2); 	  
+  Number(o.saldo_real) || 0
+).toFixed(2);
+
+var excedente = Math.max(
+  0,
+  sena + totalPagos - totalPresupuesto
+).toFixed(2);  
 
   switch (o.estado) {
     case "ingresado":
@@ -8691,11 +8696,10 @@ var saldoReal = Math.max(
     "Diagnóstico:\n" + diagnostico + "\n\n" +
     "Trabajo a realizar:\n" + trabajo + "\n\n" +
     textoItems +
-    "\nTotal de servicios y repuestos: $" +
-    totalPresupuesto.toFixed(2) +
-    "\n" +
-    "Seña registrada: $" + sena.toFixed(2) + "\n" +
-    "Saldo pendiente: $" + saldoPendiente + "\n" +
+    "Total de servicios y repuestos: $" + totalPresupuesto.toFixed(2) + "\n" +
+	"Pagos a cuenta: $" + totalPagos.toFixed(2) + "\n" +
+	"Seña registrada: $" + sena.toFixed(2) + "\n" +
+	"Saldo pendiente: $" + saldoPendiente + "\n\n" +
     (Number(excedente) > 0
       ? "Saldo a favor: $" + excedente + "\n"
       : "") +
