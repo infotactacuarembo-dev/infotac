@@ -6596,7 +6596,7 @@ function renderStats() {
   var visibilidad = {
     "grupo-presupuesto-detalle": esPresupuesto,
     "grupo-motivo-devolucion": esSinReparar,
-    "grupo-sena": !esPresupuesto,
+    "grupo-sena": selectorEstado.value === "reparando",
     "grupo-servicios-repuestos": !esPresupuesto,
     "grupo-resumen-economico": !esPresupuesto,
     "grupo-pagos": !esPresupuesto
