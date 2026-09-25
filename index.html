@@ -6584,6 +6584,31 @@ function renderStats() {
       console.error("Error al marcar la orden como vista:", error);
     });
 }
+
+
+ function actualizarVisibilidadDetalle() {
+  var selectorEstado = document.getElementById("modal-estado");
+  if (!selectorEstado) return;
+
+  var esPresupuesto = selectorEstado.value === "presupuesto";
+  var esSinReparar = selectorEstado.value === "sinreparar";
+
+  var visibilidad = {
+    "grupo-presupuesto-detalle": esPresupuesto,
+    "grupo-motivo-devolucion": esSinReparar,
+    "grupo-sena": !esPresupuesto,
+    "grupo-servicios-repuestos": !esPresupuesto,
+    "grupo-resumen-economico": !esPresupuesto,
+    "grupo-pagos": !esPresupuesto
+  };
+
+  Object.keys(visibilidad).forEach(function (id) {
+    var elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.style.display = visibilidad[id] ? "" : "none";
+    }
+  });
+}		  
 		  
  /* ===== DETAIL MODAL ===== */
   function abrirDetalle(id, desdeHistorialCliente) {
@@ -6659,7 +6684,7 @@ if (o.fechaPrometidaEntrega) {
 }	  
 
   if (!esTecnicoActual) {
-  html += "<div class='form-group full'>";
+  html += "<div class='form-group full' id='grupo-sena'>";
   html += "<label for='modal-sena'>Seña</label>";
   html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
   html += "</div>";
@@ -6722,9 +6747,7 @@ if (o.fechaPrometidaEntrega) {
 
   html += "</select>";
   html += "</div>";
-  html += "<div class='historial-section'>";
-  html += "<div class='historial-title'>Servicios y repuestos</div>";
-
+  
   html += "<div class='form-group full' id='grupo-presupuesto-detalle'>";
   html += "<label for='modal-presupuesto-detalle'>Propuesta de presupuesto</label>";
   html += "<textarea id='modal-presupuesto-detalle' rows='5' maxlength='4000' " +
@@ -6741,6 +6764,9 @@ if (!esTecnicoActual) {
     "</textarea>";
   html += "</div>";
 }	
+html += "<div class='historial-section' id='grupo-servicios-repuestos'>";
+html += "<div class='historial-title'>Servicios y repuestos</div>";
+	  
 
 html += "<select id='item-tipo'>";
 html += "<option value='mano_obra'>Mano de obra</option>";
@@ -6774,7 +6800,7 @@ html += "</div>";
 html += "</div>";
 
 if (!esTecnicoActual) {
-  html += "<div class='orden-resumen-economico'>";
+  html += "<div class='orden-resumen-economico' id='grupo-resumen-economico'>";
   html += "<div class='orden-resumen-titulo'>Resumen económico</div>";
 
   html += "<div class='orden-resumen-fila'>";
@@ -6800,7 +6826,7 @@ if (!esTecnicoActual) {
 // Sección de pagos
 // Sección de pagos: solo administración.
 if (!esTecnicoActual) {
-  html += "<div class='historial-section'>";
+  html += "<div class='historial-section' id='grupo-pagos'>";
   html += "<div class='historial-title'>Pagos registrados</div>";
   html += "<div id='pagos-contenido'>";
   html += "<div class='historial-loading'>Cargando pagos...</div>";
@@ -6836,6 +6862,13 @@ var soloLectura =
 
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
+
+actualizarVisibilidadDetalle();
+
+var selectorEstadoDetalle = document.getElementById("modal-estado");
+if (selectorEstadoDetalle) {
+  selectorEstadoDetalle.addEventListener("change", actualizarVisibilidadDetalle);
+}	  
 
 if (soloLectura) {
   modalContenido.querySelectorAll(
