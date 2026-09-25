@@ -50,7 +50,7 @@ function getEmpresaId(user) {
 async function obtenerOrdenPermitida(supabase, ordenId, empresaId) {
   const { data: orden, error } = await supabase
     .from('ordenes')
-    .select('id, empresa_id')
+    .select('id, empresa_id, estado')
     .eq('id', ordenId)
     .eq('empresa_id', empresaId)
     .maybeSingle();
@@ -60,6 +60,11 @@ async function obtenerOrdenPermitida(supabase, ordenId, empresaId) {
   }
 
   return orden;
+}
+
+function permiteModificarPagos(orden) {
+  return orden &&
+    ['reparando', 'terminado', 'entregado'].includes(orden.estado);
 }
 
 function esTecnico(user) {
@@ -123,6 +128,8 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      
+
       const { data, error } = await supabase
         .from('pagos')
         .select('id, orden_id, monto, fecha, notas, creado_en, empresa_id')
@@ -175,6 +182,13 @@ module.exports = async function handler(req, res) {
           error: 'Orden no encontrada.'
         });
       }
+
+      if (!permiteModificarPagos(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar pagos en órdenes Reparando, Listo para retirar o Entregado.'
+      });
+    }
 
       const { data, error } = await supabase
         .from('pagos')
@@ -259,6 +273,13 @@ module.exports = async function handler(req, res) {
           error: 'Pago no encontrado.'
         });
       }
+
+     if (!permiteModificarPagos(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar pagos en órdenes Reparando, Listo para retirar o Entregado.'
+      });
+    }
 
       const { data, error } = await supabase
         .from('pagos')
@@ -360,6 +381,14 @@ module.exports = async function handler(req, res) {
           error: 'Pago no encontrado.'
         });
       }
+
+
+      if (!permiteModificarPagos(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar pagos en órdenes Reparando, Listo para retirar o Entregado.'
+      });
+    }
 
       const { error: deleteError } = await supabase
         .from('pagos')
