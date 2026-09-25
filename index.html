@@ -7994,12 +7994,13 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var rolActual = sessionStorage.getItem("rol") || "user";
   var esTecnicoActual = rolActual === "tecnico";
 
-  if (
-  	!esTecnicoActual &&
-  	(nuevoEstado === "reparando" ||
-	nuevoEstado === "terminado" ||
+ if (
+  !esTecnicoActual &&
+  estadoPrevio !== "sinreparar" &&
+  (nuevoEstado === "reparando" ||
+    nuevoEstado === "terminado" ||
     nuevoEstado === "entregado")
-   ) {
+) {
 
 	  
     var senaValidacion = senaEl
