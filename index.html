@@ -6717,16 +6717,7 @@ if (o.fechaPrometidaEntrega) {
   html += "<textarea id='modal-trabajo' rows='4' placeholder='Describí qué se le va a realizar al equipo...'>" + esc(o.trabajoRealizar) + "</textarea>";
   html += "</div>";
 
-  if (!esTecnicoActual) {
-  html += "<div class='status-select-wrap'>";
-  html += "<label for='modal-aprobacion'>Aprobación del presupuesto</label>";
-  html += "<select id='modal-aprobacion'>";
-  html += "<option value='pendiente'" + (o.aprobacionPresupuesto === "pendiente" ? " selected" : "") + ">Pendiente</option>";
-  html += "<option value='aprobado'" + (o.aprobacionPresupuesto === "aprobado" ? " selected" : "") + ">Aprobado</option>";
-  html += "<option value='rechazado'" + (o.aprobacionPresupuesto === "rechazado" ? " selected" : "") + ">Rechazado</option>";
-  html += "</select>";
-  html += "</div>";
-}
+  
 
   html += "<div class='status-select-wrap'>";
   html += "<label for='modal-estado'>Estado</label>";
@@ -7937,7 +7928,7 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var trabajoEl = document.getElementById("modal-trabajo");
   var senaEl = document.getElementById("modal-sena");
   var presupuestoEl = document.getElementById("modal-presupuesto");
-  var aprobacionEl = document.getElementById("modal-aprobacion");
+  
   var fechaPrometidaEl = document.getElementById(
   "modal-fecha-prometida-entrega"
 	);	  
@@ -8029,9 +8020,7 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   presupuesto: presupuestoEl
     ? Number(presupuestoEl.value) || 0
     : 0,
-  aprobacion_presupuesto: aprobacionEl
-    ? aprobacionEl.value
-    : "pendiente",
+  
   fecha_prometida_entrega: fechaPrometidaEl
     ? fechaPrometidaEl.value
     : null
@@ -8058,8 +8047,8 @@ var datosOrden = {
   fecha_prometida_entrega: update.fecha_prometida_entrega,
   diagnostico: update.diagnostico,
   trabajo_realizar: update.trabajo_realizar,
-  sena: update.sena,
-  aprobacion_presupuesto: update.aprobacion_presupuesto
+  sena: update.sena
+  
 };
 
 if (nuevoEstado === "presupuesto") {
