@@ -6586,7 +6586,7 @@ function renderStats() {
 }
 
 
- function actualizarVisibilidadDetalle() {
+ function actualizarVisibilidadDetalle(o) {
   var selectorEstado = document.getElementById("modal-estado");
   if (!selectorEstado) return;
 
@@ -6598,14 +6598,29 @@ function renderStats() {
   selectorEstado.value === "terminado" ||
   selectorEstado.value === "entregado";	 
 
+  var tieneDatosEconomicos =
+  Number(o.sena || 0) > 0 ||
+  Number(o.total_items || 0) > 0 ||
+  Number(o.total_pagos || 0) > 0;
+
+  var ordenDevueltaGuardada = o.estado === "sinreparar";
+
+  var mostrarBloquesEconomicos =
+  mostrarEconomia ||
+  (esSinReparar && tieneDatosEconomicos) ||
+  (ordenDevueltaGuardada && tieneDatosEconomicos);
+	 
+
   var visibilidad = {
     "grupo-presupuesto-detalle": esPresupuesto,
     "grupo-motivo-devolucion": esSinReparar,
-    "grupo-sena": mostrarEconomia,
-	"grupo-servicios-repuestos": mostrarEconomia,
-	"grupo-resumen-economico": mostrarEconomia,
-	"grupo-pagos": mostrarEconomia
+    "grupo-sena": mostrarBloquesEconomicos,
+    "grupo-servicios-repuestos": mostrarBloquesEconomicos,
+    "grupo-resumen-economico": mostrarBloquesEconomicos,
+    "grupo-pagos": mostrarBloquesEconomicos
   };
+
+	 
 
   Object.keys(visibilidad).forEach(function (id) {
     var elemento = document.getElementById(id);
@@ -6613,6 +6628,18 @@ function renderStats() {
       elemento.style.display = visibilidad[id] ? "" : "none";
     }
   });
+
+ if (ordenDevueltaGuardada) {
+  ["grupo-sena", "grupo-servicios-repuestos", "grupo-pagos"].forEach(function (id) {
+    var bloque = document.getElementById(id);
+    if (!bloque) return;
+
+    bloque.querySelectorAll("input, select, textarea, button").forEach(function (control) {
+      control.disabled = true;
+    });
+  });
+}
+	 
 }		  
 		  
  /* ===== DETAIL MODAL ===== */
@@ -6633,6 +6660,7 @@ function renderStats() {
   var html = "";
   var rol = sessionStorage.getItem('rol') || 'user';
   var esTecnicoActual = rol === 'tecnico';	
+  var economiaBloqueadaPorDevolucion = o.estado === 'sinreparar';	  
 
   var ordenCerradaParaTecnico =
   esTecnicoActual &&
@@ -6859,11 +6887,13 @@ var soloLectura =
 modalContenido.innerHTML = html;
 modalDetalle.classList.add("visible");
 
-actualizarVisibilidadDetalle();
+actualizarVisibilidadDetalle(o);
 
 var selectorEstadoDetalle = document.getElementById("modal-estado");
 if (selectorEstadoDetalle) {
-  selectorEstadoDetalle.addEventListener("change", actualizarVisibilidadDetalle);
+  selectorEstadoDetalle.addEventListener("change", function () {
+  actualizarVisibilidadDetalle(o);
+});
 }	  
 
 if (soloLectura) {
@@ -7365,6 +7395,18 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 		"Total de servicios y repuestos: $" +
 		total.toFixed(2) +
 		"</div>";
+
+		var ordenDeEstosItems = ordenes.find(function (orden) {
+  		return orden.id === ordenId;
+		});
+
+		if (ordenDeEstosItems && ordenDeEstosItems.estado === "sinreparar") {
+  			itemsEl.querySelectorAll(".btn-editar-item, .btn-eliminar-item")
+    		.forEach(function (boton) {
+      		boton.disabled = true;
+    		});
+}
+		
 		var resumenTotal = document.getElementById(
   "resumen-total-items"
 );
@@ -7700,6 +7742,17 @@ function cargarPagosOrden(ordenId) {
         }).join("") +
         "</ul>";
 
+	  var ordenDeEstosPagos = ordenes.find(function (orden) {
+  	  return orden.id === ordenId;
+     });
+
+	if (ordenDeEstosPagos && ordenDeEstosPagos.estado === "sinreparar") {
+    pagosEl.querySelectorAll(".btn-editar-pago, .btn-eliminar-pago")
+    .forEach(function (boton) {
+      boton.disabled = true;
+    });
+   }	
+
       calcularSaldoDesdeResumen();
 
       var botonesEliminarPago = pagosEl.querySelectorAll(
@@ -7941,7 +7994,14 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var rolActual = sessionStorage.getItem("rol") || "user";
   var esTecnicoActual = rolActual === "tecnico";
 
-  if (!esTecnicoActual) {
+  if (
+  	!esTecnicoActual &&
+  	(nuevoEstado === "reparando" ||
+	nuevoEstado === "terminado" ||
+    nuevoEstado === "entregado")
+   ) {
+
+	  
     var senaValidacion = senaEl
       ? Number(senaEl.value) || 0
       : 0;
@@ -8019,9 +8079,15 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   trabajo_realizar: trabajoEl
     ? trabajoEl.value.trim()
     : "",
-  sena: senaEl
-    ? Number(senaEl.value) || 0
-    : 0,
+	 
+  sena: !esTecnicoActual && (
+  nuevoEstado === "reparando" ||
+  nuevoEstado === "terminado" ||
+  nuevoEstado === "entregado"
+)
+  ? Number(senaEl ? senaEl.value : o.sena) || 0
+  : Number(o.sena) || 0,
+	 
   presupuesto: presupuestoEl
     ? Number(presupuestoEl.value) || 0
     : 0,
