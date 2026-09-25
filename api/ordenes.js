@@ -7,14 +7,14 @@ const ORDER_FIELDS = `
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
   estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
-  empresa_id, tecnico_id, vista_por_tecnico_en, tecnico_nombre`;
+  empresa_id, tecnico_id, vista_por_tecnico_en, tecnico_nombre, presupuesto_detalle, motivo_devolucion`;
 
 const ORDER_FIELDS_WRITABLE = `
   id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
   sena, falla, presupuesto, presupuesta, estetico,
   diagnostico, trabajo_realizar, aprobacion_presupuesto,
   estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
-  empresa_id, tecnico_id`;
+  empresa_id, tecnico_id, presupuesto_detalle, motivo_devolucion`;
 
 const ALLOWED_STATES = new Set([
   'ingresado',
@@ -729,6 +729,8 @@ orden.es_critica =
             aprobacion_presupuesto,
             fecha_entrega,
             fecha_prometida_entrega,
+            presupuesto_detalle,
+            motivo_devolucion,
             terminado_en
             
           `
@@ -879,6 +881,13 @@ if (user.rol === 'tecnico') {
       body.fecha_prometida_entrega
     )
   };
+    if (Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')) {
+      update.presupuesto_detalle = text(body.presupuesto_detalle, 4000);
+  }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'motivo_devolucion')) {
+      update.motivo_devolucion = text(body.motivo_devolucion, 2000);
+    }
   
         if (
               Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
