@@ -6593,13 +6593,18 @@ function renderStats() {
   var esPresupuesto = selectorEstado.value === "presupuesto";
   var esSinReparar = selectorEstado.value === "sinreparar";
 
+  var mostrarEconomia =
+  selectorEstado.value === "reparando" ||
+  selectorEstado.value === "terminado" ||
+  selectorEstado.value === "entregado";	 
+
   var visibilidad = {
     "grupo-presupuesto-detalle": esPresupuesto,
     "grupo-motivo-devolucion": esSinReparar,
-    "grupo-sena": selectorEstado.value === "reparando",
-    "grupo-servicios-repuestos": !esPresupuesto,
-    "grupo-resumen-economico": !esPresupuesto,
-    "grupo-pagos": !esPresupuesto
+    "grupo-sena": mostrarEconomia,
+	"grupo-servicios-repuestos": mostrarEconomia,
+	"grupo-resumen-economico": mostrarEconomia,
+	"grupo-pagos": mostrarEconomia
   };
 
   Object.keys(visibilidad).forEach(function (id) {
