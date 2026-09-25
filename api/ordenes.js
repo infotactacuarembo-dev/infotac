@@ -868,10 +868,7 @@ if (user.rol === 'tecnico') {
     diagnostico: text(body.diagnostico, 4000),
     trabajo_realizar: text(body.trabajo_realizar, 4000),
     sena: number(body.sena),
-    aprobacion_presupuesto: text(
-      body.aprobacion_presupuesto || 'pendiente',
-      20
-    ),
+    
     fecha_entrega:
       body.estado === 'entregado' ||
       body.estado === 'sinreparar'
