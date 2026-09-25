@@ -5591,6 +5591,8 @@ function mapearFila(row) {
     pin: row.pass,
     sena: row.sena,
     presupuesto: row.presupuesto,
+	presupuestoDetalle: row.presupuesto_detalle || "",
+	motivoDevolucion: row.motivo_devolucion || "",  
 
     total_items: row.total_items,
     total_pagos: row.total_pagos,
@@ -6721,7 +6723,24 @@ if (o.fechaPrometidaEntrega) {
   html += "</select>";
   html += "</div>";
   html += "<div class='historial-section'>";
-html += "<div class='historial-title'>Servicios y repuestos</div>";
+  html += "<div class='historial-title'>Servicios y repuestos</div>";
+
+  html += "<div class='form-group full' id='grupo-presupuesto-detalle'>";
+  html += "<label for='modal-presupuesto-detalle'>Propuesta de presupuesto</label>";
+  html += "<textarea id='modal-presupuesto-detalle' rows='5' maxlength='4000' " +
+  "placeholder='Describí el trabajo propuesto y el precio estimado...'>" +
+  esc(o.presupuestoDetalle || "") +
+  "</textarea>";
+  html += "</div>";
+
+if (!esTecnicoActual) {
+  html += "<div class='form-group full' id='grupo-motivo-devolucion'>";
+  html += "<label for='modal-motivo-devolucion'>Motivo de devolución (opcional)</label>";
+  html += "<textarea id='modal-motivo-devolucion' rows='3' maxlength='2000'>" +
+    esc(o.motivoDevolucion || "") +
+    "</textarea>";
+  html += "</div>";
+}	
 
 html += "<select id='item-tipo'>";
 html += "<option value='mano_obra'>Mano de obra</option>";
@@ -6866,13 +6885,39 @@ if (senaInput && resumenSena) {
 }
 
 
-  var selEstado = document.getElementById("modal-estado");
+var selEstado = document.getElementById("modal-estado");
+var grupoPresupuesto = document.getElementById("grupo-presupuesto-detalle");
+var grupoMotivo = document.getElementById("grupo-motivo-devolucion");
 
-  if (selEstado) {
-    selEstado.addEventListener("change", function () {
-      estadoEditTemporal = selEstado.value;
-    });
+function actualizarCamposDeEstado() {
+  var estado = selEstado ? selEstado.value : o.estado;
+
+  if (grupoPresupuesto) {
+    grupoPresupuesto.style.display =
+      estado === "presupuesto" ? "" : "none";
   }
+
+  if (grupoMotivo) {
+    grupoMotivo.style.display =
+      estado === "sinreparar" ? "" : "none";
+  }
+}
+
+actualizarCamposDeEstado();
+var presupuestoDetalleInput = document.getElementById(
+  "modal-presupuesto-detalle"
+);
+
+if (esTecnicoActual && presupuestoDetalleInput) {
+  presupuestoDetalleInput.readOnly = true;
+}	  
+
+if (selEstado) {
+  selEstado.addEventListener("change", function () {
+    estadoEditTemporal = selEstado.value;
+    actualizarCamposDeEstado();
+  });
+}
 
   if (!desdeHistorialCliente && !esTecnicoActual) {
   if (o.clienteId) {
@@ -7979,21 +8024,38 @@ if (
   update.fecha_entrega = null;
 }
 
-pedirApi(
-  "/api/ordenes",
-  {
-    id: o.id,
-    estado: update.estado,
-    fecha_entrega: update.fecha_entrega || null,
-    fecha_prometida_entrega: update.fecha_prometida_entrega,
-    diagnostico: update.diagnostico,
-    trabajo_realizar: update.trabajo_realizar,
-    sena: update.sena,
-    presupuesto: update.presupuesto,
-    aprobacion_presupuesto: update.aprobacion_presupuesto
-  },
-  "PATCH"
-)
+var datosOrden = {
+  id: o.id,
+  estado: update.estado,
+  fecha_entrega: update.fecha_entrega || null,
+  fecha_prometida_entrega: update.fecha_prometida_entrega,
+  diagnostico: update.diagnostico,
+  trabajo_realizar: update.trabajo_realizar,
+  sena: update.sena,
+  aprobacion_presupuesto: update.aprobacion_presupuesto
+};
+
+if (!esTecnicoActual && nuevoEstado === "presupuesto") {
+  var presupuestoDetalleEl = document.getElementById(
+    "modal-presupuesto-detalle"
+  );
+
+  datosOrden.presupuesto_detalle = presupuestoDetalleEl
+    ? presupuestoDetalleEl.value.trim()
+    : o.presupuestoDetalle || "";
+}
+
+if (!esTecnicoActual && nuevoEstado === "sinreparar") {
+  var motivoDevolucionEl = document.getElementById(
+    "modal-motivo-devolucion"
+  );
+
+  datosOrden.motivo_devolucion = motivoDevolucionEl
+    ? motivoDevolucionEl.value.trim()
+    : o.motivoDevolucion || "";
+}
+
+pedirApi("/api/ordenes", datosOrden, "PATCH")
   .then(function (resultado) {
     if (!resultado.ok) {
       throw new Error(
