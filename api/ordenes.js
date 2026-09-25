@@ -855,13 +855,19 @@ if (user.rol === 'tecnico') {
     fecha_entrega: null,
     terminado_en: terminadoEn
   };
+
+  if (
+    body.estado === 'presupuesto' &&
+    Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')
+  ) {
+    update.presupuesto_detalle = text(body.presupuesto_detalle, 4000);
+  }
 } else {
   update = {
     estado: body.estado,
     diagnostico: text(body.diagnostico, 4000),
     trabajo_realizar: text(body.trabajo_realizar, 4000),
     sena: number(body.sena),
-    
     aprobacion_presupuesto: text(
       body.aprobacion_presupuesto || 'pendiente',
       20
