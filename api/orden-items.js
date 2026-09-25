@@ -59,7 +59,7 @@ function esTecnico(user) {
 async function obtenerOrdenPermitida(supabase, ordenId, user, empresaId) {
   let query = supabase
     .from('ordenes')
-    .select('id, empresa_id, tecnico_id')
+    .select('id, empresa_id, tecnico_id, estado')
     .eq('id', ordenId)
     .eq('empresa_id', empresaId);
 
@@ -72,6 +72,11 @@ async function obtenerOrdenPermitida(supabase, ordenId, user, empresaId) {
   if (error) throw error;
 
   return orden;
+}
+
+function permiteEditarItems(orden) {
+  return orden &&
+    (orden.estado === 'reparando' || orden.estado === 'terminado');
 }
 
 module.exports = async function handler(req, res) {
@@ -193,6 +198,14 @@ module.exports = async function handler(req, res) {
         });
       }
 
+
+      if (!permiteEditarItems(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
+      });
+    }
+      
       const { data, error } = await supabase
         .from('orden_items')
         .insert({
@@ -306,6 +319,13 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      if (!permiteEditarItems(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
+      });
+    }
+
       // Un técnico conserva el precio anterior; user/admin sí pueden cambiarlo.
       const precioUnitario = esTecnico(user)
         ? numeroPositivo(item.precio_unitario, 0)
@@ -414,6 +434,13 @@ module.exports = async function handler(req, res) {
           error: 'Orden no encontrada.'
         });
       }
+
+      if (!permiteEditarItems(orden)) {
+        return res.status(409).json({
+        ok: false,
+        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
+      });
+    }
 
       const { error: deleteError } = await supabase
         .from('orden_items')
