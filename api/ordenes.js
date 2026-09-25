@@ -867,7 +867,7 @@ if (user.rol === 'tecnico') {
     estado: body.estado,
     diagnostico: text(body.diagnostico, 4000),
     trabajo_realizar: text(body.trabajo_realizar, 4000),
-    sena: number(body.sena),
+    
     
     fecha_entrega:
       body.estado === 'entregado' ||
@@ -884,6 +884,12 @@ if (user.rol === 'tecnico') {
       body.fecha_prometida_entrega
     )
   };
+
+
+  // Si la orden ya estaba devuelta, este guardado no modifica la seña.
+if (ordenActual.estado !== 'sinreparar') {
+  update.sena = number(body.sena);
+}
 
   if (Object.prototype.hasOwnProperty.call(body, 'presupuesto')) {
   update.presupuesto = number(body.presupuesto);
