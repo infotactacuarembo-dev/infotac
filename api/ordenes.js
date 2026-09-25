@@ -861,7 +861,7 @@ if (user.rol === 'tecnico') {
     diagnostico: text(body.diagnostico, 4000),
     trabajo_realizar: text(body.trabajo_realizar, 4000),
     sena: number(body.sena),
-    presupuesto: number(body.presupuesto),
+    
     aprobacion_presupuesto: text(
       body.aprobacion_presupuesto || 'pendiente',
       20
@@ -881,11 +881,16 @@ if (user.rol === 'tecnico') {
       body.fecha_prometida_entrega
     )
   };
-    if (Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')) {
+
+  if (Object.prototype.hasOwnProperty.call(body, 'presupuesto')) {
+  update.presupuesto = number(body.presupuesto);
+  }  
+  
+  if (Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')) {
       update.presupuesto_detalle = text(body.presupuesto_detalle, 4000);
   }
 
-    if (Object.prototype.hasOwnProperty.call(body, 'motivo_devolucion')) {
+  if (Object.prototype.hasOwnProperty.call(body, 'motivo_devolucion')) {
       update.motivo_devolucion = text(body.motivo_devolucion, 2000);
     }
   
