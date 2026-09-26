@@ -5336,116 +5336,34 @@ function consultarBalanceTaller() {
 
   if (balanceMensaje) {
     balanceMensaje.textContent =
-      'Consultando órdenes entregadas, ítems y pagos...';
+      'Consultando órdenes entregadas...';
   }
 
   if (balanceResumen) {
     balanceResumen.style.display = 'none';
   }
 
-  pedirApi('/api/ordenes?pagina=1&limite=10000')
+  pedirApi(
+    '/api/balance-taller?desde=' +
+      encodeURIComponent(desde) +
+      '&hasta=' +
+      encodeURIComponent(hasta)
+  )
     .then(function (resultado) {
-      if (!resultado.ok) {
+      if (!resultado || resultado.ok !== true || !resultado.data) {
         throw new Error(
-          resultado.error || 'No se pudieron cargar las órdenes.'
+          (resultado && resultado.error) ||
+          'Respuesta inválida del balance.'
         );
       }
 
-      var ordenesBalance = (resultado.data || []).filter(function (orden) {
-        var estado = String(orden.estado || '').toLowerCase();
-        var fechaEntrega = balanceFechaLocal(orden.fecha_entrega);
-
-        return (
-          estado === 'entregado' &&
-          fechaEntrega &&
-          fechaEntrega >= desde &&
-          fechaEntrega <= hasta
-        );
-      });
-
-      return Promise.all(
-        ordenesBalance.map(function (orden) {
-          return Promise.all([
-            pedirApi(
-              '/api/orden-items?orden_id=' +
-              encodeURIComponent(orden.id)
-            ),
-            pedirApi(
-              '/api/pagos?orden_id=' +
-              encodeURIComponent(orden.id)
-            )
-          ])
-            .then(function (respuestas) {
-              return {
-                orden: orden,
-                items: respuestas[0].data || [],
-                pagos: respuestas[1].data || []
-              };
-            });
-        })
-      );
-    })
-    .then(function (ordenesConDetalle) {
-      var datos = {
-        cantidadOrdenes: ordenesConDetalle.length,
-        manoObra: 0,
-        repuestos: 0,
-        servicios: 0,
-        totalFacturado: 0,
-        senas: 0,
-        pagos: 0,
-        totalCobrado: 0,
-        saldoPendiente: 0,
-        desde: desde,
-        hasta: hasta
-      };
-
-      ordenesConDetalle.forEach(function (detalle) {
-        var totalOrden = 0;
-        var senaOrden = balanceNumero(detalle.orden.sena);
-        var pagosOrden = 0;
-
-        detalle.items.forEach(function (item) {
-          var cantidad = balanceNumero(item.cantidad);
-          var precioUnitario = balanceNumero(item.precio_unitario);
-          var subtotal = cantidad * precioUnitario;
-          var tipo = String(item.tipo || 'servicio').toLowerCase();
-
-          totalOrden += subtotal;
-
-          if (tipo === 'mano_obra') {
-            datos.manoObra += subtotal;
-          } else if (tipo === 'repuesto') {
-            datos.repuestos += subtotal;
-          } else {
-            datos.servicios += subtotal;
-          }
-        });
-
-        detalle.pagos.forEach(function (pago) {
-          pagosOrden += balanceNumero(pago.monto);
-        });
-
-        var cobradoOrden = senaOrden + pagosOrden;
-        var saldoOrden = Math.max(0, totalOrden - cobradoOrden);
-
-        datos.totalFacturado += totalOrden;
-        datos.senas += senaOrden;
-        datos.pagos += pagosOrden;
-        datos.totalCobrado += cobradoOrden;
-        datos.saldoPendiente += saldoOrden;
-      });
-
-      balanceMostrarResumen(datos);
+      balanceMostrarResumen(resultado.data);
 
       if (balanceMensaje) {
-        if (datos.cantidadOrdenes === 0) {
-          balanceMensaje.textContent =
-            'No se encontraron órdenes entregadas en el período seleccionado.';
-        } else {
-          balanceMensaje.textContent =
-            'Balance calculado correctamente.';
-        }
+        balanceMensaje.textContent =
+          resultado.data.cantidadOrdenes === 0
+            ? 'No se encontraron órdenes entregadas en el período seleccionado.'
+            : 'Balance calculado correctamente.';
       }
     })
     .catch(function (error) {
@@ -5467,13 +5385,6 @@ function consultarBalanceTaller() {
         btnConsultarBalance.textContent = 'Consultar balance';
       }
     });
-}
-
-if (btnConsultarBalance) {
-  btnConsultarBalance.addEventListener(
-    'click',
-    consultarBalanceTaller
-  );
 }
  	  
 		  
