@@ -5386,7 +5386,13 @@ function consultarBalanceTaller() {
       }
     });
 }
- 	  
+
+if (btnConsultarBalance) {
+  btnConsultarBalance.addEventListener(
+    'click',
+    consultarBalanceTaller
+  );
+}		  
 		  
 function restaurarSesion() {
   fetch("/api/session", {
