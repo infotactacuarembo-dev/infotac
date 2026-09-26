@@ -8848,23 +8848,18 @@ var excedente = Math.max(
       );
 
     case "presupuesto":
-  return (
-    "Hola " + nombre + ", ya tenemos novedades sobre tu equipo " +
-    equipo + ".\n\n" +
-    "Nro. de orden: " + idOrden + "\n\n" +
-    "Diagnóstico:\n" + diagnostico + "\n\n" +
-    "Trabajo a realizar:\n" + trabajo + "\n\n" +
-    textoItems +
-    "Total de servicios y repuestos: $" + totalPresupuesto.toFixed(2) + "\n" +
-	"Pagos a cuenta: $" + totalPagos.toFixed(2) + "\n" +
-	"Seña registrada: $" + sena.toFixed(2) + "\n" +
-	"Saldo pendiente: $" + saldoPendiente + "\n\n" +
-    (Number(excedente) > 0
-      ? "Saldo a favor: $" + excedente + "\n"
-      : "") +
-    "\nPor favor, confirmá si aprobás el trabajo para que podamos avanzar.\n\n" +
-    "Saludos, Infotac."
-  );
+  		var propuesta = (o.presupuestoDetalle || "").trim();
+
+  		return (
+    		"Hola " + nombre + ", ya tenemos novedades sobre tu equipo " +
+		    equipo + ".\n\n" +
+    		"Nro. de orden: " + idOrden + "\n\n" +
+    		"Propuesta de presupuesto:\n" +
+		    (propuesta || "Aún no se registró una propuesta de presupuesto.") +
+		    "\n\n" +
+    		"Por favor, confirmá si aprobás el trabajo para que podamos avanzar.\n\n" +
+    		"Saludos, Infotac."
+  		);
 
     case "reparando":
       return (
