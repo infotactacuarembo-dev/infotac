@@ -6629,18 +6629,19 @@ function renderStats() {
     }
   });
 
- if (ordenDevueltaGuardada) {
-  ["grupo-sena", "grupo-servicios-repuestos", "grupo-pagos"].forEach(function (id) {
-    var bloque = document.getElementById(id);
-    if (!bloque) return;
+ var bloquearEconomia = ordenDevueltaGuardada || esSinReparar;
 
-    bloque.querySelectorAll("input, select, textarea, button").forEach(function (control) {
-      control.disabled = true;
-    });
+["grupo-sena", "grupo-servicios-repuestos", "grupo-pagos"].forEach(function (id) {
+  var bloque = document.getElementById(id);
+  if (!bloque) return;
+
+  bloque.querySelectorAll("input, select, textarea, button").forEach(function (control) {
+    control.disabled = bloquearEconomia;
   });
+});
+
 }
-	 
-}		  
+	 	  
 		  
  /* ===== DETAIL MODAL ===== */
   function abrirDetalle(id, desdeHistorialCliente) {
@@ -7396,16 +7397,20 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 		total.toFixed(2) +
 		"</div>";
 
-		var ordenDeEstosItems = ordenes.find(function (orden) {
-  		return orden.id === ordenId;
-		});
+var ordenDeEstosItems = ordenes.find(function (orden) {
+return orden.id === ordenId;
+});
 
-		if (ordenDeEstosItems && ordenDeEstosItems.estado === "sinreparar") {
-  			itemsEl.querySelectorAll(".btn-editar-item, .btn-eliminar-item")
-    		.forEach(function (boton) {
-      		boton.disabled = true;
-    		});
-}
+var selectorEstadoItems = document.getElementById("modal-estado");
+
+var bloquearBotonesItems =
+  (ordenDeEstosItems && ordenDeEstosItems.estado === "sinreparar") ||
+  (selectorEstadoItems && selectorEstadoItems.value === "sinreparar");
+
+itemsEl.querySelectorAll(".btn-editar-item, .btn-eliminar-item")
+  .forEach(function (boton) {
+    boton.disabled = Boolean(bloquearBotonesItems);
+  });
 		
 		var resumenTotal = document.getElementById(
   "resumen-total-items"
@@ -7742,16 +7747,20 @@ function cargarPagosOrden(ordenId) {
         }).join("") +
         "</ul>";
 
-	  var ordenDeEstosPagos = ordenes.find(function (orden) {
-  	  return orden.id === ordenId;
-     });
+  var ordenDeEstosPagos = ordenes.find(function (orden) {
+  return orden.id === ordenId;
+});
 
-	if (ordenDeEstosPagos && ordenDeEstosPagos.estado === "sinreparar") {
-    pagosEl.querySelectorAll(".btn-editar-pago, .btn-eliminar-pago")
-    .forEach(function (boton) {
-      boton.disabled = true;
-    });
-   }	
+var selectorEstadoPagos = document.getElementById("modal-estado");
+
+var bloquearBotonesPagos =
+  (ordenDeEstosPagos && ordenDeEstosPagos.estado === "sinreparar") ||
+  (selectorEstadoPagos && selectorEstadoPagos.value === "sinreparar");
+
+pagosEl.querySelectorAll(".btn-editar-pago, .btn-eliminar-pago")
+  .forEach(function (boton) {
+    boton.disabled = Boolean(bloquearBotonesPagos);
+  });
 
       calcularSaldoDesdeResumen();
 
