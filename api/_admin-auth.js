@@ -17,9 +17,12 @@ async function check(req, res) {
     const db = clients(token);
     const { data, error } = await db.service.auth.getUser(token);
     if (error || !data.user) { res.status(401).json({ ok: false, error: 'Sesión inválida.' }); return null; }
-    const { data: allowed, error: permissionError } = await db.user.rpc('admin_license_overview');
+    const { data: allowed, error: permissionError } = await db.user.rpc('is_platform_admin');
     if (permissionError) throw permissionError;
-    return { id: data.user.id, email: data.user.email || null, service: db.service, licenses: allowed || [] };
+    if (allowed !== true) { res.status(403).json({ ok: false, error: 'Acceso denegado.' }); return null; }
+    const { data: licenses, error: licensesError } = await db.user.rpc('admin_license_overview');
+    if (licensesError) throw licensesError;
+    return { id: data.user.id, email: data.user.email || null, service: db.service, licenses: licenses || [] };
   } catch (_) { res.status(503).json({ ok: false, error: 'No se pudo verificar la sesión.' }); return null; }
 }
 module.exports = { clients, cookie, clearCookie, read, check };

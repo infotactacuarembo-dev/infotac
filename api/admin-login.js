@@ -9,8 +9,8 @@ module.exports = async function(req, res) {
     const { service } = clients();
     const { data, error } = await service.auth.signInWithPassword({ email, password });
     if (error || !data.session || !data.user) return res.status(401).json({ ok: false, error: 'Acceso denegado.' });
-    const { data: allowed, error: permissionError } = await clients(data.session.access_token).user.rpc('admin_license_overview');
-    if (permissionError || !Array.isArray(allowed)) return res.status(401).json({ ok: false, error: 'Acceso denegado.' });
+    const { data: allowed, error: permissionError } = await clients(data.session.access_token).user.rpc('is_platform_admin');
+    if (permissionError || allowed !== true) return res.status(401).json({ ok: false, error: 'Acceso denegado.' });
     res.setHeader('Set-Cookie', cookie(data.session.access_token, Math.min(3600, data.session.expires_in || 3600)));
     return res.status(200).json({ ok: true });
   } catch (_) { return res.status(503).json({ ok: false, error: 'No se pudo iniciar sesión.' }); }

@@ -1,3 +1,15 @@
+create or replace function public.is_platform_admin()
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select auth.uid() is not null and exists (
+    select 1 from platform_private.platform_admins a
+    where a.auth_user_id = auth.uid() and a.active is true
+  );
+$$;
+revoke all on function public.is_platform_admin() from public, anon, authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated;
+
 create or replace function public.admin_license_overview()
 returns table(empresa_id uuid, status text, starts_at timestamptz, ends_at timestamptz, grace_started_at timestamptz, grace_ends_at timestamptz)
 language sql stable security definer set search_path = ''
