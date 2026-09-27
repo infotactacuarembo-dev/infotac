@@ -1,0 +1,16 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {eligibleAdmin,assertTransition}=require('./infotac-license-policy');
+const U='11111111-1111-4111-8111-111111111111';
+const base={authUserId:U,aal:'aal2',record:{auth_user_id:U,active:true},isProduction:true};
+test('valid identity MFA and environment',()=>assert.equal(eligibleAdmin(base),true));
+test('deny Preview',()=>assert.equal(eligibleAdmin({...base,isProduction:false}),false));
+test('deny aal1',()=>assert.equal(eligibleAdmin({...base,aal:'aal1'}),false));
+test('deny revoked',()=>assert.equal(eligibleAdmin({...base,record:{auth_user_id:U,active:false}}),false));
+test('deny wrong identity',()=>assert.equal(eligibleAdmin({...base,authUserId:'22222222-2222-4222-8222-222222222222'}),false));
+test('deny absent record',()=>assert.equal(eligibleAdmin({...base,record:null}),false));
+test('valid activation',()=>assert.equal(assertTransition({from:'trial',to:'active',reason:'Pago registrado',endsAt:'2027-01-01T00:00:00Z'}),true));
+test('cancelled is terminal',()=>assert.throws(()=>assertTransition({from:'cancelled',to:'active',reason:'Renovación',endsAt:'2027-01-01T00:00:00Z'})));
+test('same-state not a transition',()=>assert.throws(()=>assertTransition({from:'active',to:'active',reason:'Sin cambios',endsAt:'2027-01-01T00:00:00Z'})));
+test('reason is mandatory',()=>assert.throws(()=>assertTransition({from:'active',to:'suspended',reason:''})));
+test('active requires date',()=>assert.throws(()=>assertTransition({from:'suspended',to:'active',reason:'Restablecida'})));
