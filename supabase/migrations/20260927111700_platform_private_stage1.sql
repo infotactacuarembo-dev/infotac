@@ -1,5 +1,5 @@
--- Stage 1: private storage only. Requires review/test in disposable Supabase project.
--- Does not activate licenses, create admins, change public tables or expose APIs.
+-- REVIEW ONLY: replace the untested stage1 migration BEFORE applying it anywhere.
+-- This creates private storage, not a usable administration API or automatic suspension.
 BEGIN;
 CREATE SCHEMA platform_private;
 REVOKE ALL ON SCHEMA platform_private FROM PUBLIC, anon, authenticated, service_role;
@@ -22,20 +22,19 @@ CREATE TABLE platform_private.licenses (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT licenses_valid_interval CHECK (ends_at IS NULL OR ends_at > starts_at),
   CONSTRAINT licenses_grace_period CHECK (
-    (status = 'grace' AND grace_started_at IS NOT NULL AND grace_ends_at = grace_started_at + interval '7 days')
-    OR (status <> 'grace' AND (grace_started_at IS NULL OR grace_ends_at IS NOT NULL))
+    (status = 'grace' AND grace_started_at IS NOT NULL AND grace_ends_at IS NOT NULL
+       AND grace_ends_at = grace_started_at + interval '7 days')
+    OR (status <> 'grace' AND grace_started_at IS NULL AND grace_ends_at IS NULL)
   )
 );
 CREATE TABLE platform_private.license_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   license_id uuid NOT NULL REFERENCES platform_private.licenses(id) ON DELETE RESTRICT,
   actor_id uuid NOT NULL REFERENCES platform_private.platform_admins(auth_user_id) ON DELETE RESTRICT,
-  old_status text,
-  new_status text NOT NULL,
+  old_status text CHECK (old_status IS NULL OR old_status IN ('trial','active','grace','suspended','expired','cancelled')),
+  new_status text NOT NULL CHECK (new_status IN ('trial','active','grace','suspended','expired','cancelled')),
   reason text NOT NULL CHECK (char_length(trim(reason)) BETWEEN 3 AND 500),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT license_events_old_status CHECK (old_status IS NULL OR old_status IN ('trial','active','grace','suspended','expired','cancelled')),
-  CONSTRAINT license_events_new_status CHECK (new_status IN ('trial','active','grace','suspended','expired','cancelled'))
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX license_events_license_created_idx ON platform_private.license_events (license_id, created_at DESC);
 
@@ -59,9 +58,8 @@ BEFORE TRUNCATE ON platform_private.license_events
 FOR EACH STATEMENT EXECUTE FUNCTION platform_private.reject_license_event_mutation();
 COMMIT;
 
--- No database role/API permission to write licensing data is granted here.
--- Remaining before production: verify exposed schemas and inherited privileges;
--- decide privileged server/transaction interface, atomic state transitions,
--- provisioning idempotency and notices (panel + email at day 0, day-5 reminder).
--- Manual decision is required before suspension after seven-day grace period.
--- Object owner/privileged DDL can bypass audit trigger; external audit if required.
+-- Design decisions still outstanding: move expired grace timestamps to an
+-- append-only event for historical reporting; atomic transition function with
+-- verified actor; public.empresa FK write permissions; exposing no private schema
+-- over Data API; inherited/default privileges; local SQL and integration tests.
+-- No workshop access restrictions, emails or automated status changes in stage1.
