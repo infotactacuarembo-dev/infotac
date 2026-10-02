@@ -130,7 +130,7 @@ module.exports = async function handler(req, res) {
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
       .select(
-        'id, empresa_id, identificador, password_hash, activo'
+        'id, empresa_id, identificador, password_hash, activo, debe_cambiar_password'
       )
       .eq('id', usuarioSesion.id)
       .eq('empresa_id', empresaId)
@@ -171,7 +171,8 @@ module.exports = async function handler(req, res) {
     const { error: updateError } = await supabase
       .from('usuarios')
       .update({
-        password_hash: nuevoHash
+        password_hash: nuevoHash,
+        debe_cambiar_password: false
       })
       .eq('id', usuarioSesion.id)
       .eq('empresa_id', empresaId);
