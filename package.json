@@ -1,10 +1,8 @@
 {
-  "name": "infotac",
-  "version": "1.0.0",
-  "private": true,
+  "scripts": {
+    "build": "echo 'No build step'"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "bcryptjs": "^2.4.3",
-    "formidable": "^3.5.2"
+    "@supabase/supabase-js": "^2.45.0"
   }
 }
