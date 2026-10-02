@@ -4007,6 +4007,7 @@ function solicitarJSON(url, datos) {
 /* Botón y modal de cambio de clave */
 var btnCambiarClave = document.getElementById('btn-cambiar-clave');
 var modalClave = document.getElementById('modal-cambiar-clave');
+var cambioClaveObligatorio = false;
 var inputNuevaClave = document.getElementById('input-nueva-clave');
 var inputClaveActual = document.getElementById('input-clave-actual');
 var inputConfirmarClave = document.getElementById('input-confirmar-clave');
@@ -4016,11 +4017,38 @@ var btnClaveCancelarX = document.getElementById('btn-clave-cancelar-x');
 var claveMsg = document.getElementById('clave-msg');
 
 function cerrarModalClave() {
+  if (cambioClaveObligatorio) return;
   if (modalClave) modalClave.classList.remove('visible');
   if (inputClaveActual) inputClaveActual.value = '';
   if (inputNuevaClave) inputNuevaClave.value = '';
   if (inputConfirmarClave) inputConfirmarClave.value = '';
   if (claveMsg) claveMsg.textContent = '';
+}
+
+
+function mostrarModalCambioClaveObligatorio() {
+  cambioClaveObligatorio = true;
+
+  if (modalClave) {
+    modalClave.classList.add('visible');
+  }
+
+  if (claveMsg) {
+    claveMsg.textContent =
+      'Por seguridad, debés cambiar tu contraseña antes de continuar.';
+  }
+
+  if (btnClaveCancelar) {
+    btnClaveCancelar.style.display = 'none';
+  }
+
+  if (btnClaveCancelarX) {
+    btnClaveCancelarX.style.display = 'none';
+  }
+
+  if (inputClaveActual) {
+    inputClaveActual.focus();
+  }
 }
 
 if (btnCambiarClave && modalClave) {
@@ -4074,12 +4102,13 @@ if (btnClaveGuardar) {
       currentPassword: actual,
       newPassword: nueva
     })
-      .then(function (resultado) {
+    .then(function (resultado) {
         if (!resultado.ok) {
           throw new Error(resultado.error || 'No se pudo actualizar la contraseña.');
         }
 
-                cerrarModalClave();
+        cambioClaveObligatorio = false;
+        cerrarModalClave();
         alert('Contraseña actualizada correctamente.');
       })
       .catch(function (error) {
@@ -4523,6 +4552,9 @@ function entrarModoAdminDirecto() {
 
       mostrarAplicacion();
       mostrarUsuarioLogueado();
+      if (resultado.debe_cambiar_password) {
+        mostrarModalCambioClaveObligatorio();
+      }
       return cargarDatosIniciales();
     })
     .catch(function (error) {

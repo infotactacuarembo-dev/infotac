@@ -221,7 +221,8 @@ module.exports = async function handler(req, res) {
           identificador: identificador,
           password_hash: passwordHash,
           rol: rol,
-          activo: true
+          activo: true,
+          debe_cambiar_password: true
         })
         .select(
           'id, identificador, rol, activo, creado_en, empresa_id'
@@ -366,6 +367,7 @@ module.exports = async function handler(req, res) {
 
       if (password !== undefined) {
         updateData.password_hash = bcrypt.hashSync(password, 10);
+        updateData.debe_cambiar_password = true;
       }
 
       if (Object.keys(updateData).length === 0) {

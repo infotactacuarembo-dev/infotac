@@ -110,7 +110,7 @@ module.exports = async function handler(req, res) {
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
       .select(
-        'id, empresa_id, identificador, password_hash, rol, activo'
+        'id, empresa_id, identificador, password_hash, rol, activo, debe_cambiar_password'
       )
       .eq('empresa_id', empresa.id)
       .eq('identificador', identificadorNormalizado)
@@ -189,7 +189,8 @@ module.exports = async function handler(req, res) {
       rol: usuario.rol,
       empresa_id: usuario.empresa_id,
       codigo_empresa: empresa.codigo_acceso,
-      empresa_nombre: empresa.nombre
+      empresa_nombre: empresa.nombre,
+      debe_cambiar_password: usuario.debe_cambiar_password === true
     });
   } catch (error) {
     console.error('verify-password error:', error);
