@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const { empresa, codigo_empresa, identificador, password } = req.body || {};
-    const empresaInput = String(empresa || codigo_empresa || '').trim().toUpperCase();
+    const empresaInput = String(empresa || codigo_empresa || '').trim();
     const usuarioInput = String(identificador || '').trim();
     const passwordInput = String(password || '');
 
@@ -15,17 +15,27 @@ module.exports = async function handler(req, res) {
     }
 
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const { data: empresas, error: empresaError } = await supabase
+    let empresaEncontrada = null;
+
+    const { data: porNombre, error: nombreError } = await supabase
       .from('empresas')
       .select('id, nombre, codigo_acceso')
-      .or(`codigo_acceso.eq.${empresaInput},nombre.eq.${empresaInput}`)
+      .ilike('nombre', empresaInput)
       .limit(1);
 
-    if (empresaError || !empresas || empresas.length === 0) {
-      return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
+    if (!nombreError && porNombre && porNombre.length > 0) {
+      empresaEncontrada = porNombre[0];
+    } else {
+      const { data: porCodigo, error: codigoError } = await supabase
+        .from('empresas')
+        .select('id, nombre, codigo_acceso')
+        .ilike('codigo_acceso', empresaInput)
+        .limit(1);
+      if (!codigoError && porCodigo && porCodigo.length > 0) empresaEncontrada = porCodigo[0];
     }
 
-    const empresaEncontrada = empresas[0];
+    if (!empresaEncontrada) return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
+
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
       .select('id, empresa_id, identificador, password_hash, rol, activo, debe_cambiar_password')
