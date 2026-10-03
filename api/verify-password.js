@@ -7,8 +7,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { empresa, identificador, password } = req.body || {};
-    const empresaInput = String(empresa || '').trim();
+    const { empresa, codigo_empresa, identificador, password } = req.body || {};
+    const empresaInput = String(empresa || codigo_empresa || '').trim();
     const usuarioInput = String(identificador || '').trim();
     const passwordInput = String(password || '');
 
@@ -16,10 +16,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'Empresa, usuario y contraseña son requeridos' });
     }
 
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: empresas, error: empresaError } = await supabase
       .from('empresas')
@@ -45,37 +42,13 @@ module.exports = async function handler(req, res) {
 
     const passwordValida = await bcrypt.compare(passwordInput, usuario.password_hash);
     if (!passwordValida) {
-      await supabase.from('login_audit').insert({
-        identificador: usuarioInput,
-        resultado: 'fallo',
-        detalle: 'Contraseña inválida',
-        empresa_id: empresaEncontrada.id
-      });
+      await supabase.from('login_audit').insert({ identificador: usuarioInput, resultado: 'fallo', detalle: 'Contraseña inválida', empresa_id: empresaEncontrada.id });
       return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
     }
 
-    await supabase.from('login_audit').insert({
-      identificador: usuarioInput,
-      resultado: 'exito',
-      detalle: 'Inicio de sesión correcto',
-      empresa_id: empresaEncontrada.id
-    });
+    await supabase.from('login_audit').insert({ identificador: usuarioInput, resultado: 'exito', detalle: 'Inicio de sesión correcto', empresa_id: empresaEncontrada.id });
 
-    return res.status(200).json({
-      ok: true,
-      user: {
-        id: usuario.id,
-        empresa_id: usuario.empresa_id,
-        identificador: usuario.identificador,
-        rol: usuario.rol,
-        debe_cambiar_password: Boolean(usuario.debe_cambiar_password)
-      },
-      empresa: {
-        id: empresaEncontrada.id,
-        nombre: empresaEncontrada.nombre,
-        codigo_acceso: empresaEncontrada.codigo_acceso
-      }
-    });
+    return res.status(200).json({ ok: true, user: { id: usuario.id, empresa_id: usuario.empresa_id, identificador: usuario.identificador, rol: usuario.rol, debe_cambiar_password: Boolean(usuario.debe_cambiar_password) }, empresa: { id: empresaEncontrada.id, nombre: empresaEncontrada.nombre, codigo_acceso: empresaEncontrada.codigo_acceso } });
   } catch (error) {
     console.error('verify-password error:', error);
     return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
