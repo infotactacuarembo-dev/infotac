@@ -42,6 +42,8 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const portalEmpresaId = text(body.portal_empresa_id, 80);
   const nombre = text(body.nombre, 200);
+  const telefono = text(body.telefono, 50);
+  const empresa = text(body.empresa, 200);
 
   if (!validUuid(portalEmpresaId) || !nombre) {
     return json(res, 400, { ok: false, error: 'portal_empresa_id y nombre son obligatorios.' });
