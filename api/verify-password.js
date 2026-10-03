@@ -2,13 +2,11 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Método no permitido' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Método no permitido' });
 
   try {
     const { empresa, codigo_empresa, identificador, password } = req.body || {};
-    const empresaInput = String(empresa || codigo_empresa || '').trim();
+    const empresaInput = String(empresa || codigo_empresa || '').trim().toUpperCase();
     const usuarioInput = String(identificador || '').trim();
     const passwordInput = String(password || '');
 
@@ -17,7 +15,6 @@ module.exports = async function handler(req, res) {
     }
 
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
     const { data: empresas, error: empresaError } = await supabase
       .from('empresas')
       .select('id, nombre, codigo_acceso')
@@ -36,18 +33,12 @@ module.exports = async function handler(req, res) {
       .eq('identificador', usuarioInput)
       .maybeSingle();
 
-    if (usuarioError || !usuario || !usuario.activo) {
-      return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
-    }
+    if (usuarioError || !usuario || !usuario.activo) return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
 
     const passwordValida = await bcrypt.compare(passwordInput, usuario.password_hash);
-    if (!passwordValida) {
-      await supabase.from('login_audit').insert({ identificador: usuarioInput, resultado: 'fallo', detalle: 'Contraseña inválida', empresa_id: empresaEncontrada.id });
-      return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
-    }
+    if (!passwordValida) return res.status(401).json({ ok: false, error: 'Empresa, usuario o contraseña incorrectos' });
 
     await supabase.from('login_audit').insert({ identificador: usuarioInput, resultado: 'exito', detalle: 'Inicio de sesión correcto', empresa_id: empresaEncontrada.id });
-
     return res.status(200).json({ ok: true, user: { id: usuario.id, empresa_id: usuario.empresa_id, identificador: usuario.identificador, rol: usuario.rol, debe_cambiar_password: Boolean(usuario.debe_cambiar_password) }, empresa: { id: empresaEncontrada.id, nombre: empresaEncontrada.nombre, codigo_acceso: empresaEncontrada.codigo_acceso } });
   } catch (error) {
     console.error('verify-password error:', error);
