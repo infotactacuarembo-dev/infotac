@@ -2,487 +2,353 @@ const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 const { registrarAuditoriaOrden } = require('./_orden-audit');
 
-const TIPOS_PERMITIDOS = new Set([
-  'repuesto',
-  'mano_obra'
-]);
-
-function db() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    throw new Error('Base de datos no configurada.');
-  }
-
-  return createClient(url, key);
-}
-
-function validOrdenId(value) {
-  return typeof value === 'string' && value.trim().length > 0;
-}
-
-function texto(value, maximo) {
-  if (value === null || value === undefined) return '';
-  return String(value).trim().slice(0, maximo);
-}
-
-function numeroPositivo(value, valorPorDefecto) {
-  const numero = Number(value);
-
-  if (!Number.isFinite(numero) || numero < 0) {
-    return valorPorDefecto;
-  }
-
-  return numero;
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 function validId(value) {
-  return (
-    typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value
-    )
-  );
+  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
 }
 
-function getEmpresaId(user) {
-  return validId(user && user.empresa_id)
-    ? user.empresa_id
-    : null;
-}
-
-function esTecnico(user) {
-  return user && user.rol === 'tecnico';
-}
-
-async function obtenerOrdenPermitida(supabase, ordenId, user, empresaId) {
-  let query = supabase
-    .from('ordenes')
-    .select('id, empresa_id, tecnico_id, estado')
-    .eq('id', ordenId)
-    .eq('empresa_id', empresaId);
-
-  if (esTecnico(user)) {
-    query = query.eq('tecnico_id', user.id);
-  }
-
-  const { data: orden, error } = await query.maybeSingle();
-
-  if (error) throw error;
-
-  return orden;
-}
-
-function permiteEditarItems(orden) {
-  return orden &&
-    (orden.estado === 'reparando' || orden.estado === 'terminado');
-}
+const TIPOS_VALIDOS = ['servicio', 'repuesto', 'mano_obra'];
 
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
+  const sessionUser = getSessionUser(req);
+  if (!sessionUser || !sessionUser.empresa_id || !validId(sessionUser.empresa_id)) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Sesión inválida o empresa no identificada'
+    });
+  }
+
+  const empresaId = sessionUser.empresa_id;
+  const esAdmin = sessionUser.rol === 'admin';
+  const userId = sessionUser.user_id || sessionUser.id;
+
   if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
     return res.status(405).json({
       ok: false,
-      error: 'Método no permitido.'
+      error: 'Método no permitido'
     });
   }
 
   try {
-    const supabase = db();
-    const user = getSessionUser(req);
-    const empresaId = getEmpresaId(user);
-
-    if (!user || !empresaId) {
-      return res.status(401).json({
-        ok: false,
-        error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
-      });
-    }
-
-    // ===== GET: listar ítems de una orden =====
+    // ===== GET: Listar ítems de una orden =====
     if (req.method === 'GET') {
-      const ordenId = req.query && req.query.orden_id;
+      const { orden_id } = req.query;
 
-      if (!validOrdenId(ordenId)) {
+      if (!orden_id || !validId(orden_id)) {
         return res.status(400).json({
           ok: false,
-          error: 'Identificador de orden inválido.'
+          error: 'ID de orden inválido o requerido'
         });
       }
 
-      const orden = await obtenerOrdenPermitida(
-        supabase,
-        ordenId,
-        user,
-        empresaId
-      );
+      // Validar acceso a la orden
+      let queryOrden = supabase
+        .from('ordenes')
+        .select('id, tecnico_id')
+        .eq('empresa_id', empresaId)
+        .eq('id', orden_id.trim());
 
-      if (!orden) {
+      const { data: orden, error: errOrden } = await queryOrden.single();
+
+      if (errOrden || !orden) {
         return res.status(404).json({
           ok: false,
-          error: 'Orden no encontrada.'
+          error: 'Orden no encontrada'
         });
       }
 
-      const { data, error } = await supabase
+      if (!esAdmin && orden.tecnico_id !== userId) {
+        return res.status(403).json({
+          ok: false,
+          error: 'No tienes permiso para ver los ítems de esta orden'
+        });
+      }
+
+      const { data: items, error: errItems } = await supabase
         .from('orden_items')
-        .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
-        )
-        .eq('orden_id', ordenId)
+        .select('*')
         .eq('empresa_id', empresaId)
+        .eq('orden_id', orden_id.trim())
         .order('creado_en', { ascending: true });
 
-      if (error) throw error;
+      if (errItems) {
+        return res.status(500).json({
+          ok: false,
+          error: errItems.message
+        });
+      }
 
       return res.status(200).json({
         ok: true,
-        data: data || []
+        data: items || []
       });
     }
 
-    // ===== POST: crear ítem =====
+    // ===== POST: Agregar ítem =====
     if (req.method === 'POST') {
-      const body = req.body || {};
-      const ordenId = texto(body.orden_id, 200);
-      const tipo = texto(body.tipo, 30);
-      const descripcion = texto(body.descripcion, 300);
-      const cantidad = numeroPositivo(body.cantidad, 0);
+      const { orden_id, tipo, descripcion, cantidad, precio_unitario } = req.body || {};
 
-      // Un técnico no puede definir precios.
-      const precioUnitario = esTecnico(user)
-        ? 0
-        : numeroPositivo(body.precio_unitario, 0);
-
-      if (!validOrdenId(ordenId)) {
+      if (!orden_id || !validId(orden_id)) {
         return res.status(400).json({
           ok: false,
-          error: 'Identificador de orden inválido.'
+          error: 'ID de orden inválido o requerido'
         });
       }
 
-      if (!TIPOS_PERMITIDOS.has(tipo)) {
+      if (!tipo || !TIPOS_VALIDOS.includes(tipo)) {
         return res.status(400).json({
           ok: false,
-          error: 'Tipo de ítem inválido.'
+          error: `Tipo de ítem inválido. Debe ser: ${TIPOS_VALIDOS.join(', ')}`
         });
       }
 
-      if (!descripcion) {
+      if (!descripcion || typeof descripcion !== 'string' || !descripcion.trim()) {
         return res.status(400).json({
           ok: false,
-          error: 'La descripción es obligatoria.'
+          error: 'La descripción del ítem es obligatoria'
         });
       }
 
-      if (cantidad <= 0) {
+      const cant = Number(cantidad);
+      if (isNaN(cant) || cant <= 0) {
         return res.status(400).json({
           ok: false,
-          error: 'La cantidad debe ser mayor que cero.'
+          error: 'La cantidad debe ser un número mayor a 0'
         });
       }
 
-      const orden = await obtenerOrdenPermitida(
-        supabase,
-        ordenId,
-        user,
-        empresaId
-      );
+      const precio = Number(precio_unitario);
+      if (isNaN(precio) || precio < 0) {
+        return res.status(400).json({
+          ok: false,
+          error: 'El precio unitario debe ser un número igual o mayor a 0'
+        });
+      }
 
-      if (!orden) {
+      // Validar acceso a la orden
+      let queryOrden = supabase
+        .from('ordenes')
+        .select('id, tecnico_id')
+        .eq('empresa_id', empresaId)
+        .eq('id', orden_id.trim());
+
+      const { data: orden, error: errOrden } = await queryOrden.single();
+
+      if (errOrden || !orden) {
         return res.status(404).json({
           ok: false,
-          error: 'Orden no encontrada.'
+          error: 'Orden no encontrada'
         });
       }
 
+      if (!esAdmin && orden.tecnico_id !== userId) {
+        return res.status(403).json({
+          ok: false,
+          error: 'No tienes permiso para agregar ítems a esta orden'
+        });
+      }
 
-      if (!permiteEditarItems(orden)) {
-        return res.status(409).json({
-        ok: false,
-        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
-      });
-    }
-      
-      const { data, error } = await supabase
+      const nuevoItem = {
+        empresa_id: empresaId,
+        orden_id: orden_id.trim(),
+        tipo,
+        descripcion: descripcion.trim(),
+        cantidad: cant,
+        precio_unitario: precio
+      };
+
+      const { data: itemCreado, error: errInsert } = await supabase
         .from('orden_items')
-        .insert({
-          orden_id: ordenId,
-          empresa_id: empresaId,
-          tipo: tipo,
-          descripcion: descripcion,
-          cantidad: cantidad,
-          precio_unitario: precioUnitario
-        })
-        .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
-        )
+        .insert(nuevoItem)
+        .select()
         .single();
 
-      if (error) throw error;
+      if (errInsert) {
+        return res.status(500).json({
+          ok: false,
+          error: errInsert.message
+        });
+      }
 
-      const tipoVisible =
-        data.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
-
-      await registrarAuditoriaOrden(supabase, user, {
-        orden_id: data.orden_id,
-        empresa_id: orden.empresa_id,
-        accion: 'item_agregado',
-        detalle:
-          'Se agregó ' +
-          tipoVisible +
-          ': ' +
-          data.descripcion +
-          '.',
-        datos_nuevos: {
-          item_id: data.id,
-          tipo: data.tipo,
-          descripcion: data.descripcion,
-          cantidad: data.cantidad,
-          precio_unitario: data.precio_unitario
-        }
+      // Auditoría
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: orden_id.trim(),
+        accion: 'agregar_item',
+        detalle: `Ítem agregado: "${itemCreado.descripcion}" (${itemCreado.tipo}, cant: ${itemCreado.cantidad}, precio: ${itemCreado.precio_unitario}) por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_nuevos: itemCreado
       });
 
       return res.status(201).json({
         ok: true,
-        data: data
+        data: itemCreado
       });
     }
 
     // ===== PATCH: editar ítem =====
     if (req.method === 'PATCH') {
-      const body = req.body || {};
-      const itemId = texto(body.id || body.item_id, 200);
-      const tipo = texto(body.tipo, 30);
-      const descripcion = texto(body.descripcion, 300);
-      const cantidad = numeroPositivo(body.cantidad, 0);
+      const { id, descripcion, cantidad, precio_unitario, tipo } = req.body || {};
 
-      if (!validOrdenId(itemId)) {
+      if (!id || !validId(id)) {
         return res.status(400).json({
           ok: false,
-          error: 'Identificador de ítem inválido.'
+          error: 'ID de ítem inválido o requerido'
         });
       }
 
-      if (!TIPOS_PERMITIDOS.has(tipo)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Tipo de ítem inválido.'
-        });
-      }
-
-      if (!descripcion) {
-        return res.status(400).json({
-          ok: false,
-          error: 'La descripción es obligatoria.'
-        });
-      }
-
-      if (cantidad <= 0) {
-        return res.status(400).json({
-          ok: false,
-          error: 'La cantidad debe ser mayor que cero.'
-        });
-      }
-
-      const { data: item, error: itemError } = await supabase
+      const { data: itemActual, error: errItem } = await supabase
         .from('orden_items')
-        .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, empresa_id'
-        )
-        .eq('id', itemId)
+        .select('*, ordenes!inner(tecnico_id)')
         .eq('empresa_id', empresaId)
-        .maybeSingle();
-
-      if (itemError) throw itemError;
-
-      if (!item) {
-        return res.status(404).json({
-          ok: false,
-          error: 'Ítem no encontrado.'
-        });
-      }
-
-      const orden = await obtenerOrdenPermitida(
-        supabase,
-        item.orden_id,
-        user,
-        empresaId
-      );
-
-      if (!orden) {
-        return res.status(404).json({
-          ok: false,
-          error: 'Orden no encontrada.'
-        });
-      }
-
-      if (!permiteEditarItems(orden)) {
-        return res.status(409).json({
-        ok: false,
-        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
-      });
-    }
-
-      // Un técnico conserva el precio anterior; user/admin sí pueden cambiarlo.
-      const precioUnitario = esTecnico(user)
-        ? numeroPositivo(item.precio_unitario, 0)
-        : numeroPositivo(body.precio_unitario, 0);
-
-      const { data, error } = await supabase
-        .from('orden_items')
-        .update({
-          tipo: tipo,
-          descripcion: descripcion,
-          cantidad: cantidad,
-          precio_unitario: precioUnitario
-        })
-        .eq('id', itemId)
-        .eq('empresa_id', empresaId)
-        .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
-        )
+        .eq('id', id.trim())
         .single();
 
-      if (error) throw error;
-
-      const datosAnteriores = {
-        tipo: item.tipo,
-        descripcion: item.descripcion,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario
-      };
-
-      const datosNuevos = {
-        tipo: data.tipo,
-        descripcion: data.descripcion,
-        cantidad: data.cantidad,
-        precio_unitario: data.precio_unitario
-      };
-
-      const huboCambios =
-        String(datosAnteriores.tipo ?? '') !==
-          String(datosNuevos.tipo ?? '') ||
-        String(datosAnteriores.descripcion ?? '') !==
-          String(datosNuevos.descripcion ?? '') ||
-        String(datosAnteriores.cantidad ?? '') !==
-          String(datosNuevos.cantidad ?? '') ||
-        String(datosAnteriores.precio_unitario ?? '') !==
-          String(datosNuevos.precio_unitario ?? '');
-
-      if (huboCambios) {
-        await registrarAuditoriaOrden(supabase, user, {
-          orden_id: data.orden_id,
-          empresa_id: orden.empresa_id,
-          accion: 'item_actualizado',
-          detalle: 'Se actualizó el ítem: ' + data.descripcion + '.',
-          datos_anteriores: datosAnteriores,
-          datos_nuevos: datosNuevos
+      if (errItem || !itemActual) {
+        return res.status(404).json({
+          ok: false,
+          error: 'Ítem no encontrado'
         });
       }
+
+      if (!esAdmin && itemActual.ordenes && itemActual.ordenes.tecnico_id !== userId) {
+        return res.status(403).json({
+          ok: false,
+          error: 'No tienes permiso para modificar ítems de esta orden'
+        });
+      }
+
+      const updates = {};
+      if (descripcion !== undefined) {
+        if (typeof descripcion !== 'string' || !descripcion.trim()) {
+          return res.status(400).json({ ok: false, error: 'Descripción no puede estar vacía' });
+        }
+        updates.descripcion = descripcion.trim();
+      }
+
+      if (tipo !== undefined) {
+        if (!TIPOS_VALIDOS.includes(tipo)) {
+          return res.status(400).json({ ok: false, error: `Tipo inválido. Debe ser: ${TIPOS_VALIDOS.join(', ')}` });
+        }
+        updates.tipo = tipo;
+      }
+
+      if (cantidad !== undefined) {
+        const cant = Number(cantidad);
+        if (isNaN(cant) || cant <= 0) {
+          return res.status(400).json({ ok: false, error: 'Cantidad debe ser mayor a 0' });
+        }
+        updates.cantidad = cant;
+      }
+
+      if (precio_unitario !== undefined) {
+        const precio = Number(precio_unitario);
+        if (isNaN(precio) || precio < 0) {
+          return res.status(400).json({ ok: false, error: 'Precio unitario no puede ser negativo' });
+        }
+        updates.precio_unitario = precio;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ ok: false, error: 'No se enviaron campos para actualizar' });
+      }
+
+      const { data: itemActualizado, error: errUpdate } = await supabase
+        .from('orden_items')
+        .update(updates)
+        .eq('empresa_id', empresaId)
+        .eq('id', id.trim())
+        .select()
+        .single();
+
+      if (errUpdate) {
+        return res.status(500).json({ ok: false, error: errUpdate.message });
+      }
+
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: itemActual.orden_id,
+        accion: 'actualizar_item',
+        detalle: `Ítem modificado #${id} por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_anteriores: itemActual,
+        datos_nuevos: itemActualizado
+      });
 
       return res.status(200).json({
         ok: true,
-        data: data
+        data: itemActualizado
       });
     }
 
     // ===== DELETE: eliminar ítem =====
     if (req.method === 'DELETE') {
-      const itemId = texto(
-        req.query && (req.query.id || req.query.item_id),
-        200
-      );
+      const { id } = req.query;
 
-      if (!validOrdenId(itemId)) {
+      if (!id || !validId(id)) {
         return res.status(400).json({
           ok: false,
-          error: 'Identificador de ítem inválido.'
+          error: 'ID de ítem inválido o requerido'
         });
       }
 
-      const { data: item, error: itemError } = await supabase
+      const { data: itemActual, error: errItem } = await supabase
         .from('orden_items')
-        .select(
-          'id, orden_id, tipo, descripcion, cantidad, precio_unitario, creado_en, empresa_id'
-        )
-        .eq('id', itemId)
+        .select('*, ordenes!inner(tecnico_id)')
         .eq('empresa_id', empresaId)
-        .maybeSingle();
+        .eq('id', id.trim())
+        .single();
 
-      if (itemError) throw itemError;
-
-      if (!item) {
+      if (errItem || !itemActual) {
         return res.status(404).json({
           ok: false,
-          error: 'Ítem no encontrado.'
+          error: 'Ítem no encontrado'
         });
       }
 
-      const orden = await obtenerOrdenPermitida(
-        supabase,
-        item.orden_id,
-        user,
-        empresaId
-      );
-
-      if (!orden) {
-        return res.status(404).json({
+      if (!esAdmin && itemActual.ordenes && itemActual.ordenes.tecnico_id !== userId) {
+        return res.status(403).json({
           ok: false,
-          error: 'Orden no encontrada.'
+          error: 'No tienes permiso para eliminar ítems de esta orden'
         });
       }
 
-      if (!permiteEditarItems(orden)) {
-        return res.status(409).json({
-        ok: false,
-        error: 'Solo se pueden modificar ítems en órdenes Reparando o Listo para retirar.'
-      });
-    }
-
-      const { error: deleteError } = await supabase
+      const { error: errDelete } = await supabase
         .from('orden_items')
         .delete()
-        .eq('id', itemId)
-        .eq('empresa_id', empresaId);
+        .eq('empresa_id', empresaId)
+        .eq('id', id.trim());
 
-      if (deleteError) throw deleteError;
+      if (errDelete) {
+        return res.status(500).json({
+          ok: false,
+          error: errDelete.message
+        });
+      }
 
-      const tipoVisible =
-        item.tipo === 'repuesto' ? 'repuesto' : 'mano de obra';
-
-      await registrarAuditoriaOrden(supabase, user, {
-        orden_id: item.orden_id,
-        empresa_id: orden.empresa_id,
-        accion: 'item_eliminado',
-        detalle:
-          'Se eliminó ' +
-          tipoVisible +
-          ': ' +
-          item.descripcion +
-          '.',
-        datos_anteriores: {
-          item_id: item.id,
-          tipo: item.tipo,
-          descripcion: item.descripcion,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          creado_en: item.creado_en
-        }
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: itemActual.orden_id,
+        accion: 'eliminar_item',
+        detalle: `Ítem eliminado: "${itemActual.descripcion}" por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_anteriores: itemActual
       });
 
       return res.status(200).json({
         ok: true
       });
     }
-  } catch (error) {
-    console.error('orden-items error:', error);
-
+  } catch (err) {
     return res.status(500).json({
       ok: false,
-      error: 'No se pudieron procesar los ítems de la orden.'
+      error: 'No se pudieron procesar los ítems de la orden'
     });
   }
 };
