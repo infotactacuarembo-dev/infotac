@@ -205,7 +205,7 @@ module.exports = async function handler(req, res) {
 
       const { data: itemActual, error: errItem } = await supabase
         .from('orden_items')
-        .select('*, ordenes!inner(tecnico_id)')
+        .select('*')
         .eq('empresa_id', empresaId)
         .eq('id', id.trim())
         .single();
@@ -217,11 +217,20 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin && itemActual.ordenes && itemActual.ordenes.tecnico_id !== userId) {
-        return res.status(403).json({
-          ok: false,
-          error: 'No tienes permiso para modificar ítems de esta orden'
-        });
+      if (!esAdmin) {
+        const { data: orden, error: errOrden } = await supabase
+          .from('ordenes')
+          .select('id, tecnico_id')
+          .eq('empresa_id', empresaId)
+          .eq('id', itemActual.orden_id)
+          .single();
+
+        if (errOrden || !orden || orden.tecnico_id !== userId) {
+          return res.status(403).json({
+            ok: false,
+            error: 'No tienes permiso para modificar ítems de esta orden'
+          });
+        }
       }
 
       const updates = {};
@@ -300,7 +309,7 @@ module.exports = async function handler(req, res) {
 
       const { data: itemActual, error: errItem } = await supabase
         .from('orden_items')
-        .select('*, ordenes!inner(tecnico_id)')
+        .select('*')
         .eq('empresa_id', empresaId)
         .eq('id', id.trim())
         .single();
@@ -312,11 +321,20 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin && itemActual.ordenes && itemActual.ordenes.tecnico_id !== userId) {
-        return res.status(403).json({
-          ok: false,
-          error: 'No tienes permiso para eliminar ítems de esta orden'
-        });
+      if (!esAdmin) {
+        const { data: orden, error: errOrden } = await supabase
+          .from('ordenes')
+          .select('id, tecnico_id')
+          .eq('empresa_id', empresaId)
+          .eq('id', itemActual.orden_id)
+          .single();
+
+        if (errOrden || !orden || orden.tecnico_id !== userId) {
+          return res.status(403).json({
+            ok: false,
+            error: 'No tienes permiso para eliminar ítems de esta orden'
+          });
+        }
       }
 
       const { error: errDelete } = await supabase
