@@ -11,6 +11,11 @@ function validId(value) {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
 }
 
+function sanitizeDateOrNull(value) {
+  if (!value || typeof value !== 'string' || !value.trim()) return null;
+  return value.trim();
+}
+
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
@@ -205,14 +210,14 @@ module.exports = async function handler(req, res) {
         presupuesta: (presupuesta || '').trim(),
         estetico: (estetico || '').trim(),
         estado: estado || 'ingresado',
-        fecha_entrega: fecha_entrega || null,
+        fecha_entrega: sanitizeDateOrNull(fecha_entrega),
         cliente_id: finalClienteId,
         diagnostico: (diagnostico || '').trim(),
         trabajo_realizar: (trabajo_realizar || '').trim(),
         aprobacion_presupuesto: aprobacion_presupuesto || 'pendiente',
         pago_final: Number(pago_final) || 0,
         tecnico_id: finalTecnicoId,
-        fecha_prometida_entrega: fecha_prometida_entrega || null,
+        fecha_prometida_entrega: sanitizeDateOrNull(fecha_prometida_entrega),
         presupuesto_detalle: (presupuesto_detalle || '').trim(),
         motivo_devolucion: (motivo_devolucion || '').trim()
       };
@@ -274,6 +279,13 @@ module.exports = async function handler(req, res) {
 
       if (!esAdmin) {
         delete ordenActualizada.tecnico_id;
+      }
+
+      if (ordenActualizada.fecha_entrega !== undefined) {
+        ordenActualizada.fecha_entrega = sanitizeDateOrNull(ordenActualizada.fecha_entrega);
+      }
+      if (ordenActualizada.fecha_prometida_entrega !== undefined) {
+        ordenActualizada.fecha_prometida_entrega = sanitizeDateOrNull(ordenActualizada.fecha_prometida_entrega);
       }
 
       if (ordenActualizada.estado === 'terminado' && ordenActual.estado !== 'terminado') {
