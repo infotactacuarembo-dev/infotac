@@ -26,19 +26,17 @@ module.exports = async function handler(req, res) {
 
     // ===== VALIDACIÓN DE ESTADO DE LICENCIA =====
     const portalUrl = process.env.PORTAL_SUPABASE_URL;
-    const portalKey = process.env.PORTAL_SUPABASE_SERVICE_ROLE_KEY;
+    const portalKey = process.env.PORTAL_SUPABASE_SERVICE_ROLE_KEY || process.env.PORTAL_SUPABASE_ANON_KEY;
 
     let licenciaInfo = { estado: 'activa', dias_restantes: null, vence_at: null };
 
     if (portalUrl && portalKey && empresaEncontrada.portal_empresa_id) {
       try {
         const supabasePortal = createClient(portalUrl, portalKey);
-        const { data: lic } = await supabasePortal
-          .schema('platform_private')
-          .from('licencias')
-          .select('estado, inicio, vence_at')
-          .eq('taller_id', empresaEncontrada.portal_empresa_id)
-          .maybeSingle();
+        const { data: licList, error: errRpc } = await supabasePortal
+          .rpc('verificar_licencia_taller', { p_taller_id: empresaEncontrada.portal_empresa_id });
+
+        const lic = (licList && licList.length > 0) ? licList[0] : null;
 
         if (lic) {
           const ahora = new Date();
