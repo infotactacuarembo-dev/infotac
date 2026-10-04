@@ -20,4 +20,12 @@ function requireAuth(req, res) {
   return session;
 }
 
-module.exports = { readSession, requireAuth };
+function requireSession(req, res) {
+  return requireAuth(req, res);
+}
+
+function getSessionUser(req) {
+  return readSession(req);
+}
+
+module.exports = { readSession, requireAuth, requireSession, getSessionUser };
