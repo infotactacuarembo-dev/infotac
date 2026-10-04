@@ -242,7 +242,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  if (req.method === 'PUT') {
+  if (req.method === 'PUT' || req.method === 'PATCH') {
     try {
       const { id, ...updates } = req.body || {};
       if (!id || !validId(id)) {
