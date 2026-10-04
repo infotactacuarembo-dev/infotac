@@ -2,1026 +2,369 @@ const { createClient } = require('@supabase/supabase-js');
 const { requireSession, getSessionUser } = require('./_auth');
 const { registrarAuditoriaOrden } = require('./_orden-audit');
 
-const ORDER_FIELDS = `
-  id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
-  sena, falla, presupuesto, presupuesta, estetico,
-  diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
-  empresa_id, tecnico_id, vista_por_tecnico_en, tecnico_nombre, presupuesto_detalle, motivo_devolucion`;
-
-const ORDER_FIELDS_WRITABLE = `
-  id, fecha, cliente_id, cliente, tel, tipo, serie, pass,
-  sena, falla, presupuesto, presupuesta, estetico,
-  diagnostico, trabajo_realizar, aprobacion_presupuesto,
-  estado, fecha_entrega, fecha_prometida_entrega, terminado_en,
-  empresa_id, tecnico_id, presupuesto_detalle, motivo_devolucion`;
-
-const ALLOWED_STATES = new Set([
-  'ingresado',
-  'revision',
-  'presupuesto',
-  'reparando',
-  'terminado',
-  'entregado',
-  'sinreparar'
-]);
-
-function db() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    throw new Error('Base de datos no configurada.');
-  }
-
-  return createClient(url, key);
-}
-
-function text(value, max) {
-  if (value === null || value === undefined) return '';
-  return String(value).trim().slice(0, max);
-}
-
-function number(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-}
-
-function isoDate(value, fallback) {
-  const date = value ? new Date(value) : null;
-
-  return date && !Number.isNaN(date.getTime())
-    ? date.toISOString()
-    : fallback;
-}
-
-function dateOnly(value) {
-  if (!value) return null;
-
-  const texto = String(value).trim();
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
-    return null;
-  }
-
-  const fecha = new Date(texto + 'T00:00:00Z');
-
-  if (Number.isNaN(fecha.getTime())) {
-    return null;
-  }
-
-  return texto;
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 function validId(value) {
-  return (
-    typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value
-    )
-  );
-}
-
-function getEmpresaId(user) {
-  return validId(user && user.empresa_id)
-    ? user.empresa_id
-    : null;
-}
-
-function orderInput(body, options, empresaId) {
-  const source = body || {};
-  const now = new Date().toISOString();
-  const estado = ALLOWED_STATES.has(source.estado)
-    ? source.estado
-    : 'ingresado';
-
-  const order = {
-    id: validId(source.id) ? source.id : undefined,
-    empresa_id: empresaId,
-    fecha: isoDate(source.fecha, now),
-    cliente: text(source.cliente, 160),
-    tel: text(source.tel, 40),
-    tipo: text(source.tipo, 160),
-    serie: text(source.serie, 160),
-    pass: text(source.pass, 160),
-    tecnico_id: validId(source.tecnico_id)
-      ? source.tecnico_id
-      : null,
-    sena: number(source.sena),
-    presupuesto: number(source.presupuesto),
-    falla: text(source.falla, 2000),
-    presupuesta: text(source.presupuesta, 2000),
-    estetico: text(source.estetico, 2000),
-    diagnostico: text(source.diagnostico, 4000),
-    trabajo_realizar: text(source.trabajo_realizar, 4000),
-    aprobacion_presupuesto: text(
-      source.aprobacion_presupuesto || 'pendiente',
-      20
-    ),
-        estado,
-    fecha_entrega:
-      estado === 'entregado' || estado === 'sinreparar'
-        ? isoDate(source.fecha_entrega, now)
-        : null,
-    fecha_prometida_entrega: dateOnly(
-      source.fecha_prometida_entrega
-    )
-  };
-
-  if (validId(source.cliente_id)) {
-    order.cliente_id = source.cliente_id;
-  }
-
-  if (options && options.requireClient && !order.cliente) {
-    throw new Error('El cliente es obligatorio.');
-  }
-
-  return order;
+  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
 }
 
 module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
-  const user = getSessionUser(req);
-  const empresaId = getEmpresaId(user);
-
-  if (!user || !empresaId) {
+  const sessionUser = getSessionUser(req);
+  if (!sessionUser || !sessionUser.empresa_id || !validId(sessionUser.empresa_id)) {
     return res.status(401).json({
       ok: false,
-      error: 'Sesión de empresa inválida. Volvé a iniciar sesión.'
+      error: 'Sesión inválida o empresa no identificada'
     });
   }
 
-  try {
-    const supabase = db();
+  const empresaId = sessionUser.empresa_id;
+  const esAdmin = sessionUser.rol === 'admin';
+  const userId = sessionUser.user_id || sessionUser.id;
 
-    if (req.method === 'GET') {
-      const clienteId = req.query && req.query.cliente_id;
+  if (req.method === 'GET') {
+    try {
+      const {
+        id,
+        q,
+        estado,
+        estado_in,
+        tecnico,
+        tecnico_id,
+        limite,
+        pagina,
+        filtro_fecha,
+        fecha_desde,
+        fecha_hasta,
+        con_diagnostico_pendiente,
+        con_presupuesto_pendiente
+      } = req.query;
 
-      // Órdenes de un cliente de la misma empresa.
-      if (clienteId) {
-  if (!validId(clienteId)) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Identificador de cliente inválido.'
-    });
-  }
+      if (id) {
+        let query = supabase
+          .from('ordenes')
+          .select('id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion')
+          .eq('empresa_id', empresaId)
+          .eq('id', id);
 
-  const idActual = req.query && req.query.id_actual;
+        if (!esAdmin && userId) {
+          query = query.eq('tecnico_id', userId);
+        }
 
-  let query = supabase
-    .from('ordenes')
-    .select(
-      'id, fecha, tipo, falla, estado, cliente_id',
-      { count: 'exact' }
-    )
-    .eq('empresa_id', empresaId)
-    .eq('cliente_id', clienteId);
+        const { data, error } = await query.single();
+        if (error) {
+          return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+        }
+        return res.status(200).json({ ok: true, data });
+      }
 
-  // Excluir la orden que está abierta, si se indica.
-  if (idActual && validId(idActual)) {
-    query = query.neq('id', idActual);
-  }
+      let tecnicoIdFiltro = null;
+      if (esAdmin) {
+        if (tecnico_id && validId(tecnico_id)) {
+          tecnicoIdFiltro = tecnico_id.trim();
+        } else if (tecnico && tecnico.trim() && tecnico.trim() !== 'todos') {
+          const { data: usuarioTecnico } = await supabase
+            .from('usuarios')
+            .select('id')
+            .eq('empresa_id', empresaId)
+            .eq('identificador', tecnico.trim())
+            .maybeSingle();
 
-  query = query.order('fecha', { ascending: false });
-  query = query.limit(20);
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-
-  return res.status(200).json({
-    ok: true,
-    data: data || []
-  });
-}
-
-      const pagina = parseInt(req.query.pagina || '1', 10);
-      const limite = parseInt(req.query.limite || '25', 10);
-      const offset = (pagina - 1) * limite;
-
-      const desde = req.query.desde;
-      const hasta = req.query.hasta;
-      const estado = req.query.estado;
-      const saldo = req.query.saldo;
-      const buscar = req.query.buscar;
-      const alerta = req.query.alerta || '';
+          if (usuarioTecnico) {
+            tecnicoIdFiltro = usuarioTecnico.id;
+          }
+        }
+      } else {
+        tecnicoIdFiltro = userId;
+      }
 
       let query = supabase
-        .from('ordenes_resumen')
-        .select(
-          ORDER_FIELDS + ', total_items, total_pagos, saldo_real',
-          { count: 'exact' }
-        )
-        .eq('empresa_id', empresaId);
+        .from('ordenes')
+        .select('id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion', { count: 'exact' })
+        .eq('empresa_id', empresaId)
+        .order('fecha', { ascending: false });
 
-      const { data: empresaConfig, error: empresaError } = await supabase
-        .from('empresas')
-        .select('zona_horaria')
-        .eq('id', empresaId)
-        .maybeSingle();
-
-      if (empresaError) throw empresaError;
-
-      const zonaHoraria =
-        empresaConfig && empresaConfig.zona_horaria
-          ? empresaConfig.zona_horaria
-          : 'America/Montevideo';
-
-      if (user.rol === 'tecnico') {
-        if (!validId(user.id)) {
-          return res.status(401).json({
-            ok: false,
-            error: 'Sesión de técnico inválida. Volvé a iniciar sesión.'
-          });
-        }
-
-        query = query.eq('tecnico_id', user.id);
-      }
-
-      if (desde) {
-        query = query.gte('fecha', desde);
-      }
-
-      if (hasta) {
-        const hastaFinDelDia = new Date(
-          `${hasta}T23:59:59.999`
-        );
-
-        if (!Number.isNaN(hastaFinDelDia.getTime())) {
-          query = query.lte(
-            'fecha',
-            hastaFinDelDia.toISOString()
-          );
-        }
+      if (tecnicoIdFiltro) {
+        query = query.eq('tecnico_id', tecnicoIdFiltro);
       }
 
       if (estado) {
         query = query.eq('estado', estado);
-      }
-
-      // Un técnico no puede alterar el filtro para ver órdenes ajenas.
-      if (req.query.tecnico_id && user.rol !== 'tecnico') {
-        query = query.eq('tecnico_id', req.query.tecnico_id);
-      }
-
-      if (saldo) {
-        if (saldo === 'pendiente' || saldo === 'pagando') {
-          query = query.gt('saldo_real', 0);
-        } else if (saldo === 'pagado') {
-          query = query.eq('saldo_real', 0);
+      } else if (estado_in) {
+        const estados = estado_in.split(',').map(e => e.trim()).filter(Boolean);
+        if (estados.length > 0) {
+          query = query.in('estado', estados);
         }
       }
 
-      if (buscar) {
-        const texto = '%' + buscar + '%';
-
-        query = query.or(
-          'cliente.ilike.' +
-            texto +
-            ',tipo.ilike.' +
-            texto +
-            ',serie.ilike.' +
-            texto
-        );
+      if (con_diagnostico_pendiente === 'true') {
+        query = query.or('diagnostico.is.null,diagnostico.eq.""');
       }
 
-      // Filtros globales por alertas.
-// Se aplican en la base antes de ordenar y paginar.
-if (alerta === 'demoradas') {
-  var fechaDemora = new Date();
-  fechaDemora.setDate(fechaDemora.getDate() - 3);
+      if (con_presupuesto_pendiente === 'true') {
+        query = query.eq('aprobacion_presupuesto', 'pendiente');
+      }
 
-  query = query
-    .in('estado', [
-      'ingresado',
-      'revision',
-      'presupuesto',
-      'reparando'
-    ])
-    .lt('fecha', fechaDemora.toISOString());
-}
+      if (filtro_fecha && fecha_desde && fecha_hasta) {
+        query = query
+          .gte(filtro_fecha, `${fecha_desde}T00:00:00.000Z`)
+          .lte(filtro_fecha, `${fecha_hasta}T23:59:59.999Z`);
+      }
 
-if (alerta === 'retiro') {
-  var fechaRetiro = new Date();
-  fechaRetiro.setDate(fechaRetiro.getDate() - 3);
+      if (q && q.trim()) {
+        const busqueda = `%${q.trim()}%`;
+        query = query.or(`cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`);
+      }
 
-  query = query
-    .eq('estado', 'terminado')
-    .not('terminado_en', 'is', null)
-    .lt('terminado_en', fechaRetiro.toISOString());
-}
+      const limiteNum = Math.min(parseInt(limite, 10) || 50, 100);
+      const paginaNum = Math.max(parseInt(pagina, 10) || 1, 1);
+      const desde = (paginaNum - 1) * limiteNum;
+      const hasta = desde + limiteNum - 1;
 
-if (alerta === 'criticas') {
-  var fechaCritica = new Date();
-  fechaCritica.setDate(fechaCritica.getDate() - 5);
+      query = query.range(desde, hasta);
 
-  // Dos grupos:
-  // - Órdenes en proceso creadas hace más de 5 días.
-  // - Órdenes listas para retirar hace más de 5 días.
-  query = query.or(
-    'and(estado.in.(ingresado,revision,presupuesto,reparando),fecha.lt.' +
-      fechaCritica.toISOString() +
-      '),' +
-      'and(estado.eq.terminado,terminado_en.lt.' +
-      fechaCritica.toISOString() +
-      ')'
-  );
-}
-
-
-  if (alerta === 'fecha-prometida') {
-  // Fecha prometida vencida:
-  // - fecha_prometida_entrega < hoy
-  // - estado NO en ('entregado', 'sinreparar')
-  var hoy = new Date();
-  var hoyYMD =
-    hoy.getFullYear() +
-    '-' +
-    String(hoy.getMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(hoy.getDate()).padStart(2, '0') +
-    'T00:00:00';
-
-  query = query
-    .lt('fecha_prometida_entrega', hoyYMD)
-    .neq('estado', 'entregado')
-    .neq('estado', 'sinreparar')
-    .not('fecha_prometida_entrega', 'is', null);
-}
-
-      query = query.order('fecha', { ascending: false });
-      query = query.range(offset, offset + limite - 1);
-
-      let { data, error, count } = await query;
-
-      if (error) throw error;
-
-     if (data && Array.isArray(data)) {
-  data = data.map(function (orden) {
-    if (!orden.fecha) return orden;
-
-    const fechaUTC = new Date(orden.fecha);
-
-    if (Number.isNaN(fechaUTC.getTime())) {
-      return orden;
-    }
-
-    const opciones = {
-      timeZone: zonaHoraria,
-      hour12: false,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    };
-
-    const formatter = new Intl.DateTimeFormat(
-      'es-UY',
-      opciones
-    );
-
-    const partes = formatter.formatToParts(fechaUTC);
-
-    const año = partes.find(function (p) {
-      return p.type === 'year';
-    }).value;
-
-    const mes = partes.find(function (p) {
-      return p.type === 'month';
-    }).value;
-
-    const dia = partes.find(function (p) {
-      return p.type === 'day';
-    }).value;
-
-    const hora = partes.find(function (p) {
-      return p.type === 'hour';
-    }).value;
-
-    const minuto = partes.find(function (p) {
-      return p.type === 'minute';
-    }).value;
-
-    const segundo = partes.find(function (p) {
-      return p.type === 'second';
-    }).value;
-
-    orden.fecha =
-      año +
-      '-' +
-      mes +
-      '-' +
-      dia +
-      'T' +
-      hora +
-      ':' +
-      minuto +
-      ':' +
-      segundo;
-
-    // ===== MÉTRICAS DE PRODUCTIVIDAD =====
-    var ahora = new Date();
-    var fechaOrden = new Date(orden.fecha);
-    
-    // Calcular días en proceso desde la creación
-    var diffTiempo = ahora - fechaOrden;
-    orden.dias_en_proceso = Math.floor(diffTiempo / (1000 * 60 * 60 * 24));
-    
-    // Calcular días lista para retirar desde terminado_en.
-if (orden.estado === 'terminado' && orden.terminado_en) {
-  var fechaTerminado = new Date(orden.terminado_en);
-  var diffRetiro = ahora - fechaTerminado;
-  var diasPendiente = Math.floor(
-    diffRetiro / (1000 * 60 * 60 * 24)
-  );
-
-  orden.dias_pendiente_entrega = Math.max(0, diasPendiente);
-  orden.alerta_entrega = orden.dias_pendiente_entrega > 3;
-}
-    
-    // Marcar críticas con la misma regla usada por el frontend.
-orden.es_critica =
-  (
-    ['ingresado', 'revision', 'presupuesto', 'reparando'].includes(
-      orden.estado
-    ) &&
-    orden.dias_en_proceso > 5
-  ) ||
-  (
-    orden.estado === 'terminado' &&
-    Number(orden.dias_pendiente_entrega || 0) > 5
-  );
-    // =====================================
-
-    return orden;
-  });
-}
+      const { data, error, count } = await query;
+      if (error) {
+        return res.status(500).json({ ok: false, error: error.message });
+      }
 
       return res.status(200).json({
         ok: true,
         data: data || [],
         total: count || 0,
-        pagina: pagina,
-        limite: limite
+        pagina: paginaNum,
+        limite: limiteNum
       });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Error al consultar órdenes' });
     }
+  }
 
   if (req.method === 'POST') {
-  const body = req.body || {};
-
-  // ===== IMPORTACIÓN DE BACKUP =====
-  if (body.action === 'import') {
-    if (user.rol !== 'admin') {
-      return res.status(403).json({
-        ok: false,
-        error: 'Solo un administrador puede importar backups.'
-      });
-    }
-
-    const importadas = Array.isArray(body.ordenes) ? body.ordenes : [];
-
-    if (importadas.length === 0) {
-      return res.status(400).json({
-        ok: false,
-        error: 'No hay órdenes para importar.'
-      });
-    }
-
-    // Limitar cantidad máxima para evitar operaciones masivas accidentales
-    const MAX_ORDENES_IMPORTAR = 500;
-    if (importadas.length > MAX_ORDENES_IMPORTAR) {
-      return res.status(400).json({
-        ok: false,
-        error:
-          'El archivo tiene demasiadas órdenes (' +
-          importadas.length +
-          '). El límite actual es ' +
-          MAX_ORDENES_IMPORTAR +
-          '.'
-      });
-    }
-
-    // Ejecutar función SQL segura por empresa
-    const { error } = await supabase.rpc('importar_ordenes_empresa', {
-      p_empresa_id: empresaId,
-      p_ordenes: importadas
-    });
-
-    if (error) {
-      console.error('Error al importar backup:', error);
-      return res.status(500).json({
-        ok: false,
-        error: error.message || 'No se pudo importar el backup.'
-      });
-    }
-
-    // Registrar auditoría de la importación
-    await registrarAuditoriaOrden(supabase, user, {
-      orden_id: null,
-      empresa_id: empresaId,
-      accion: 'backup_importado',
-      detalle:
-        'Se importaron ' +
-        importadas.length +
-        ' órdenes desde un archivo de backup.',
-      datos_nuevos: {
-        cantidad: importadas.length
-      }
-    });
-
-    return res.status(200).json({
-      ok: true,
-      data: {
-        importadas: importadas.length
-      }
-    });
-  }
-
-  // ... resto del código existente para crear orden individual ...
-
-      if (user.rol === 'tecnico') {
-        return res.status(403).json({
-          ok: false,
-          error: 'Los técnicos no pueden registrar órdenes.'
-        });
-      }
-
-      if (
-        !body.tecnico_id ||
-        body.tecnico_id === '' ||
-        body.tecnico_id === null
-      ) {
-        return res.status(400).json({
-          ok: false,
-          error: 'El técnico es obligatorio.'
-        });
-      }
-
-      // El técnico indicado debe pertenecer a la empresa de la sesión.
-      const { data: tecnico, error: tecnicoError } = await supabase
-        .from('usuarios')
-        .select('id, rol, activo')
-        .eq('id', body.tecnico_id)
-        .eq('empresa_id', empresaId)
-        .maybeSingle();
-
-      if (
-        tecnicoError ||
-        !tecnico ||
-        tecnico.rol !== 'tecnico' ||
-        tecnico.activo === false
-      ) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Técnico inválido o inactivo.'
-        });
-      }
-
-      const order = orderInput(
-        body,
-        { requireClient: true },
-        empresaId
-      );
-
-      // Si viene cliente_id, confirmar que sea un cliente de esta empresa.
-      if (order.cliente_id) {
-        const { data: cliente, error: clienteError } = await supabase
-          .from('clientes')
-          .select('id')
-          .eq('id', order.cliente_id)
-          .eq('empresa_id', empresaId)
-          .maybeSingle();
-
-        if (clienteError || !cliente) {
-          return res.status(400).json({
-            ok: false,
-            error: 'Cliente inválido para esta empresa.'
-          });
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('ordenes')
-        .insert(order)
-        .select(ORDER_FIELDS_WRITABLE)
-        .single();
-
-      if (error) throw error;
-
-      await registrarAuditoriaOrden(supabase, user, {
-        orden_id: data.id,
-        empresa_id: data.empresa_id,
-        accion: 'orden_creada',
-        detalle: 'Se creó la orden.',
-        datos_nuevos: {
-          fecha: data.fecha,
-          cliente_id: data.cliente_id,
-          cliente: data.cliente,
-          tel: data.tel,
-          tipo: data.tipo,
-          serie: data.serie,
-          tecnico_id: data.tecnico_id,
-          sena: data.sena,
-          presupuesto: data.presupuesto,
-          falla: data.falla,
-          presupuesta: data.presupuesta,
-          estetico: data.estetico,
-          diagnostico: data.diagnostico,
-          trabajo_realizar: data.trabajo_realizar,
-          aprobacion_presupuesto:
-            data.aprobacion_presupuesto,
-          estado: data.estado,
-          fecha_entrega: data.fecha_entrega
-        }
-      });
-
-      return res.status(201).json({
-        ok: true,
-        data: data
-      });
-    }
-
-    if (req.method === 'PATCH') {
+    try {
       const body = req.body || {};
+      const {
+        cliente,
+        tel,
+        tipo,
+        serie,
+        pass,
+        sena,
+        falla,
+        presupuesto,
+        presupuesta,
+        estetico,
+        estado,
+        fecha_entrega,
+        cliente_id,
+        diagnostico,
+        trabajo_realizar,
+        aprobacion_presupuesto,
+        pago_final,
+        tecnico_id,
+        fecha_prometida_entrega,
+        presupuesto_detalle,
+        motivo_devolucion
+      } = body;
 
-            // Un técnico marca una orden propia como vista al abrir su detalle.
-      if (body.action === 'marcar_vista') {
-        if (user.rol !== 'tecnico' || !validId(user.id)) {
-          return res.status(403).json({
-            ok: false,
-            error: 'Solo el técnico asignado puede marcar una orden como vista.'
-          });
-        }
-
-        if (!validId(body.id)) {
-          return res.status(400).json({
-            ok: false,
-            error: 'Identificador de orden inválido.'
-          });
-        }
-
-        const { data: ordenVista, error: ordenVistaError } =
-          await supabase
-            .from('ordenes')
-            .select('id, vista_por_tecnico_en')
-            .eq('id', body.id)
-            .eq('empresa_id', empresaId)
-            .eq('tecnico_id', user.id)
-            .maybeSingle();
-
-        if (ordenVistaError) throw ordenVistaError;
-
-        if (!ordenVista) {
-          return res.status(404).json({
-            ok: false,
-            error: 'Orden no encontrada o no asignada a este técnico.'
-          });
-        }
-
-        // No sobrescribimos la hora original si el técnico ya la había abierto.
-        if (!ordenVista.vista_por_tecnico_en) {
-          const { error: marcarVistaError } = await supabase
-            .from('ordenes')
-            .update({
-              vista_por_tecnico_en: new Date().toISOString()
-            })
-            .eq('id', body.id)
-            .eq('empresa_id', empresaId)
-            .eq('tecnico_id', user.id);
-
-          if (marcarVistaError) throw marcarVistaError;
-        }
-
-        return res.status(200).json({
-          ok: true
-        });
-      }
-
-      if (!validId(body.id)) {
+      if (!cliente || !tipo) {
         return res.status(400).json({
           ok: false,
-          error: 'Identificador de orden inválido.'
+          error: 'Cliente y tipo de equipo son obligatorios'
         });
       }
 
-      if (!ALLOWED_STATES.has(body.estado)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Estado de orden inválido.'
-        });
+      let finalClienteId = null;
+      if (cliente_id && validId(cliente_id)) {
+        finalClienteId = cliente_id.trim();
       }
 
-      let ordenQuery = supabase
+      let finalTecnicoId = null;
+      if (esAdmin) {
+        if (tecnico_id && validId(tecnico_id)) {
+          finalTecnicoId = tecnico_id.trim();
+        }
+      } else {
+        finalTecnicoId = userId;
+      }
+
+      const nuevaOrden = {
+        empresa_id: empresaId,
+        cliente: cliente.trim(),
+        tel: (tel || '').trim(),
+        tipo: tipo.trim(),
+        serie: (serie || '').trim(),
+        pass: (pass || '').trim(),
+        sena: Number(sena) || 0,
+        falla: (falla || '').trim(),
+        presupuesto: Number(presupuesto) || 0,
+        presupuesta: (presupuesta || '').trim(),
+        estetico: (estetico || '').trim(),
+        estado: estado || 'ingresado',
+        fecha_entrega: fecha_entrega || null,
+        cliente_id: finalClienteId,
+        diagnostico: (diagnostico || '').trim(),
+        trabajo_realizar: (trabajo_realizar || '').trim(),
+        aprobacion_presupuesto: aprobacion_presupuesto || 'pendiente',
+        pago_final: Number(pago_final) || 0,
+        tecnico_id: finalTecnicoId,
+        fecha_prometida_entrega: fecha_prometida_entrega || null,
+        presupuesto_detalle: (presupuesto_detalle || '').trim(),
+        motivo_devolucion: (motivo_devolucion || '').trim()
+      };
+
+      const { data, error } = await supabase
         .from('ordenes')
-        .select(
-          `
-            id,
-            empresa_id,
-            tecnico_id,
-            estado,
-            diagnostico,
-            trabajo_realizar,
-            sena,
-            presupuesto,
-            aprobacion_presupuesto,
-            fecha_entrega,
-            fecha_prometida_entrega,
-            presupuesto_detalle,
-            motivo_devolucion,
-            terminado_en
-            
-          `
-        )
-        .eq('id', body.id)
-        .eq('empresa_id', empresaId);
+        .insert(nuevaOrden)
+        .select()
+        .single();
 
-      if (user.rol === 'tecnico') {
-        if (!validId(user.id)) {
-          return res.status(401).json({
-            ok: false,
-            error: 'Sesión de técnico inválida. Volvé a iniciar sesión.'
-          });
-        }
-
-        ordenQuery = ordenQuery.eq('tecnico_id', user.id);
+      if (error) {
+        return res.status(500).json({ ok: false, error: error.message });
       }
 
-      const { data: ordenActual, error: ordenError } =
-        await ordenQuery.maybeSingle();
-
-      if (ordenError) throw ordenError;
-
-      if (!ordenActual) {
-        return res.status(404).json({
-          ok: false,
-          error: 'Orden no encontrada.'
-        });
-      }
-
-      if (user.rol === 'tecnico') {
-  const estadosTecnicoPermitidos = new Set([
-    'ingresado',
-    'revision',
-    'presupuesto',
-    'reparando',
-    'terminado'
-  ]);
-
-  if (!estadosTecnicoPermitidos.has(body.estado)) {
-    return res.status(403).json({
-      ok: false,
-      error:
-        'Los técnicos no pueden marcar órdenes como entregadas o devueltas.'
-    });
-  }
-
-  // Una orden que ya salió del taller no puede volver al flujo técnico.
-  // Solo administración puede corregir o reabrir una orden cerrada.
-  if (
-    ordenActual.estado === 'entregado' ||
-    ordenActual.estado === 'sinreparar'
-  ) {
-    return res.status(403).json({
-      ok: false,
-      error:
-        'Esta orden ya fue cerrada. Solo administración puede modificarla.'
-    });
-  }
-}
-
-      if (
-        user.rol === 'tecnico' &&
-        Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
-      ) {
-        return res.status(403).json({
-          ok: false,
-          error: 'Los técnicos no pueden reasignar órdenes.'
-        });
-      }
-
-      if (
-        user.rol !== 'tecnico' &&
-        Object.prototype.hasOwnProperty.call(body, 'tecnico_id') &&
-        body.tecnico_id !== null &&
-        body.tecnico_id !== ''
-      ) 
-      
-      {
-        const { data: tecnico, error: tecnicoError } = await supabase
-          .from('usuarios')
-          .select('id, rol, activo')
-          .eq('id', body.tecnico_id)
-          .eq('empresa_id', empresaId)
-          .maybeSingle();
-
-        if (
-          tecnicoError ||
-          !tecnico ||
-          tecnico.rol !== 'tecnico' ||
-          tecnico.activo === false
-        ) {
-          return res.status(400).json({
-            ok: false,
-            error: 'Técnico inválido o inactivo.'
-          });
-        }
-      }
-
-      let update;
-
-// Determinar nuevo valor de terminado_en
-let terminadoEn = null;
-
-if (body.estado === 'terminado') {
-  // Si ya tiene terminado_en, lo conservamos; si no, ponemos ahora.
-  if (ordenActual.terminado_en) {
-    terminadoEn = ordenActual.terminado_en;
-  } else {
-    terminadoEn = new Date().toISOString();
-  }
-} else {
-  // Si el estado ya no es "terminado", limpiamos terminado_en.
-  terminadoEn = null;
-}
-
-if (user.rol === 'tecnico') {
-  update = {
-    estado: body.estado,
-    diagnostico: text(body.diagnostico, 4000),
-    trabajo_realizar: text(body.trabajo_realizar, 4000),
-    fecha_entrega: null,
-    terminado_en: terminadoEn
-  };
-
-  if (
-    body.estado === 'presupuesto' &&
-    Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')
-  ) {
-    update.presupuesto_detalle = text(body.presupuesto_detalle, 4000);
-  }
-} else {
-  update = {
-    estado: body.estado,
-    diagnostico: text(body.diagnostico, 4000),
-    trabajo_realizar: text(body.trabajo_realizar, 4000),
-    
-    
-    fecha_entrega:
-      body.estado === 'entregado' ||
-      body.estado === 'sinreparar'
-        ? isoDate(
-            body.fecha_entrega,
-            new Date().toISOString()
-          )
-        : null,
-    terminado_en: terminadoEn,
-
-    /* Fecha comprometida con el cliente: solo admin/user puede modificarla. */
-    fecha_prometida_entrega: dateOnly(
-      body.fecha_prometida_entrega
-    )
-  };
-
-
-  // Si la orden ya estaba devuelta, este guardado no modifica la seña.
-if (ordenActual.estado !== 'sinreparar') {
-  update.sena = number(body.sena);
-}
-
-  if (Object.prototype.hasOwnProperty.call(body, 'presupuesto')) {
-  update.presupuesto = number(body.presupuesto);
-  }  
-  
-  if (Object.prototype.hasOwnProperty.call(body, 'presupuesto_detalle')) {
-      update.presupuesto_detalle = text(body.presupuesto_detalle, 4000);
-  }
-
-  if (Object.prototype.hasOwnProperty.call(body, 'motivo_devolucion')) {
-      update.motivo_devolucion = text(body.motivo_devolucion, 2000);
-    }
-  
-        if (
-              Object.prototype.hasOwnProperty.call(body, 'tecnico_id')
-        ) {
-              const nuevoTecnicoId = validId(body.tecnico_id)
-            ? body.tecnico_id
-            : null;
-
-          update.tecnico_id = nuevoTecnicoId;
-
-  // Al reasignar, el técnico nuevo debe volver a ver la orden como no leída.
-  if (nuevoTecnicoId !== ordenActual.tecnico_id) {
-    update.vista_por_tecnico_en = null;
-  }
-}
-      }
-
-      const { error: updateError } = await supabase
-        .from('ordenes')
-        .update(update)
-        .eq('id', body.id)
-        .eq('empresa_id', empresaId);
-
-      if (updateError) throw updateError;
-
-      const cambios = {};
-
-      Object.keys(update).forEach(function (campo) {
-        const anterior = ordenActual[campo];
-        const nuevo = update[campo];
-
-        if (String(anterior ?? '') !== String(nuevo ?? '')) {
-          cambios[campo] = {
-            anterior: anterior ?? null,
-            nuevo: nuevo ?? null
-          };
-        }
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: data.id,
+        accion: 'crear',
+        detalle: `Orden #${data.id} creada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_nuevos: data
       });
 
-      if (Object.keys(cambios).length > 0) {
-        const camposCambiados = Object.keys(cambios).join(', ');
+      return res.status(201).json({ ok: true, data });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Error al crear orden' });
+    }
+  }
 
-        await registrarAuditoriaOrden(supabase, user, {
-          orden_id: ordenActual.id,
-          empresa_id: ordenActual.empresa_id,
-          accion: 'orden_actualizada',
-          detalle:
-            'Se actualizaron los campos: ' +
-            camposCambiados +
-            '.',
-          datos_anteriores: Object.fromEntries(
-            Object.entries(cambios).map(function (entrada) {
-              return [entrada[0], entrada[1].anterior];
-            })
-          ),
-          datos_nuevos: Object.fromEntries(
-            Object.entries(cambios).map(function (entrada) {
-              return [entrada[0], entrada[1].nuevo];
-            })
-          )
+  if (req.method === 'PUT') {
+    try {
+      const { id, ...updates } = req.body || {};
+      if (!id || !validId(id)) {
+        return res.status(400).json({ ok: false, error: 'ID de orden inválido' });
+      }
+
+      const { data: ordenActual, error: errFetch } = await supabase
+        .from('ordenes')
+        .select('*')
+        .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .single();
+
+      if (errFetch || !ordenActual) {
+        return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+      }
+
+      if (!esAdmin && ordenActual.tecnico_id !== userId) {
+        return res.status(403).json({
+          ok: false,
+          error: 'No tienes permiso para modificar esta orden'
         });
+      }
+
+      const ordenActualizada = { ...updates };
+      delete ordenActualizada.id;
+      delete ordenActualizada.empresa_id;
+      delete ordenActualizada.created_at;
+
+      if (!esAdmin) {
+        delete ordenActualizada.tecnico_id;
+      }
+
+      if (ordenActualizada.estado === 'terminado' && ordenActual.estado !== 'terminado') {
+        ordenActualizada.terminado_en = new Date().toISOString();
+      }
+
+      if (
+        !esAdmin &&
+        !ordenActual.vista_por_tecnico_en &&
+        ordenActual.tecnico_id === userId
+      ) {
+        ordenActualizada.vista_por_tecnico_en = new Date().toISOString();
       }
 
       const { data, error } = await supabase
-        .from('ordenes_resumen')
-        .select(
-          ORDER_FIELDS + ', total_items, total_pagos, saldo_real'
-        )
-        .eq('id', body.id)
+        .from('ordenes')
+        .update(ordenActualizada)
         .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        return res.status(500).json({ ok: false, error: error.message });
+      }
 
-      return res.status(200).json({
-        ok: true,
-        data: data
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: id,
+        accion: 'actualizar',
+        detalle: `Orden #${id} actualizada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_anteriores: ordenActual,
+        datos_nuevos: data
       });
-    }
 
-    if (req.method === 'DELETE') {
-      if (user.rol !== 'admin') {
+      return res.status(200).json({ ok: true, data });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Error al actualizar orden' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    try {
+      if (!esAdmin) {
         return res.status(403).json({
           ok: false,
-          error: 'Solo un administrador puede eliminar órdenes.'
+          error: 'Solo los administradores pueden eliminar órdenes'
         });
       }
 
-      const id = req.query && req.query.id;
+      const { id } = req.query;
+      if (!id || !validId(id)) {
+        return res.status(400).json({ ok: false, error: 'ID de orden inválido' });
+      }
 
-      if (!validId(id)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Identificador de orden inválido.'
-        });
+      const { data: ordenEliminada, error: errFetch } = await supabase
+        .from('ordenes')
+        .select('*')
+        .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .single();
+
+      if (errFetch || !ordenEliminada) {
+        return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
       }
 
       const { error } = await supabase
         .from('ordenes')
         .delete()
-        .eq('id', id)
-        .eq('empresa_id', empresaId);
+        .eq('empresa_id', empresaId)
+        .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        return res.status(500).json({ ok: false, error: error.message });
+      }
 
-      return res.status(200).json({
-        ok: true
+      await registrarAuditoriaOrden({
+        req,
+        empresa_id: empresaId,
+        orden_id: id,
+        accion: 'eliminar',
+        detalle: `Orden #${id} eliminada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        datos_anteriores: ordenEliminada
       });
+
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Error al eliminar orden' });
     }
-
-    return res.status(405).json({
-      ok: false,
-      error: 'Método no permitido.'
-    });
-  } catch (error) {
-    console.error('ordenes error:', error);
-
-    return res.status(500).json({
-      ok: false,
-      error: error.message || 'No se pudo procesar órdenes.'
-    });
   }
+
+  return res.status(405).json({ ok: false, error: 'Método no permitido' });
 };
