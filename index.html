@@ -4099,7 +4099,7 @@ if (btnClaveGuardar) {
     if (claveMsg) claveMsg.textContent = 'Guardando…';
 
     solicitarJSON('/api/set-password', {
-      
+      currentPassword: actual,
       newPassword: nueva
     })
     .then(function (resultado) {
