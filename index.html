@@ -5496,7 +5496,7 @@ if (btnConsultarBalance) {
     aviso.id = "aviso-licencia";
     document.body.insertBefore(aviso, document.body.firstChild);
   }
-
+  console.log("Licencia recibida:", licencia);
   if (!licencia) {
     aviso.hidden = true;
     return;
