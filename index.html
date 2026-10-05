@@ -5563,16 +5563,9 @@ window.mostrarAvisoLicencia = function (licencia) {
   aviso.className = clase;
   aviso.textContent = mensaje;
 
-  var aplicacion =
-    document.getElementById("app") ||
-    document.querySelector("main") ||
-    document.body.firstElementChild;
+  var aplicacion = document.querySelector("body");
 
-  if (aplicacion && aplicacion.parentNode) {
-    aplicacion.parentNode.insertBefore(aviso, aplicacion);
-  } else {
-    document.body.insertBefore(aviso, document.body.firstChild);
-  }
+  document.body.insertBefore(aviso, document.body.firstChild);
 };		  
 		  
 		  
