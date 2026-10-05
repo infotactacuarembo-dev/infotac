@@ -1384,8 +1384,22 @@ table {
   /* Oculta la columna Acciones: es la columna número 10 */
   .table-wrap th:nth-child(10),
   .table-wrap td:nth-child(10) {
+    display: table-cell !important;
+  }
+
+    .table-wrap .row-actions .icon-btn {
     display: none !important;
   }
+
+  .table-wrap .row-actions .icon-btn.wa {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    padding: 0 !important;
+  }	
 
   /* Distribuye el ancho entre Fecha, Cliente y Estado */
   .table-wrap th:nth-child(1),
