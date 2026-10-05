@@ -5585,19 +5585,16 @@ function restaurarSesion() {
       });
     })
     .then(function (resultado) {
-      if (!resultado.respuesta.ok || !resultado.datos.authenticated) {
+      var datos = resultado.datos;
+      var sesion = datos.session;
+
+      if (!resultado.respuesta.ok || !sesion) {
         mostrarLogin();
         return;
       }
 
-      var datos = resultado.datos;
-      var usuarioSesion = datos.user || {};
-      var esAdmin = usuarioSesion.rol === "admin";
-
-      var licencia =
-        (datos.session && datos.session.licencia) ||
-        (usuarioSesion.licencia) ||
-        null;
+      var usuarioSesion = sesion;
+      var licencia = sesion.licencia || null;
 
       mostrarAvisoLicencia(licencia);
 
@@ -5623,13 +5620,14 @@ function restaurarSesion() {
 
       sessionStorage.setItem(
         "usuario_id",
-        usuarioSesion.id || usuarioSesion.user_id || ""
+        usuarioSesion.user_id || ""
       );
 
       mostrarAplicacion();
       return cargarDatosIniciales();
     })
-    .catch(function () {
+    .catch(function (error) {
+      console.error("Error restaurando sesión:", error);
       mostrarLogin();
     });
 }
