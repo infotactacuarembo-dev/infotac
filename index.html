@@ -5482,27 +5482,7 @@ if (btnConsultarBalance) {
 }		
 
 
-function mostrarAvisoLicencia(licencia) {
-  var aviso = document.getElementById('aviso-licencia');
 
-  if (!aviso || !licencia) {
-    return;
-  }
-
-  var mensaje = licencia.mensaje || '';
-
-  if (!mensaje && licencia.estado === 'prueba') {
-    mensaje = 'Modo de prueba';
-  }
-
-  if (mensaje) {
-    aviso.textContent = mensaje;
-    aviso.hidden = false;
-  } else {
-    aviso.textContent = '';
-    aviso.hidden = true;
-  }
-}
 
 
 function mostrarAvisoLicencia(licencia) {
