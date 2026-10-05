@@ -5572,8 +5572,10 @@ if (btnConsultarBalance) {
 };		  
 		  
 		  
-function restaurarSesion() {
-  console.log("BUILD LICENCIA 2026-10-05-1548");
+function restaurarSesion(intentos) {
+  intentos = intentos || 0;
+
+  console.log("Restaurando sesión. Intento:", intentos + 1);
 
   fetch("/api/session", {
     method: "GET",
@@ -5581,15 +5583,7 @@ function restaurarSesion() {
     cache: "no-store"
   })
     .then(function (respuesta) {
-      return respuesta.text().then(function (texto) {
-        var datos;
-
-        try {
-          datos = JSON.parse(texto);
-        } catch (error) {
-          throw new Error("Respuesta inválida de /api/session");
-        }
-
+      return respuesta.json().then(function (datos) {
         return {
           respuesta: respuesta,
           datos: datos
@@ -5599,19 +5593,33 @@ function restaurarSesion() {
     .then(function (resultado) {
       var datos = resultado.datos;
       var sesion = datos && datos.session;
-      var licencia = sesion && sesion.licencia;
 
       console.log("HTTP session:", resultado.respuesta.status);
       console.log("Sesión encontrada:", sesion);
-      console.log("Licencia encontrada:", licencia);
 
       if (!resultado.respuesta.ok || !sesion) {
-        console.warn("No hay sesión válida.");
+        if (intentos < 3) {
+          console.warn("Sesión todavía no disponible. Reintentando...");
+
+          setTimeout(function () {
+            restaurarSesion(intentos + 1);
+          }, 1000);
+
+          return;
+        }
+
+        console.warn("No hay sesión válida después de varios intentos.");
         mostrarLogin();
         return;
       }
 
-      mostrarAvisoLicencia(licencia);
+      var licencia = sesion.licencia;
+
+      console.log("Licencia encontrada:", licencia);
+
+      if (licencia) {
+        mostrarAvisoLicencia(licencia);
+      }
 
       sessionStorage.setItem(
         "usuario",
@@ -5643,6 +5651,14 @@ function restaurarSesion() {
     })
     .catch(function (error) {
       console.error("Error restaurando sesión:", error);
+
+      if (intentos < 3) {
+        setTimeout(function () {
+          restaurarSesion(intentos + 1);
+        }, 1000);
+        return;
+      }
+
       mostrarLogin();
     });
 }
