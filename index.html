@@ -2357,14 +2357,30 @@ tr.orden-demorada {
 }
 
 #aviso-licencia {
-  width: calc(100% - 32px);
-  max-width: 1235px;
-  margin: 12px auto;
-  padding: 12px 16px;
-  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 360px;
+  min-height: 32px;
+  margin: 0 12px;
+  padding: 7px 14px;
   border-radius: 8px;
-  font-weight: 600;
-  border: 1px solid transparent;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+  #aviso-licencia {
+    max-width: 240px;
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: normal;
+  }
 }
 
 .aviso-licencia-info {
