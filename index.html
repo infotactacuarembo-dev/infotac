@@ -8848,7 +8848,7 @@ html += "</div>";
   }
 
   var msg = construirMensajeWhatsApp(o, items);
-  var tel = (o.whatsapp || "").replace(/[^0-9]/g, "");
+  var tel = (o.whatsapp || o.tel || "").replace(/[^0-9]/g, "");
 
   if (tel && tel.length < 2) {
     tel = "";
