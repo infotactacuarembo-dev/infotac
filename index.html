@@ -5474,7 +5474,9 @@ function restaurarSesion() {
       var usuarioSesion = resultado.datos.user || {};
       var esAdmin = usuarioSesion.rol === 'admin';
 		
-	  mostrarAvisoLicencia(resultado.datos.licencia);	
+	  mostrarAvisoLicencia(
+  		resultado.datos.session && resultado.datos.session.licencia
+		);	
 
      sessionStorage.setItem(
   		'usuario',
