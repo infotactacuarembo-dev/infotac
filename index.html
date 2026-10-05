@@ -5485,7 +5485,7 @@ if (btnConsultarBalance) {
 
 
 
-function mostrarAvisoLicencia(licencia) {
+window.mostrarAvisoLicencia = function (licencia) {
   var avisoAnterior = document.getElementById("aviso-licencia");
 
   if (avisoAnterior) {
@@ -5573,7 +5573,7 @@ function mostrarAvisoLicencia(licencia) {
   } else {
     document.body.insertBefore(aviso, document.body.firstChild);
   }
-}		  
+};		  
 		  
 		  
 function restaurarSesion() {
