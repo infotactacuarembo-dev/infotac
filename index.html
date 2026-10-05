@@ -2353,7 +2353,31 @@ tr.orden-demorada {
   }
 }
 
+#aviso-licencia {
+  margin: 12px 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
 
+.aviso-licencia-info {
+  color: #155724;
+  background: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.aviso-licencia-warning {
+  color: #856404;
+  background: #fff3cd;
+  border-color: #ffeeba;
+}
+
+.aviso-licencia-error {
+  color: #721c24;
+  background: #f8d7da;
+  border-color: #f5c6cb;
+}
 		
 </style>		
 
@@ -3975,6 +3999,10 @@ tr.orden-demorada {
 </section>
 
 
+
+	  
+
+
 <script>
 	  
 
@@ -5450,6 +5478,97 @@ function mostrarAvisoLicencia(licencia) {
     aviso.hidden = true;
   }
 }
+
+
+function mostrarAvisoLicencia(licencia) {
+  var avisoAnterior = document.getElementById("aviso-licencia");
+
+  if (avisoAnterior) {
+    avisoAnterior.remove();
+  }
+
+  if (!licencia) {
+    return;
+  }
+
+  var estado = String(licencia.estado || "").toLowerCase();
+  var dias = Number(licencia.dias_restantes);
+  var venceAt = licencia.vence_at || null;
+
+  var textoFecha = "";
+
+  if (venceAt) {
+    var fecha = new Date(venceAt);
+
+    if (!isNaN(fecha.getTime())) {
+      textoFecha = fecha.toLocaleDateString("es-UY", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    }
+  }
+
+  var mensaje = "";
+  var clase = "aviso-licencia-info";
+
+  if (estado === "prueba") {
+    if (dias <= 0) {
+      mensaje =
+        "Tu licencia de prueba está vencida. Contactá al administrador.";
+      clase = "aviso-licencia-error";
+    } else if (dias <= 3) {
+      mensaje =
+        "Urgente: tu licencia de prueba vence en " +
+        dias +
+        (dias === 1 ? " día" : " días") +
+        ". Regularizá tu cuenta cuanto antes.";
+      clase = "aviso-licencia-error";
+    } else if (dias <= 7) {
+      mensaje =
+        "Atención: tu licencia de prueba vence en " +
+        dias +
+        (dias === 1 ? " día" : " días") +
+        ". Regularizá tu cuenta para evitar interrupciones.";
+      clase = "aviso-licencia-warning";
+    } else {
+      mensaje =
+        "Licencia de prueba: quedan " +
+        dias +
+        (dias === 1 ? " día" : " días") +
+        ".";
+    }
+  } else if (estado === "activa" || estado === "regularizada") {
+    mensaje = "Licencia activa.";
+  } else if (estado === "vencida" || estado === "expirada") {
+    mensaje =
+      "Tu licencia está vencida. Contactá al administrador.";
+    clase = "aviso-licencia-error";
+  } else {
+    mensaje = "No se pudo determinar el estado de la licencia.";
+    clase = "aviso-licencia-warning";
+  }
+
+  if (textoFecha) {
+    mensaje += " Vence el " + textoFecha + ".";
+  }
+
+  var aviso = document.createElement("div");
+  aviso.id = "aviso-licencia";
+  aviso.className = clase;
+  aviso.textContent = mensaje;
+
+  var aplicacion =
+    document.getElementById("app") ||
+    document.querySelector("main") ||
+    document.body.firstElementChild;
+
+  if (aplicacion && aplicacion.parentNode) {
+    aplicacion.parentNode.insertBefore(aviso, aplicacion);
+  } else {
+    document.body.insertBefore(aviso, document.body.firstChild);
+  }
+}		  
 		  
 		  
 function restaurarSesion() {
@@ -5471,40 +5590,42 @@ function restaurarSesion() {
         return;
       }
 
-      var usuarioSesion = resultado.datos.user || {};
-      var esAdmin = usuarioSesion.rol === 'admin';
-		
-	  mostrarAvisoLicencia(
-  		resultado.datos.session && resultado.datos.session.licencia
-		);	
+      var datos = resultado.datos;
+      var usuarioSesion = datos.user || {};
+      var esAdmin = usuarioSesion.rol === "admin";
 
-     sessionStorage.setItem(
-  		'usuario',
-  		usuarioSesion.identificador || ''
-	);
+      var licencia =
+        (datos.session && datos.session.licencia) ||
+        (usuarioSesion.licencia) ||
+        null;
 
-	sessionStorage.setItem(
-  	'empresa_id',
-  	usuarioSesion.empresa_id || ''
-	);
+      mostrarAvisoLicencia(licencia);
 
-	sessionStorage.setItem(
-  	'codigo_empresa',
-  	usuarioSesion.codigo_empresa || ''
-	);
+      sessionStorage.setItem(
+        "usuario",
+        usuarioSesion.identificador || ""
+      );
 
-	  sessionStorage.setItem(
-  		'rol',
-  		usuarioSesion.rol || ''
-	); 
+      sessionStorage.setItem(
+        "empresa_id",
+        usuarioSesion.empresa_id || ""
+      );
 
+      sessionStorage.setItem(
+        "codigo_empresa",
+        usuarioSesion.codigo_empresa || ""
+      );
 
-	  sessionStorage.setItem(
-  		'usuario_id',
-  		usuarioSesion.id || ''
-	);	
+      sessionStorage.setItem(
+        "rol",
+        usuarioSesion.rol || ""
+      );
 
-      
+      sessionStorage.setItem(
+        "usuario_id",
+        usuarioSesion.id || usuarioSesion.user_id || ""
+      );
+
       mostrarAplicacion();
       return cargarDatosIniciales();
     })
@@ -5512,6 +5633,7 @@ function restaurarSesion() {
       mostrarLogin();
     });
 }
+
 restaurarSesion();
 		  
 
