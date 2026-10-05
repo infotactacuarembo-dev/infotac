@@ -21,6 +21,10 @@ function temporaryPassword() {
   return crypto.randomBytes(12).toString('base64url');
 }
 
+function accessCode() {
+  return `taller-${crypto.randomBytes(5).toString('hex')}`;
+}
+
 function database() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -61,14 +65,16 @@ module.exports = async function handler(req, res) {
 
   const password = temporaryPassword();
   const passwordHash = bcrypt.hashSync(password, 10);
+  const codigoAcceso = accessCode();
 
   const { data: company, error: companyError } = await supabase
     .from('empresas')
     .insert({
       nombre,
+      codigo_acceso: codigoAcceso,
       portal_empresa_id: portalEmpresaId
     })
-    .select('id, nombre, portal_empresa_id')
+    .select('id, nombre, codigo_acceso, portal_empresa_id')
     .single();
 
   if (companyError) throw companyError;
