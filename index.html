@@ -6460,8 +6460,7 @@ function obtenerAlertaTerminado(orden) {
 
           tablaOrdenes.querySelectorAll("tr").forEach(function (tr) {
             tr.addEventListener("click", function (e) {
-              var action = e.target.closest("button[data-action]");
-			  if (!action) return;
+              var action = e.target.closest("[data-action]");
               var id = tr.getAttribute("data-id");
               if (action && action.getAttribute("data-action") === "borrar") {
                 e.stopPropagation();
