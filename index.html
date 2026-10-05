@@ -2409,6 +2409,8 @@ tr.orden-demorada {
    <span id="nombre-empresa-header">Infotac</span>
   </div>
 
+   <span id="aviso-licencia" hidden></span>	   
+
    <div id="user-info" style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;margin-right:1rem;">
   		<span id="user-name" style="font-size:0.85rem;font-weight:500;"></span>
   		<span id="user-rol" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;background:#e0e7ff;color:#3730a3;"></span>
@@ -5424,7 +5426,31 @@ if (btnConsultarBalance) {
     'click',
     consultarBalanceTaller
   );
-}		  
+}		
+
+
+function mostrarAvisoLicencia(licencia) {
+  var aviso = document.getElementById('aviso-licencia');
+
+  if (!aviso || !licencia) {
+    return;
+  }
+
+  var mensaje = licencia.mensaje || '';
+
+  if (!mensaje && licencia.estado === 'prueba') {
+    mensaje = 'Modo de prueba';
+  }
+
+  if (mensaje) {
+    aviso.textContent = mensaje;
+    aviso.hidden = false;
+  } else {
+    aviso.textContent = '';
+    aviso.hidden = true;
+  }
+}
+		  
 		  
 function restaurarSesion() {
   fetch("/api/session", {
@@ -5447,6 +5473,8 @@ function restaurarSesion() {
 
       var usuarioSesion = resultado.datos.user || {};
       var esAdmin = usuarioSesion.rol === 'admin';
+		
+	  mostrarAvisoLicencia(resultado.datos.licencia);	
 
      sessionStorage.setItem(
   		'usuario',
