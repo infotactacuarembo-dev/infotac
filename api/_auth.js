@@ -28,4 +28,18 @@ function getSessionUser(req) {
   return readSession(req);
 }
 
-module.exports = { readSession, requireAuth, requireSession, getSessionUser };
+function clearSessionCookie(res) {
+  res.setHeader(
+    'Set-Cookie',
+    'taller_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  );
+}
+
+module.exports = {
+  readSession,
+  requireAuth,
+  requireSession,
+  getSessionUser,
+  clearSessionCookie
+};
+
