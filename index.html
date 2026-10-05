@@ -8824,7 +8824,7 @@ html += "</div>";
         /* ===== WHATSAPP ===== */
         async function enviarWhatsApp(id) {
   var o = ordenes.find(function (x) {
-    return x.id === id;
+    return String(x.id) === String(id);
   });
 
   if (!o) return;
