@@ -5489,8 +5489,9 @@ if (btnConsultarBalance) {
 
 
   window.mostrarAvisoLicencia = function (licencia) {
-    var aviso = document.getElementById("aviso-licencia");
-
+  console.trace("Licencia recibida:", licencia);
+  var aviso = document.getElementById("aviso-licencia");
+	
   if (!aviso) {
     aviso = document.createElement("div");
     aviso.id = "aviso-licencia";
@@ -5585,22 +5586,27 @@ function restaurarSesion() {
       });
     })
     .then(function (resultado) {
-      var datos = resultado.datos;
-      var sesion = datos && datos.session;
+    var datos = resultado.datos;
+	var sesion = datos && datos.session;
 
-      if (!resultado.respuesta.ok || !datos.ok || !sesion) {
-        mostrarAvisoLicencia(null);
-        mostrarLogin();
-        return;
-      }
+	console.log("Respuesta session:", datos);
+	console.log("Sesión encontrada:", sesion);
+	console.log("Licencia encontrada:", sesion && sesion.licencia);
 
-      var usuarioSesion = sesion;
-      var licencia = sesion.licencia || null;
+	if (!resultado.respuesta.ok || !sesion) {
+  		console.warn("No hay sesión válida; no se modifica el aviso de licencia.");
+  		mostrarLogin();
+  		return;
+	}
 
-      console.log("Licencia enviada al aviso:", licencia);
+var usuarioSesion = sesion;
+var licencia = sesion.licencia;
 
-      mostrarAvisoLicencia(licencia);
+console.log("Licencia enviada al aviso:", licencia);
 
+if (licencia) {
+  mostrarAvisoLicencia(licencia);
+}
       sessionStorage.setItem(
         "usuario",
         usuarioSesion.identificador || ""
@@ -5630,10 +5636,9 @@ function restaurarSesion() {
       return cargarDatosIniciales();
     })
     .catch(function (error) {
-      console.error("Error restaurando sesión:", error);
-      mostrarAvisoLicencia(null);
-      mostrarLogin();
-    });
+  		console.error("Error restaurando sesión:", error);
+  		mostrarLogin();
+});
 }
 
 restaurarSesion();
