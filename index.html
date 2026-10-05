@@ -5572,11 +5572,7 @@ if (btnConsultarBalance) {
 };		  
 		  
 		  
-function restaurarSesion(intentos) {
-  intentos = intentos || 0;
-
-  console.log("Restaurando sesión. Intento:", intentos + 1);
-
+function restaurarSesion() {
   fetch("/api/session", {
     method: "GET",
     credentials: "same-origin",
@@ -5594,77 +5590,34 @@ function restaurarSesion(intentos) {
       var datos = resultado.datos;
       var sesion = datos && datos.session;
 
-      console.log("HTTP session:", resultado.respuesta.status);
-      console.log("Sesión encontrada:", sesion);
-
       if (!resultado.respuesta.ok || !sesion) {
-        if (intentos < 3) {
-          console.warn("Sesión todavía no disponible. Reintentando...");
-
-          setTimeout(function () {
-            restaurarSesion(intentos + 1);
-          }, 1000);
-
-          return;
-        }
-
-        console.warn("No hay sesión válida después de varios intentos.");
         mostrarLogin();
         return;
       }
 
-      var licencia = sesion.licencia;
+      var licencia = sesion.licencia || null;
 
-      console.log("Licencia encontrada:", licencia);
+      console.log("Licencia recibida:", licencia);
 
       if (licencia) {
         mostrarAvisoLicencia(licencia);
       }
 
-      sessionStorage.setItem(
-        "usuario",
-        sesion.identificador || ""
-      );
-
-      sessionStorage.setItem(
-        "empresa_id",
-        sesion.empresa_id || ""
-      );
-
-      sessionStorage.setItem(
-        "codigo_empresa",
-        sesion.codigo_empresa || ""
-      );
-
-      sessionStorage.setItem(
-        "rol",
-        sesion.rol || ""
-      );
-
-      sessionStorage.setItem(
-        "usuario_id",
-        sesion.user_id || ""
-      );
+      sessionStorage.setItem("usuario", sesion.identificador || "");
+      sessionStorage.setItem("empresa_id", sesion.empresa_id || "");
+      sessionStorage.setItem("codigo_empresa", sesion.codigo_empresa || "");
+      sessionStorage.setItem("rol", sesion.rol || "");
+      sessionStorage.setItem("usuario_id", sesion.user_id || "");
 
       mostrarAplicacion();
       return cargarDatosIniciales();
     })
     .catch(function (error) {
       console.error("Error restaurando sesión:", error);
-
-      if (intentos < 3) {
-        setTimeout(function () {
-          restaurarSesion(intentos + 1);
-        }, 1000);
-        return;
-      }
-
       mostrarLogin();
     });
 }
-
-restaurarSesion();
-		  
+restaurarSesion();		  
 
         /* ===== DATA ACCESS (API SEGURA) ===== */
         function errorApi(respuesta, datos) {
