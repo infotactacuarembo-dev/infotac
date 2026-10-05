@@ -5489,7 +5489,7 @@ if (btnConsultarBalance) {
 
 
   window.mostrarAvisoLicencia = function (licencia) {
-  console.trace("Licencia recibida:", licencia);
+  
   var aviso = document.getElementById("aviso-licencia");
 	
   if (!aviso) {
@@ -5497,7 +5497,7 @@ if (btnConsultarBalance) {
     aviso.id = "aviso-licencia";
     document.body.insertBefore(aviso, document.body.firstChild);
   }
-  console.log("Licencia recibida:", licencia);
+  
   if (!licencia) {
     aviso.hidden = true;
     return;
@@ -5597,7 +5597,7 @@ function restaurarSesion() {
 
       var licencia = sesion.licencia || null;
 
-      console.log("Licencia recibida:", licencia);
+      
 
       if (licencia) {
         mostrarAvisoLicencia(licencia);
