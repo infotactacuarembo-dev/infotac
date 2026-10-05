@@ -5488,14 +5488,17 @@ if (btnConsultarBalance) {
 
 
 
-window.mostrarAvisoLicencia = function (licencia) {
-  var avisoAnterior = document.getElementById("aviso-licencia");
+  window.mostrarAvisoLicencia = function (licencia) {
+    var aviso = document.getElementById("aviso-licencia");
 
-  if (avisoAnterior) {
-    avisoAnterior.remove();
+  if (!aviso) {
+    aviso = document.createElement("div");
+    aviso.id = "aviso-licencia";
+    document.body.insertBefore(aviso, document.body.firstChild);
   }
 
   if (!licencia) {
+    aviso.hidden = true;
     return;
   }
 
@@ -5562,13 +5565,9 @@ window.mostrarAvisoLicencia = function (licencia) {
     mensaje += " Vence el " + textoFecha + ".";
   }
 
-  var aviso = document.createElement("div");
-  aviso.id = "aviso-licencia";
   aviso.className = clase;
   aviso.textContent = mensaje;
   aviso.hidden = false;
-
-  document.body.insertBefore(aviso, document.body.firstChild);
 };		  
 		  
 		  
