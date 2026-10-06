@@ -1,14 +1,67 @@
 const crypto = require('crypto');
 
 function readSession(req) {
-  const header = req.headers.cookie || '';
-  const match = header.match(/(?:^|; )taller_session=([^;]+)/);
-  if (!match) return null;
+  const header = req.headers.cookie || "";
+
+  console.log("Cookie header recibido:", Boolean(header));
+  console.log(
+    "Nombres de cookies recibidas:",
+    header
+      .split(";")
+      .map(function (parte) {
+        return parte.trim().split("=")[0];
+      })
+      .filter(Boolean)
+  );
+
+  const cookies = header.split(";").reduce((resultado, parte) => {
+    const indice = parte.indexOf("=");
+
+    if (indice === -1) {
+      return resultado;
+    }
+
+    const nombre = parte.slice(0, indice).trim();
+    const valor = parte.slice(indice + 1).trim();
+
+    resultado[nombre] = valor;
+    return resultado;
+  }, {});
+
+  const raw = cookies.taller_session;
+
+  console.log("taller_session recibida:", Boolean(raw));
+
+  if (!raw) {
+    return null;
+  }
+
   try {
-    const session = JSON.parse(decodeURIComponent(match[1]));
-    if (!session.user_id || !session.empresa_id || !session.exp || session.exp < Date.now()) return null;
+    const session = JSON.parse(decodeURIComponent(raw));
+
+    console.log("Sesión tiene user_id:", Boolean(session.user_id));
+    console.log("Sesión tiene empresa_id:", Boolean(session.empresa_id));
+    console.log("Sesión tiene exp:", Boolean(session.exp));
+    console.log(
+      "Sesión vencida:",
+      Number(session.exp) < Date.now()
+    );
+
+    if (
+      !session ||
+      !session.user_id ||
+      !session.empresa_id ||
+      !session.exp ||
+      Number(session.exp) < Date.now()
+    ) {
+      return null;
+    }
+
     return session;
-  } catch (_) { return null; }
+  } catch (error) {
+    console.error("Error leyendo taller_session:", error.message);
+    return null;
+  }
 }
 
 function requireAuth(req, res) {
