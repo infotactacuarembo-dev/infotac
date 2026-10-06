@@ -140,7 +140,16 @@ if (alerta === 'retiro') {
 }      
 
 if (alerta === 'criticas') {
-  console.log('Filtro críticas recibido');
+  query = query.or(
+    'and(estado.in.(' +
+      estadosEnProceso.join(',') +
+      '),fecha.lt.' +
+      haceCincoDias.toISOString() +
+    '),' +
+    'and(estado.eq.terminado,terminado_en.lt.' +
+      haceCincoDias.toISOString() +
+    ')'
+  );
 }
     
 
