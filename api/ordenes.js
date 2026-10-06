@@ -36,6 +36,8 @@ module.exports = async function handler(req, res) {
       const {
         id,
         q,
+        buscar,
+        alerta,
         estado,
         estado_in,
         tecnico,
@@ -97,6 +99,8 @@ module.exports = async function handler(req, res) {
         query = query.eq('tecnico_id', tecnicoIdFiltro);
       }
 
+      
+
       if (estado) {
         query = query.eq('estado', estado);
       } else if (estado_in) {
@@ -120,9 +124,14 @@ module.exports = async function handler(req, res) {
           .lte(filtro_fecha, `${fecha_hasta}T23:59:59.999Z`);
       }
 
-      if (q && q.trim()) {
-        const busqueda = `%${q.trim()}%`;
-        query = query.or(`cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`);
+      const terminoBusqueda = buscar || q;
+
+      if (terminoBusqueda && terminoBusqueda.trim()) {
+        const busqueda = `%${terminoBusqueda.trim()}%`;
+
+        query = query.or(
+        `cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`
+        );
       }
 
       const limiteNum = Math.min(parseInt(limite, 10) || 50, 100);
