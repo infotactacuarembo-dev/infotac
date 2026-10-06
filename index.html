@@ -5874,6 +5874,8 @@ function exportarOrdenesCSV() {
   if (buscarVal) params.buscar = buscarVal;
   if (tecnicoVal) params.tecnico_id = tecnicoVal;	 
 
+  console.log("Parámetros enviados a /api/ordenes:", params);	 
+
   return solicitarGet('/api/ordenes', params)
     .then(function (resultado) {
       if (!resultado.ok) {
@@ -6591,12 +6593,16 @@ if (
   boton.addEventListener("click", function () {
     var alertaSeleccionada = boton.getAttribute("data-alerta") || "";
 
-    /* Si tocás “Ver todas las órdenes”, elimina solo el filtro de alertas. */
     filtroAlertaActivo = alertaSeleccionada;
     paginaActual = 1;
 
+    console.log("Alerta seleccionada:", filtroAlertaActivo);
+
     cargarOrdenes()
-      .then(function () {
+      .then(function (resultado) {
+        console.log("Resultado filtrado:", resultado);
+        console.log("Órdenes globales después del filtro:", ordenes);
+
         renderizar();
       })
       .catch(function (error) {
