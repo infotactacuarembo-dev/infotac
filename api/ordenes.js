@@ -130,6 +130,12 @@ if (alerta === 'fecha-prometida') {
     .not('estado', 'in', '("entregado","sinreparar")');
 }
 
+if (alerta === 'retiro') {
+  query = query
+    .eq('estado', 'terminado')
+    .lt('terminado_en', haceCuatroDias.toISOString());
+}      
+
 if (estado) {
   query = query.eq('estado', estado);
 } else if (estado_in) {
