@@ -48,6 +48,9 @@ module.exports = async function handler(req, res) {
   const haceCuatroDias = new Date(inicioHoy);
   haceCuatroDias.setDate(haceCuatroDias.getDate() - 4);
 
+  const haceCincoDias = new Date(inicioHoy);
+  haceCincoDias.setDate(haceCincoDias.getDate() - 5);
+
   
 
   if (req.method === 'GET') {
@@ -115,8 +118,8 @@ module.exports = async function handler(req, res) {
         .order('fecha', { ascending: false });
 
       if (tecnicoIdFiltro) {
-  query = query.eq('tecnico_id', tecnicoIdFiltro);
-}
+        query = query.eq('tecnico_id', tecnicoIdFiltro);
+    }
 
 if (alerta === 'demoradas') {
   query = query
@@ -135,6 +138,11 @@ if (alerta === 'retiro') {
     .eq('estado', 'terminado')
     .lt('terminado_en', haceCuatroDias.toISOString());
 }      
+
+if (alerta === 'criticas') {
+  console.log('Filtro críticas recibido');
+}
+    
 
 if (estado) {
   query = query.eq('estado', estado);
