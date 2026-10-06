@@ -6255,9 +6255,9 @@ function obtenerAlertaOrden(orden) {
     return null;
   }
 
-  var dias = diasDeDemora(orden);
+  var dias = diasDesdeFecha(orden.fecha);
 
-  if (dias > 5) {
+  if (dias >= 5) {
     return {
       nivel: "critica",
       texto: "Crítica: " + dias + " días en proceso",
@@ -6280,30 +6280,36 @@ function diasDeDemora(orden) {
   var hoyYMD = new Date();
   hoyYMD.setHours(0, 0, 0, 0);
 
-  // Si hay fecha prometida, usamos esa como referencia.
-  if (orden.fechaPrometidaEntrega) {
-    var partes = (orden.fechaPrometidaEntrega || "").split("-");
+  var fechaPrometida =
+    orden.fecha_prometida_entrega ||
+    orden.fechaPrometidaEntrega;
+
+  if (fechaPrometida) {
+    var partes = String(fechaPrometida).split("-");
     var fechaProm = partes.length === 3
-      ? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+      ? new Date(
+          Number(partes[0]),
+          Number(partes[1]) - 1,
+          Number(partes[2])
+        )
       : null;
 
-    if (fechaProm) {
-      var diff = hoyYMD.getTime() - fechaProm.getTime();
-      var dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-      return dias;
+    if (fechaProm && !Number.isNaN(fechaProm.getTime())) {
+      var diffPrometida =
+        hoyYMD.getTime() - fechaProm.getTime();
+
+      return Math.floor(
+        diffPrometida / (1000 * 60 * 60 * 24)
+      );
     }
   }
 
-  // Si no hay fecha prometida, usamos la lógica anterior:
-  // - Para órdenes en proceso: días desde fecha de ingreso.
-  // - Para terminadas: días desde terminado_en.
   if (orden.estado === "terminado" && orden.terminado_en) {
     return diasDesdeFecha(orden.terminado_en);
   }
 
   return diasDesdeFecha(orden.fecha);
-}		  
-
+}
 function obtenerAlertaTerminado(orden) {
   if (orden.estado !== "terminado") {
     return null;
@@ -6319,7 +6325,7 @@ function obtenerAlertaTerminado(orden) {
 
   var dias = diasDesdeFecha(orden.terminado_en);
 
-  if (dias > 5) {
+  if (dias >= 5) {
     return {
       nivel: "critica",
       texto: "Crítica: lista para retirar hace " + dias + " días",
@@ -6546,10 +6552,10 @@ if (
       listasParaRetirarDemoradas++;
     }
 
-    // Crítica: más de 5 días en proceso o lista para retirar.
-    if (alerta && alerta.nivel === "critica") {
-      criticas++;
-    }
+    // Crítica: más de 5 días en proceso o terminada hace más de 5 días.
+		if (alerta && alerta.nivel === "critica") {
+  		criticas++;
+	}
   });
 
   
