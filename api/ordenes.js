@@ -30,6 +30,20 @@ module.exports = async function handler(req, res) {
   const empresaId = sessionUser.empresa_id;
   const esAdmin = sessionUser.rol === 'admin';
   const userId = sessionUser.user_id || sessionUser.id;
+  const ahora = new Date();
+
+  const inicioHoy = new Date(ahora);
+  inicioHoy.setHours(0, 0, 0, 0);
+
+  const haceTresDias = new Date(inicioHoy);
+  haceTresDias.setDate(haceTresDias.getDate() - 3);
+
+  const estadosEnProceso = [
+  'ingresado',
+  'revision',
+  'presupuesto',
+  'reparando'
+  ];
 
   if (req.method === 'GET') {
     try {
@@ -99,7 +113,17 @@ module.exports = async function handler(req, res) {
         query = query.eq('tecnico_id', tecnicoIdFiltro);
       }
 
-      
+      if (alerta === 'demoradas') {
+        query = query
+        .in('estado', estadosEnProceso)
+        .lt('fecha', haceTresDias.toISOString());
+      }
+
+      if (alerta === 'fecha-prometida') {
+        query = query
+        .lt('fecha_prometida_entrega', inicioHoy.toISOString())
+        .not('estado', 'in', '("entregado","sinreparar")');
+      }
 
       if (estado) {
         query = query.eq('estado', estado);
