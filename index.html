@@ -5882,6 +5882,8 @@ function exportarOrdenesCSV() {
         throw new Error(resultado.error || 'Error al cargar órdenes');
       }
       ordenes = (resultado.data || []).map(mapearFila);
+	  console.log("Cantidad recibida:", ordenes.length);
+      console.log("Datos recibidos:", ordenes);	
       totalOrdenes = resultado.total || 0;
       actualizarContadorPaginacion();
 		
