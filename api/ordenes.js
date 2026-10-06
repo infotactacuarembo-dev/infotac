@@ -30,20 +30,25 @@ module.exports = async function handler(req, res) {
   const empresaId = sessionUser.empresa_id;
   const esAdmin = sessionUser.rol === 'admin';
   const userId = sessionUser.user_id || sessionUser.id;
-  const ahora = new Date();
-
-  const inicioHoy = new Date(ahora);
-  inicioHoy.setHours(0, 0, 0, 0);
-
-  const haceTresDias = new Date(inicioHoy);
-  haceTresDias.setDate(haceTresDias.getDate() - 3);
+  
 
   const estadosEnProceso = [
   'ingresado',
   'revision',
   'presupuesto',
   'reparando'
-  ];
+];
+
+  const inicioHoy = new Date();
+  inicioHoy.setHours(0, 0, 0, 0);
+
+  const haceTresDias = new Date(inicioHoy);
+  haceTresDias.setDate(haceTresDias.getDate() - 3);
+
+  const haceCuatroDias = new Date(inicioHoy);
+  haceCuatroDias.setDate(haceCuatroDias.getDate() - 4);
+
+  
 
   if (req.method === 'GET') {
     try {
@@ -110,54 +115,57 @@ module.exports = async function handler(req, res) {
         .order('fecha', { ascending: false });
 
       if (tecnicoIdFiltro) {
-        query = query.eq('tecnico_id', tecnicoIdFiltro);
-      }
+  query = query.eq('tecnico_id', tecnicoIdFiltro);
+}
 
-      if (alerta === 'demoradas') {
-        query = query
-        .in('estado', estadosEnProceso)
-        .lt('fecha', haceTresDias.toISOString());
-      }
+if (alerta === 'demoradas') {
+  query = query
+    .in('estado', estadosEnProceso)
+    .lt('fecha', haceTresDias.toISOString());
+}
 
-      if (alerta === 'fecha-prometida') {
-        query = query
-        .lt('fecha_prometida_entrega', inicioHoy.toISOString())
-        .not('estado', 'in', '("entregado","sinreparar")');
-      }
+if (alerta === 'fecha-prometida') {
+  query = query
+    .lt('fecha_prometida_entrega', inicioHoy.toISOString())
+    .not('estado', 'in', '("entregado","sinreparar")');
+}
 
-      if (estado) {
-        query = query.eq('estado', estado);
-      } else if (estado_in) {
-        const estados = estado_in.split(',').map(e => e.trim()).filter(Boolean);
-        if (estados.length > 0) {
-          query = query.in('estado', estados);
-        }
-      }
+if (estado) {
+  query = query.eq('estado', estado);
+} else if (estado_in) {
+  const estados = estado_in
+    .split(',')
+    .map(e => e.trim())
+    .filter(Boolean);
 
-      if (con_diagnostico_pendiente === 'true') {
-        query = query.or('diagnostico.is.null,diagnostico.eq.""');
-      }
+  if (estados.length > 0) {
+    query = query.in('estado', estados);
+  }
+}
 
-      if (con_presupuesto_pendiente === 'true') {
-        query = query.eq('aprobacion_presupuesto', 'pendiente');
-      }
+if (con_diagnostico_pendiente === 'true') {
+  query = query.or('diagnostico.is.null,diagnostico.eq.""');
+}
 
-      if (filtro_fecha && fecha_desde && fecha_hasta) {
-        query = query
-          .gte(filtro_fecha, `${fecha_desde}T00:00:00.000Z`)
-          .lte(filtro_fecha, `${fecha_hasta}T23:59:59.999Z`);
-      }
+if (con_presupuesto_pendiente === 'true') {
+  query = query.eq('aprobacion_presupuesto', 'pendiente');
+}
 
-      const terminoBusqueda = buscar || q;
+if (filtro_fecha && fecha_desde && fecha_hasta) {
+  query = query
+    .gte(filtro_fecha, `${fecha_desde}T00:00:00.000Z`)
+    .lte(filtro_fecha, `${fecha_hasta}T23:59:59.999Z`);
+}
 
-      if (terminoBusqueda && terminoBusqueda.trim()) {
-        const busqueda = `%${terminoBusqueda.trim()}%`;
+const terminoBusqueda = buscar || q;
 
-        query = query.or(
-        `cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`
-        );
-      }
+if (terminoBusqueda && terminoBusqueda.trim()) {
+  const busqueda = `%${terminoBusqueda.trim()}%`;
 
+  query = query.or(
+    `cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`
+  );
+}
       const limiteNum = Math.min(parseInt(limite, 10) || 50, 100);
       const paginaNum = Math.max(parseInt(pagina, 10) || 1, 1);
       const desde = (paginaNum - 1) * limiteNum;
