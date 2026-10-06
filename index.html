@@ -8334,7 +8334,8 @@ if (btnLimpiarFiltros) {
     if (filtroEstado) filtroEstado.value = "";
     if (filtroSaldo) filtroSaldo.value = "";
 	if (filtroTecnico) filtroTecnico.value = "";  
-
+    // Limpiar también el filtro de las tarjetas de alerta
+    filtroAlertaActivo = "";
     paginaActual = 1;
     cargarOrdenes().then(renderizar);
   });
