@@ -65,6 +65,7 @@ module.exports = async function handler(req, res) {
         tecnico,
         tecnico_id,
         cliente_id,
+        id_actual,
         limite,
         pagina,
         filtro_fecha,
@@ -118,9 +119,18 @@ module.exports = async function handler(req, res) {
         .eq('empresa_id', empresaId)
         .order('fecha', { ascending: false });
 
+
+      if (cliente_id && validId(cliente_id)) {
+        query = query.eq('cliente_id', cliente_id.trim());
+      }
+
+      if (id_actual && validId(id_actual)) {
+        query = query.neq('id', id_actual.trim());
+      }
+
       if (tecnicoIdFiltro) {
         query = query.eq('tecnico_id', tecnicoIdFiltro);
-    }
+      }
 
 if (alerta === 'demoradas') {
   query = query
