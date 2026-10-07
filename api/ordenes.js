@@ -64,6 +64,7 @@ module.exports = async function handler(req, res) {
         estado_in,
         tecnico,
         tecnico_id,
+        cliente_id,
         limite,
         pagina,
         filtro_fecha,
