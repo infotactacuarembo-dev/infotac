@@ -7346,8 +7346,8 @@ function cargarHistorialCliente(clienteId, ordenActualId) {
 
       // Filtro de seguridad por si acaso (el backend ya excluye la orden).
       var otras = (res.data || []).filter(function (r) {
-        return r.id !== ordenActualId;
-      });
+  		return String(r.id) !== String(ordenActualId);
+	});
 
       if (otras.length === 0) {
         histEl.innerHTML =
