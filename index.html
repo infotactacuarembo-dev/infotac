@@ -5867,8 +5867,15 @@ function exportarOrdenesCSV() {
   ? document.getElementById("f-tecnico-filtro").value.trim()
   : "";	 
 
-  if (desdeVal) params.desde = desdeVal;
-  if (hastaVal) params.hasta = hastaVal;
+  if (desdeVal) {
+  params.filtro_fecha = "fecha";
+  params.fecha_desde = desdeVal;
+}
+
+if (hastaVal) {
+  params.filtro_fecha = "fecha";
+  params.fecha_hasta = hastaVal;
+}
   if (estadoVal) params.estado = estadoVal;
   if (saldoVal) params.saldo = saldoVal;
   if (buscarVal) params.buscar = buscarVal;
