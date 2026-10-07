@@ -271,7 +271,7 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         sena: Number(sena) || 0,
         falla: (falla || '').trim(),
         presupuesto: Number(presupuesto) || 0,
-        presupuesta: (presupuesta || '').trim(),
+        presupuesta: Number(presupuesta) || 0,
         estetico: (estetico || '').trim(),
         estado: estado || 'ingresado',
         fecha_entrega: sanitizeDateOrNull(fecha_entrega),
