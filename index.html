@@ -2728,7 +2728,7 @@ body {
                     <th>Equipo</th>
                     <th>Serie</th>
                     <th>Seña</th>
-					<th>Presup.</th>
+					
 					<th>Saldo</th>
 					<th>Estado</th>
 					<th>Técnico</th> 
@@ -6428,13 +6428,7 @@ function obtenerAlertaTerminado(orden) {
   			: "";
 
 			  
-			var presupuesto = Number(o.total_items || 0);
-			var saldo = Math.max(
-  				0,
-  				presupuesto -
-    			Number(o.sena || 0) -
-    			Number(o.total_pagos || 0)
-			);
+			  var saldo = Number(o.saldo_real) || 0;
 			  
               return "<tr data-id='" + o.id + "'" + (esDemorada ? " class='orden-demorada'" : "") + ">"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
@@ -6445,7 +6439,7 @@ function obtenerAlertaTerminado(orden) {
               + "<td>" + esc(o.equipo) + "</td>"
               + "<td>" + esc(o.serie) + "</td>"
               + "<td>" + (o.sena ? "$" + esc(o.sena) : "—") + "</td>"
-			  + "<td>$" + presupuesto.toFixed(2) + "</td>"
+			  
 			  + "<td>$" + saldo.toFixed(2) + "</td>"
 			  + "<td>" +
   			  (esDemorada ? "<span class='orden-demorada-icon' title='Orden demorada'>⚠ </span>" : "") +
@@ -8728,18 +8722,9 @@ html += "</div>";
           }
 
 
-          /* Total real a cobrar:
-   		  si existen ítems, usa la suma de servicios/repuestos;
-          si aún no hay ítems, conserva el presupuesto informado. */
-		  var totalCobrar = totalItems > 0 ? totalItems : p;
-
-		  /* El backend ya calcula ítems - seña - pagos a cuenta. */
-			var saldo = saldoReal;
-
-		 /* Muestra excedente solo si el total recibido supera el total a cobrar. */
-			var excedente = Math.max(
+          var saldoReal = Math.max(
   			0,
-  			s + totalPagos - totalCobrar
+  			Number(o.saldo_real) || 0
 			).toFixed(2);
 			
           html += "<div class='tk-section-title'>Resumen Económico</div>";
@@ -8789,17 +8774,10 @@ html += "</div>";
           html += "<div class='tk-row'>";
           html += "<span class='tk-label'>Saldo pendiente:</span>";
           html += "<span class='tk-val tk-saldo'>$" +
-            saldo +
+            saldoReal +
             "</span>";
           html += "</div>";
-		            if (excedente > 0) {
-            html += "<div class='tk-row'>";
-            html += "<span class='tk-label'>Excedente:</span>";
-            html += "<span class='tk-val'>$" +
-              excedente +
-              "</span>";
-            html += "</div>";
-          }	
+		            
           html += "<div class='tk-divider'></div>";
           html += "<div class='tk-footer'>Nota: Los presupuestos tienen validez por 15 días. Todo equipo no retirado luego de los 90 días se considerará en abandono, perdiendo derecho a reclamo.</div>";
           html += "<div class='tk-thanks'>¡Gracias por confiar en " +
