@@ -6662,7 +6662,7 @@ function renderStats() {
     .join("");
 }
 
-    function marcarOrdenComoVista(id) {
+  function marcarOrdenComoVista(id) {
   var rol = sessionStorage.getItem("rol") || "user";
 
   // Solo un técnico debe marcar sus propias órdenes como vistas.
@@ -6673,8 +6673,8 @@ function renderStats() {
   return pedirApi(
     "/api/ordenes",
     {
-      action: "marcar_vista",
-      id: id
+      id: id,
+      vista_por_tecnico_en: new Date().toISOString()
     },
     "PATCH"
   )
@@ -6691,21 +6691,23 @@ function renderStats() {
       });
 
       if (orden) {
-  		var fechaVista = new Date().toISOString();
+        var fechaVista = new Date().toISOString();
 
-  		// Mantener ambos nombres por compatibilidad con mapearFila().
-  		orden.vista_por_tecnico_en = fechaVista;
-  		orden.vistaPorTecnicoEn = fechaVista;
-		}
+        // Mantener ambos nombres por compatibilidad con mapearFila().
+        orden.vista_por_tecnico_en = fechaVista;
+        orden.vistaPorTecnicoEn = fechaVista;
+      }
 
       actualizarBadgeNuevas(ordenes);
     })
     .catch(function (error) {
       // No impedimos abrir el detalle si falla la marca de leído.
-      console.error("Error al marcar la orden como vista:", error);
+      console.error(
+        "Error al marcar la orden como vista:",
+        error
+      );
     });
 }
-
 
  function actualizarVisibilidadDetalle(o) {
   var selectorEstado = document.getElementById("modal-estado");
