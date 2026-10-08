@@ -7732,9 +7732,7 @@ calcularSaldoDesdeResumen();
 
 
 function cargarHistorialOrden(ordenId) {
-  var historialEl = document.getElementById(
-    "orden-audit-contenido"
-  );
+  var historialEl = document.getElementById("orden-audit-contenido");
 
   if (!historialEl) {
     return;
@@ -7753,7 +7751,8 @@ function cargarHistorialOrden(ordenId) {
         );
       }
 
-      var eventos = res.data || [];
+      var eventos = Array.isArray(res.data) ? res.data : [];
+	  console.log("Eventos de auditoría de la orden:", eventos);	
 
       if (eventos.length === 0) {
         historialEl.innerHTML =
@@ -7779,6 +7778,12 @@ function cargarHistorialOrden(ordenId) {
               ? " (" + esc(evento.actor_rol) + ")"
               : "";
 
+            var accion = evento.accion
+              ? "<span class='h-accion'>" +
+                esc(evento.accion) +
+                "</span> "
+              : "";
+
             var detalle = evento.detalle
               ? esc(evento.detalle)
               : "Movimiento registrado.";
@@ -7793,6 +7798,7 @@ function cargarHistorialOrden(ordenId) {
               actor +
               rol +
               "</strong>: " +
+              accion +
               detalle +
               "</span>" +
               "</li>"
