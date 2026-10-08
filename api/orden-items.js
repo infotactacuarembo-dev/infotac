@@ -177,14 +177,21 @@ module.exports = async function handler(req, res) {
       }
 
       // Auditoría
-      await registrarAuditoriaOrden({
-        req,
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+      {
         empresa_id: empresaId,
         orden_id: orden_id.trim(),
         accion: 'agregar_item',
-        detalle: `Ítem agregado: "${itemCreado.descripcion}" (${itemCreado.tipo}, cant: ${itemCreado.cantidad}, precio: ${itemCreado.precio_unitario}) por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        detalle: `Ítem agregado: "${itemCreado.descripcion}" (${itemCreado.tipo}, cant: ${itemCreado.cantidad}, precio: ${itemCreado.precio_unitario}) por ${
+        sessionUser.identificador ||
+        sessionUser.usuario ||
+        'usuario'
+      }`,
         datos_nuevos: itemCreado
-      });
+      }
+    );
 
       return res.status(201).json({
         ok: true,
@@ -280,15 +287,22 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ ok: false, error: errUpdate.message });
       }
 
-      await registrarAuditoriaOrden({
-        req,
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+      {
         empresa_id: empresaId,
         orden_id: itemActual.orden_id,
         accion: 'actualizar_item',
-        detalle: `Ítem modificado #${id} por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
+        detalle: `Ítem modificado #${id} por ${
+        sessionUser.identificador ||
+        sessionUser.usuario ||
+        'usuario'
+      }`,
         datos_anteriores: itemActual,
         datos_nuevos: itemActualizado
-      });
+      }
+    );
 
       return res.status(200).json({
         ok: true,
@@ -350,14 +364,21 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      await registrarAuditoriaOrden({
-        req,
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+      {
         empresa_id: empresaId,
         orden_id: itemActual.orden_id,
         accion: 'eliminar_item',
-        detalle: `Ítem eliminado: "${itemActual.descripcion}" por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
-        datos_anteriores: itemActual
-      });
+        detalle: `Ítem eliminado: "${itemActual.descripcion}" por ${
+        sessionUser.identificador ||
+        sessionUser.usuario ||
+        'usuario'
+      }`,
+      datos_anteriores: itemActual
+      }
+    );
 
       return res.status(200).json({
         ok: true
