@@ -8,7 +8,12 @@ const supabase = createClient(
 );
 
 function validId(value) {
-  return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value.trim()
+    )
+  );
 }
 
 function sanitizeDateOrNull(value) {
@@ -20,7 +25,12 @@ module.exports = async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
   const sessionUser = getSessionUser(req);
-  if (!sessionUser || !sessionUser.empresa_id || !validId(sessionUser.empresa_id)) {
+
+  if (
+    !sessionUser ||
+    !sessionUser.empresa_id ||
+    !validId(sessionUser.empresa_id)
+  ) {
     return res.status(401).json({
       ok: false,
       error: 'Sesión inválida o empresa no identificada'
@@ -30,14 +40,13 @@ module.exports = async function handler(req, res) {
   const empresaId = sessionUser.empresa_id;
   const esAdmin = sessionUser.rol === 'admin';
   const userId = sessionUser.user_id || sessionUser.id;
-  
 
   const estadosEnProceso = [
-  'ingresado',
-  'revision',
-  'presupuesto',
-  'reparando'
-];
+    'ingresado',
+    'revision',
+    'presupuesto',
+    'reparando'
+  ];
 
   const inicioHoy = new Date();
   inicioHoy.setHours(0, 0, 0, 0);
@@ -50,8 +59,6 @@ module.exports = async function handler(req, res) {
 
   const haceCincoDias = new Date(inicioHoy);
   haceCincoDias.setDate(haceCincoDias.getDate() - 5);
-
-  
 
   if (req.method === 'GET') {
     try {
@@ -78,7 +85,9 @@ module.exports = async function handler(req, res) {
       if (id) {
         let query = supabase
           .from('ordenes')
-          .select('id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion')
+          .select(
+            'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion'
+          )
           .eq('empresa_id', empresaId)
           .eq('id', id);
 
@@ -87,17 +96,30 @@ module.exports = async function handler(req, res) {
         }
 
         const { data, error } = await query.single();
+
         if (error) {
-          return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+          return res.status(404).json({
+            ok: false,
+            error: 'Orden no encontrada'
+          });
         }
-        return res.status(200).json({ ok: true, data });
+
+        return res.status(200).json({
+          ok: true,
+          data
+        });
       }
 
       let tecnicoIdFiltro = null;
+
       if (esAdmin) {
         if (tecnico_id && validId(tecnico_id)) {
           tecnicoIdFiltro = tecnico_id.trim();
-        } else if (tecnico && tecnico.trim() && tecnico.trim() !== 'todos') {
+        } else if (
+          tecnico &&
+          tecnico.trim() &&
+          tecnico.trim() !== 'todos'
+        ) {
           const { data: usuarioTecnico } = await supabase
             .from('usuarios')
             .select('id')
@@ -115,10 +137,12 @@ module.exports = async function handler(req, res) {
 
       let query = supabase
         .from('ordenes')
-        .select('id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion', { count: 'exact' })
+        .select(
+          'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion',
+          { count: 'exact' }
+        )
         .eq('empresa_id', empresaId)
         .order('fecha', { ascending: false });
-
 
       if (cliente_id && validId(cliente_id)) {
         query = query.eq('cliente_id', cliente_id.trim());
@@ -132,84 +156,102 @@ module.exports = async function handler(req, res) {
         query = query.eq('tecnico_id', tecnicoIdFiltro);
       }
 
-if (alerta === 'demoradas') {
-  query = query
-    .in('estado', estadosEnProceso)
-    .lt('fecha', haceTresDias.toISOString());
-}
+      if (alerta === 'demoradas') {
+        query = query
+          .in('estado', estadosEnProceso)
+          .lt('fecha', haceTresDias.toISOString());
+      }
 
-if (alerta === 'fecha-prometida') {
-  query = query
-    .lt('fecha_prometida_entrega', inicioHoy.toISOString())
-    .not('estado', 'in', '("entregado","sinreparar")');
-}
+      if (alerta === 'fecha-prometida') {
+        query = query
+          .lt('fecha_prometida_entrega', inicioHoy.toISOString())
+          .not('estado', 'in', '("entregado","sinreparar")');
+      }
 
-if (alerta === 'retiro') {
-  query = query
-    .eq('estado', 'terminado')
-    .lt('terminado_en', haceCuatroDias.toISOString());
-}      
+      if (alerta === 'retiro') {
+        query = query
+          .eq('estado', 'terminado')
+          .lt('terminado_en', haceCuatroDias.toISOString());
+      }
 
-if (alerta === 'criticas') {
-  query = query.or(
-    'and(estado.in.(' +
-      estadosEnProceso.join(',') +
-      '),fecha.lt.' +
-      haceCincoDias.toISOString() +
-    '),' +
-    'and(estado.eq.terminado,terminado_en.lt.' +
-      haceCincoDias.toISOString() +
-    ')'
-  );
-}
-    
+      if (alerta === 'criticas') {
+        query = query.or(
+          'and(estado.in.(' +
+            estadosEnProceso.join(',') +
+            '),fecha.lt.' +
+            haceCincoDias.toISOString() +
+            '),' +
+            'and(estado.eq.terminado,terminado_en.lt.' +
+            haceCincoDias.toISOString() +
+            ')'
+        );
+      }
 
-if (estado) {
-  query = query.eq('estado', estado);
-} else if (estado_in) {
-  const estados = estado_in
-    .split(',')
-    .map(e => e.trim())
-    .filter(Boolean);
+      if (estado) {
+        query = query.eq('estado', estado);
+      } else if (estado_in) {
+        const estados = estado_in
+          .split(',')
+          .map(e => e.trim())
+          .filter(Boolean);
 
-  if (estados.length > 0) {
-    query = query.in('estado', estados);
-  }
-}
+        if (estados.length > 0) {
+          query = query.in('estado', estados);
+        }
+      }
 
-if (con_diagnostico_pendiente === 'true') {
-  query = query.or('diagnostico.is.null,diagnostico.eq.""');
-}
+      if (con_diagnostico_pendiente === 'true') {
+        query = query.or('diagnostico.is.null,diagnostico.eq.""');
+      }
 
-if (con_presupuesto_pendiente === 'true') {
-  query = query.eq('aprobacion_presupuesto', 'pendiente');
-}
+      if (con_presupuesto_pendiente === 'true') {
+        query = query.eq('aprobacion_presupuesto', 'pendiente');
+      }
 
-if (filtro_fecha && fecha_desde && fecha_hasta) {
-  query = query
-    .gte(filtro_fecha, `${fecha_desde}T00:00:00.000Z`)
-    .lte(filtro_fecha, `${fecha_hasta}T23:59:59.999Z`);
-}
+      if (filtro_fecha && fecha_desde && fecha_hasta) {
+        query = query
+          .gte(
+            filtro_fecha,
+            `${fecha_desde}T00:00:00.000Z`
+          )
+          .lte(
+            filtro_fecha,
+            `${fecha_hasta}T23:59:59.999Z`
+          );
+      }
 
-const terminoBusqueda = buscar || q;
+      const terminoBusqueda = buscar || q;
 
-if (terminoBusqueda && terminoBusqueda.trim()) {
-  const busqueda = `%${terminoBusqueda.trim()}%`;
+      if (terminoBusqueda && terminoBusqueda.trim()) {
+        const busqueda = `%${terminoBusqueda.trim()}%`;
 
-  query = query.or(
-    `cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`
-  );
-}
-      const limiteNum = Math.min(parseInt(limite, 10) || 50, 100);
-      const paginaNum = Math.max(parseInt(pagina, 10) || 1, 1);
+        query = query.or(
+          `cliente.ilike.${busqueda},tel.ilike.${busqueda},tipo.ilike.${busqueda},serie.ilike.${busqueda}`
+        );
+      }
+
+      const limiteNum = Math.min(
+        parseInt(limite, 10) || 50,
+        100
+      );
+
+      const paginaNum = Math.max(
+        parseInt(pagina, 10) || 1,
+        1
+      );
+
       const desde = (paginaNum - 1) * limiteNum;
       const hasta = desde + limiteNum - 1;
 
       query = query.range(desde, hasta);
 
       const { data, error, count } = await query;
+
       if (error) {
-        return res.status(500).json({ ok: false, error: error.message });
+        return res.status(500).json({
+          ok: false,
+          error: error.message
+        });
       }
 
       return res.status(200).json({
@@ -220,13 +262,17 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         limite: limiteNum
       });
     } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Error al consultar órdenes' });
+      return res.status(500).json({
+        ok: false,
+        error: 'Error al consultar órdenes'
+      });
     }
   }
 
   if (req.method === 'POST') {
     try {
       const body = req.body || {};
+
       const {
         cliente,
         tel,
@@ -259,11 +305,13 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
       }
 
       let finalClienteId = null;
+
       if (cliente_id && validId(cliente_id)) {
         finalClienteId = cliente_id.trim();
       }
 
       let finalTecnicoId = null;
+
       if (esAdmin) {
         if (tecnico_id && validId(tecnico_id)) {
           finalTecnicoId = tecnico_id.trim();
@@ -289,12 +337,16 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         cliente_id: finalClienteId,
         diagnostico: (diagnostico || '').trim(),
         trabajo_realizar: (trabajo_realizar || '').trim(),
-        aprobacion_presupuesto: aprobacion_presupuesto || 'pendiente',
+        aprobacion_presupuesto:
+          aprobacion_presupuesto || 'pendiente',
         pago_final: Number(pago_final) || 0,
         tecnico_id: finalTecnicoId,
-        fecha_prometida_entrega: sanitizeDateOrNull(fecha_prometida_entrega),
-        presupuesto_detalle: (presupuesto_detalle || '').trim(),
-        motivo_devolucion: (motivo_devolucion || '').trim()
+        fecha_prometida_entrega:
+          sanitizeDateOrNull(fecha_prometida_entrega),
+        presupuesto_detalle:
+          (presupuesto_detalle || '').trim(),
+        motivo_devolucion:
+          (motivo_devolucion || '').trim()
       };
 
       const { data, error } = await supabase
@@ -304,40 +356,64 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         .single();
 
       if (error) {
-        return res.status(500).json({ ok: false, error: error.message });
+        return res.status(500).json({
+          ok: false,
+          error: error.message
+        });
       }
 
-      await registrarAuditoriaOrden({
-        req,
-        empresa_id: empresaId,
-        orden_id: data.id,
-        accion: 'crear',
-        detalle: `Orden #${data.id} creada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
-        datos_nuevos: data
-      });
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+        {
+          empresa_id: empresaId,
+          orden_id: data.id,
+          accion: 'crear',
+          detalle: `Orden #${data.id} creada por ${
+            sessionUser.identificador ||
+            sessionUser.usuario ||
+            'usuario'
+          }`,
+          datos_nuevos: data
+        }
+      );
 
-      return res.status(201).json({ ok: true, data });
+      return res.status(201).json({
+        ok: true,
+        data
+      });
     } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Error al crear orden' });
+      return res.status(500).json({
+        ok: false,
+        error: 'Error al crear orden'
+      });
     }
   }
 
   if (req.method === 'PUT' || req.method === 'PATCH') {
     try {
       const { id, ...updates } = req.body || {};
+
       if (!id || !validId(id)) {
-        return res.status(400).json({ ok: false, error: 'ID de orden inválido' });
+        return res.status(400).json({
+          ok: false,
+          error: 'ID de orden inválido'
+        });
       }
 
-      const { data: ordenActual, error: errFetch } = await supabase
-        .from('ordenes')
-        .select('*')
-        .eq('empresa_id', empresaId)
-        .eq('id', id)
-        .single();
+      const { data: ordenActual, error: errFetch } =
+        await supabase
+          .from('ordenes')
+          .select('*')
+          .eq('empresa_id', empresaId)
+          .eq('id', id)
+          .single();
 
       if (errFetch || !ordenActual) {
-        return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+        return res.status(404).json({
+          ok: false,
+          error: 'Orden no encontrada'
+        });
       }
 
       if (!esAdmin && ordenActual.tecnico_id !== userId) {
@@ -348,6 +424,7 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
       }
 
       const ordenActualizada = { ...updates };
+
       delete ordenActualizada.id;
       delete ordenActualizada.empresa_id;
       delete ordenActualizada.created_at;
@@ -356,15 +433,30 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         delete ordenActualizada.tecnico_id;
       }
 
-      if (ordenActualizada.fecha_entrega !== undefined) {
-        ordenActualizada.fecha_entrega = sanitizeDateOrNull(ordenActualizada.fecha_entrega);
-      }
-      if (ordenActualizada.fecha_prometida_entrega !== undefined) {
-        ordenActualizada.fecha_prometida_entrega = sanitizeDateOrNull(ordenActualizada.fecha_prometida_entrega);
+      if (
+        ordenActualizada.fecha_entrega !== undefined
+      ) {
+        ordenActualizada.fecha_entrega =
+          sanitizeDateOrNull(
+            ordenActualizada.fecha_entrega
+          );
       }
 
-      if (ordenActualizada.estado === 'terminado' && ordenActual.estado !== 'terminado') {
-        ordenActualizada.terminado_en = new Date().toISOString();
+      if (
+        ordenActualizada.fecha_prometida_entrega !== undefined
+      ) {
+        ordenActualizada.fecha_prometida_entrega =
+          sanitizeDateOrNull(
+            ordenActualizada.fecha_prometida_entrega
+          );
+      }
+
+      if (
+        ordenActualizada.estado === 'terminado' &&
+        ordenActual.estado !== 'terminado'
+      ) {
+        ordenActualizada.terminado_en =
+          new Date().toISOString();
       }
 
       if (
@@ -372,7 +464,8 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         !ordenActual.vista_por_tecnico_en &&
         ordenActual.tecnico_id === userId
       ) {
-        ordenActualizada.vista_por_tecnico_en = new Date().toISOString();
+        ordenActualizada.vista_por_tecnico_en =
+          new Date().toISOString();
       }
 
       const { data, error } = await supabase
@@ -384,22 +477,38 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         .single();
 
       if (error) {
-        return res.status(500).json({ ok: false, error: error.message });
+        return res.status(500).json({
+          ok: false,
+          error: error.message
+        });
       }
 
-      await registrarAuditoriaOrden({
-        req,
-        empresa_id: empresaId,
-        orden_id: id,
-        accion: 'actualizar',
-        detalle: `Orden #${id} actualizada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
-        datos_anteriores: ordenActual,
-        datos_nuevos: data
-      });
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+        {
+          empresa_id: empresaId,
+          orden_id: id,
+          accion: 'actualizar',
+          detalle: `Orden #${id} actualizada por ${
+            sessionUser.identificador ||
+            sessionUser.usuario ||
+            'usuario'
+          }`,
+          datos_anteriores: ordenActual,
+          datos_nuevos: data
+        }
+      );
 
-      return res.status(200).json({ ok: true, data });
+      return res.status(200).json({
+        ok: true,
+        data
+      });
     } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Error al actualizar orden' });
+      return res.status(500).json({
+        ok: false,
+        error: 'Error al actualizar orden'
+      });
     }
   }
 
@@ -413,11 +522,18 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
       }
 
       const { id } = req.query;
+
       if (!id || !validId(id)) {
-        return res.status(400).json({ ok: false, error: 'ID de orden inválido' });
+        return res.status(400).json({
+          ok: false,
+          error: 'ID de orden inválido'
+        });
       }
 
-      const { data: ordenEliminada, error: errFetch } = await supabase
+      const {
+        data: ordenEliminada,
+        error: errFetch
+      } = await supabase
         .from('ordenes')
         .select('*')
         .eq('empresa_id', empresaId)
@@ -425,7 +541,10 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         .single();
 
       if (errFetch || !ordenEliminada) {
-        return res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+        return res.status(404).json({
+          ok: false,
+          error: 'Orden no encontrada'
+        });
       }
 
       const { error } = await supabase
@@ -435,23 +554,41 @@ if (terminoBusqueda && terminoBusqueda.trim()) {
         .eq('id', id);
 
       if (error) {
-        return res.status(500).json({ ok: false, error: error.message });
+        return res.status(500).json({
+          ok: false,
+          error: error.message
+        });
       }
 
-      await registrarAuditoriaOrden({
-        req,
-        empresa_id: empresaId,
-        orden_id: id,
-        accion: 'eliminar',
-        detalle: `Orden #${id} eliminada por ${sessionUser.identificador || sessionUser.usuario || 'usuario'}`,
-        datos_anteriores: ordenEliminada
-      });
+      await registrarAuditoriaOrden(
+        supabase,
+        sessionUser,
+        {
+          empresa_id: empresaId,
+          orden_id: id,
+          accion: 'eliminar',
+          detalle: `Orden #${id} eliminada por ${
+            sessionUser.identificador ||
+            sessionUser.usuario ||
+            'usuario'
+          }`,
+          datos_anteriores: ordenEliminada
+        }
+      );
 
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({
+        ok: true
+      });
     } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Error al eliminar orden' });
+      return res.status(500).json({
+        ok: false,
+        error: 'Error al eliminar orden'
+      });
     }
   }
 
-  return res.status(405).json({ ok: false, error: 'Método no permitido' });
+  return res.status(405).json({
+    ok: false,
+    error: 'Método no permitido'
+  });
 };
