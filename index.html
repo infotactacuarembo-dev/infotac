@@ -6379,7 +6379,17 @@ function obtenerAlertaTerminado(orden) {
           emptyState.classList.add("hidden");
 		  if (paginationBar) paginationBar.classList.remove("hidden");	
 
-          tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
+            tablaOrdenes.innerHTML = ordenesPagina.map(function (o) {
+
+  			console.log("ORDEN:", o.id, {
+    		saldo_real: o.saldo_real,
+    		saldoReal: o.saldoReal,
+    		total_items: o.total_items,
+    		total_pagos: o.total_pagos
+  			});
+
+  			var est = ESTADOS[o.estado] || ESTADOS.ingresado;
+			  
             var est = ESTADOS[o.estado] || ESTADOS.ingresado;
             var hoyYMD = new Date();
 			hoyYMD.setHours(0, 0, 0, 0);
@@ -6428,7 +6438,9 @@ function obtenerAlertaTerminado(orden) {
   			: "";
 
 			  
-			  var saldo = Number(o.saldo_real) || 0;
+			  var saldo = Number(
+  				o.saldo_real ?? o.saldoReal ?? 0
+			   ) || 0;
 			  
               return "<tr data-id='" + o.id + "'" + (esDemorada ? " class='orden-demorada'" : "") + ">"
               + "<td>" + fmtFecha(o.fecha) + "</td>"
