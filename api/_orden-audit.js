@@ -7,7 +7,7 @@ function limpiarTexto(value, maximo) {
 function esUuid(value) {
   return (
     typeof value === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       value
     )
   );
@@ -68,14 +68,16 @@ async function registrarAuditoriaOrden(
     return;
   }
 
+  const actorId = user && (user.id || user.user_id);
+
   const payload = {
-    orden_id: ordenId,
-    empresa_id: empresaIdSesion,
-    actor_id: esUuid(user && user.id) ? user.id : null,
-    actor_identificador: limpiarTexto(
-      user && user.identificador,
-      160
-    ),
+  orden_id: ordenId,
+  empresa_id: empresaIdSesion,
+  actor_id: esUuid(actorId) ? actorId : null,
+  actor_identificador: limpiarTexto(
+    user && user.identificador,
+    160
+  ),
     actor_rol: limpiarTexto(user && user.rol, 40),
     accion: accion,
     detalle: detalle,
