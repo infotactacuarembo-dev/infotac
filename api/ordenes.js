@@ -502,7 +502,7 @@ module.exports = async function handler(req, res) {
           empresa_id: empresaId,
           orden_id: id,
           accion: 'actualizar',
-          detalle: `Orden #${id} actualizada por ${
+          detalle: `Orden #${id.slice(0, 8)} actualizada por ${
             sessionUser.identificador ||
             sessionUser.usuario ||
             'usuario'
