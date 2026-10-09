@@ -84,10 +84,10 @@ module.exports = async function handler(req, res) {
 
       if (id) {
         let query = supabase
-          .from('ordenes')
-          .select(
-            'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion'
-          )
+        .from('ordenes_resumen')
+        .select(
+        'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion, tecnico_nombre, total_items, total_pagos, saldo_real'
+        )
           .eq('empresa_id', empresaId)
           .eq('id', id);
 
@@ -136,10 +136,10 @@ module.exports = async function handler(req, res) {
       }
 
       let query = supabase
-        .from('ordenes')
+        .from('ordenes_resumen')
         .select(
-          'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, created_at, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion',
-          { count: 'exact' }
+        'id, fecha, cliente, tel, tipo, serie, pass, sena, falla, presupuesto, presupuesta, estetico, estado, fecha_entrega, cliente_id, diagnostico, trabajo_realizar, aprobacion_presupuesto, empresa_id, pago_final, tecnico_id, vista_por_tecnico_en, terminado_en, fecha_prometida_entrega, presupuesto_detalle, motivo_devolucion, tecnico_nombre, total_items, total_pagos, saldo_real',
+        { count: 'exact' }
         )
         .eq('empresa_id', empresaId)
         .order('fecha', { ascending: false });
@@ -254,13 +254,25 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      const ordenesFormateadas = (data || []).map(function (o) {
+        return {
+          ...o,
+          nombre: o.cliente,
+          whatsapp: o.tel,
+          equipo: o.tipo,
+          pin: o.pass
+        };
+      });
+
       return res.status(200).json({
         ok: true,
-        data: data || [],
+        data: ordenesFormateadas,
         total: count || 0,
         pagina: paginaNum,
         limite: limiteNum
       });
+
+      
     } catch (err) {
       return res.status(500).json({
         ok: false,
@@ -504,6 +516,8 @@ module.exports = async function handler(req, res) {
         ok: true,
         data
       });
+
+      
     } catch (err) {
       return res.status(500).json({
         ok: false,
