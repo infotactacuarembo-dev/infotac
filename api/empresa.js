@@ -56,6 +56,37 @@ const CAMPOS_EMPRESA = [
   'zona_horaria'
 ].join(', ');
 
+async function sincronizarWhatsAppPortal(empresaId, whatsapp) {
+  const portalUrl = process.env.PORTAL_LICENSES_URL;
+  const syncSecret = process.env.INTERNAL_SYNC_SECRET;
+
+  if (!portalUrl || !syncSecret || !whatsapp) return;
+
+  try {
+    const response = await fetch(
+      `${portalUrl.replace(/\/+$/, '')}/api/internal-workshop-contact`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${syncSecret}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          taller_id: empresaId,
+          whatsapp: whatsapp
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const detalle = await response.text();
+      console.error('Sincronización WhatsApp con Portal falló:', response.status, detalle);
+    }
+  } catch (error) {
+    console.error('No se pudo sincronizar WhatsApp con el Portal:', error);
+  }
+}
+
 async function obtenerEmpresaConLogo(supabase, empresaId) {
   const { data: empresa, error } = await supabase
     .from('empresas')
@@ -217,6 +248,8 @@ module.exports = async function handler(req, res) {
         error: 'La empresa no existe o no pudo actualizarse.'
       });
     }
+
+    await sincronizarWhatsAppPortal(empresaId, whatsapp);
 
     const empresa = await obtenerEmpresaConLogo(
       supabase,
