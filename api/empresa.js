@@ -212,6 +212,20 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    if (!whatsapp) {
+      return res.status(400).json({
+        ok: false,
+        error: 'El número de WhatsApp es obligatorio.'
+      });
+    }
+
+    if (!email) {
+      return res.status(400).json({
+        ok: false,
+        error: 'El correo electrónico de la empresa es obligatorio.'
+      });
+    }
+
     const { data: empresaActualizada, error } = await supabase
       .from('empresas')
       .update({
@@ -227,8 +241,8 @@ module.exports = async function handler(req, res) {
         city: city || null,
         postal_code: postalCode || null,
         telefono: telefono || '',
-        whatsapp: whatsapp || '',
-        email: email || '',
+        whatsapp: whatsapp,
+        email: email,
         website: website || null,
         logo_url: logoUrl || '',
         direccion: addressLine1 || '',
