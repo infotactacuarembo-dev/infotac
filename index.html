@@ -3039,20 +3039,22 @@ body {
             </div>
 
             <div class="form-group">
-              <label for="empresa-whatsapp">WhatsApp</label>
+              <label for="empresa-whatsapp">WhatsApp *</label>
               <input
                 type="tel"
                 id="empresa-whatsapp"
                 autocomplete="tel"
+                required
               >
             </div>
 
             <div class="form-group">
-              <label for="empresa-email">Email</label>
+              <label for="empresa-email">Email *</label>
               <input
                 type="email"
                 id="empresa-email"
                 autocomplete="email"
+                required
               >
             </div>
 
@@ -5106,76 +5108,98 @@ function guardarDatosEmpresa(evento) {
 
   var datos = {
     id: campoEmpresaId.value,
-    nombre: campoNombreEmpresa.value,
-    nombre_comercial: campoNombreComercialEmpresa.value,
-    country_code: campoPaisEmpresa.value,
+    nombre: (campoNombreEmpresa.value || '').trim(),
+    nombre_comercial: (campoNombreComercialEmpresa.value || '').trim(),
+    country_code: (campoPaisEmpresa.value || '').trim(),
     country: obtenerNombrePais(campoPaisEmpresa.value),
-    tax_id_type: campoTipoFiscalEmpresa.value,
-    tax_id: campoTaxIdEmpresa.value,
-    address_line1: campoDireccionEmpresa.value,
-    address_line2: campoDireccionExtraEmpresa.value,
-    state_region: campoRegionEmpresa.value,
-    city: campoCiudadEmpresa.value,
-    postal_code: campoCodigoPostalEmpresa.value,
-    telefono: campoTelefonoEmpresa.value,
-    whatsapp: campoWhatsappEmpresa.value,
-    email: campoEmailEmpresa.value,
-    website: campoWebEmpresa.value,
+    tax_id_type: (campoTipoFiscalEmpresa.value || '').trim(),
+    tax_id: (campoTaxIdEmpresa.value || '').trim(),
+    address_line1: (campoDireccionEmpresa.value || '').trim(),
+    address_line2: (campoDireccionExtraEmpresa.value || '').trim(),
+    state_region: (campoRegionEmpresa.value || '').trim(),
+    city: (campoCiudadEmpresa.value || '').trim(),
+    postal_code: (campoCodigoPostalEmpresa.value || '').trim(),
+    telefono: (campoTelefonoEmpresa.value || '').trim(),
+    whatsapp: (campoWhatsappEmpresa.value || '').trim(),
+    email: (campoEmailEmpresa.value || '').trim(),
+    website: (campoWebEmpresa.value || '').trim(),
     logo_url: logoUrlActualEmpresa,
-	zona_horaria: campoZonaHorariaEmpresa.value || '',  
+    zona_horaria: campoZonaHorariaEmpresa.value || '',  
   };
 
+  if (!datos.nombre) {
+    mensajeConfiguracionEmpresa('El nombre legal de la empresa es obligatorio.', true);
+    campoNombreEmpresa.focus();
+    return;
+  }
+
+  if (!datos.country_code) {
+    mensajeConfiguracionEmpresa('Seleccioná un país.', true);
+    campoPaisEmpresa.focus();
+    return;
+  }
+
+  if (!datos.whatsapp) {
+    mensajeConfiguracionEmpresa('El número de WhatsApp es obligatorio.', true);
+    campoWhatsappEmpresa.focus();
+    return;
+  }
+
+  if (!datos.email) {
+    mensajeConfiguracionEmpresa('El correo electrónico de la empresa es obligatorio.', true);
+    campoEmailEmpresa.focus();
+    return;
+  }
+
   botonGuardarEmpresa.disabled = true;
-mensajeConfiguracionEmpresa('Guardando cambios...', false);
+  mensajeConfiguracionEmpresa('Guardando cambios...', false);
 
-pedirApi('/api/empresa', datos, 'PUT')
-  .then(function (resultado) {
-    var empresa = resultado.empresa;
+  pedirApi('/api/empresa', datos, 'PUT')
+    .then(function (resultado) {
+      var empresa = resultado.empresa;
 
-    campoEmpresaId.value = empresa.id || campoEmpresaId.value;
-    campoNombreEmpresa.value = empresa.nombre || '';
-    campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
-    campoPaisEmpresa.value = empresa.country_code || '';
-    campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
-    campoTaxIdEmpresa.value = empresa.tax_id || '';
-    campoDireccionEmpresa.value = empresa.address_line1 || '';
-    campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
-    campoRegionEmpresa.value = empresa.state_region || '';
-    campoCiudadEmpresa.value = empresa.city || '';
-    campoCodigoPostalEmpresa.value = empresa.postal_code || '';
-    campoTelefonoEmpresa.value = empresa.telefono || '';
-    campoWhatsappEmpresa.value = empresa.whatsapp || '';
-    campoEmailEmpresa.value = empresa.email || '';
-    campoWebEmpresa.value = empresa.website || '';
+      campoEmpresaId.value = empresa.id || campoEmpresaId.value;
+      campoNombreEmpresa.value = empresa.nombre || '';
+      campoNombreComercialEmpresa.value = empresa.nombre_comercial || '';
+      campoPaisEmpresa.value = empresa.country_code || '';
+      campoTipoFiscalEmpresa.value = empresa.tax_id_type || '';
+      campoTaxIdEmpresa.value = empresa.tax_id || '';
+      campoDireccionEmpresa.value = empresa.address_line1 || '';
+      campoDireccionExtraEmpresa.value = empresa.address_line2 || '';
+      campoRegionEmpresa.value = empresa.state_region || '';
+      campoCiudadEmpresa.value = empresa.city || '';
+      campoCodigoPostalEmpresa.value = empresa.postal_code || '';
+      campoTelefonoEmpresa.value = empresa.telefono || '';
+      campoWhatsappEmpresa.value = empresa.whatsapp || '';
+      campoEmailEmpresa.value = empresa.email || '';
+      campoWebEmpresa.value = empresa.website || '';
 
-    logoUrlActualEmpresa = empresa.logo_url || logoUrlActualEmpresa;
-    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+      logoUrlActualEmpresa = empresa.logo_url || logoUrlActualEmpresa;
+      mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
 
-    return subirLogoEmpresa();
-  })
-  .then(function (logoUrl) {
-    logoUrlActualEmpresa = logoUrl || logoUrlActualEmpresa;
-    mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
+      return subirLogoEmpresa();
+    })
+    .then(function (logoUrl) {
+      logoUrlActualEmpresa = logoUrl || logoUrlActualEmpresa;
+      mostrarVistaPreviaLogoEmpresa(logoUrlActualEmpresa);
 
-    actualizarEtiquetasEmpresaPorPais();
-    mensajeConfiguracionEmpresa(
-      'Datos de la empresa guardados correctamente.',
-      false
-    );
-  })
-  .catch(function (error) {
-    console.error('Error al guardar empresa:', error);
-    mensajeConfiguracionEmpresa(
-      error.message || 'No se pudieron guardar los cambios.',
-      true
-    );
-  })
-  .finally(function () {
-    botonGuardarEmpresa.disabled = false;
-  });
-	
+      actualizarEtiquetasEmpresaPorPais();
+      mensajeConfiguracionEmpresa(
+        'Datos de la empresa guardados correctamente.',
+        false
+      );
+    })
+    .catch(function (error) {
+      console.error('Error al guardar empresa:', error);
+      mensajeConfiguracionEmpresa(
+        error.message || 'No se pudieron guardar los cambios.',
+        true
+      );
+    })
+    .finally(function () {
+      botonGuardarEmpresa.disabled = false;
+    });
 }
-
 if (formularioEmpresa) {
   formularioEmpresa.addEventListener('submit', guardarDatosEmpresa);
 }		  
