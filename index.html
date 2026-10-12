@@ -970,7 +970,7 @@ table {
         padding-bottom: 0.4rem; border-bottom: 2px solid var(--primary);
         margin-bottom: 0.5rem;
       }
-      .historial-list { list-style: none; }
+      .historial-list { list-: none; }
       .historial-item {
         display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;
         padding: 0.5rem 0; border-bottom: 1px solid var(--border);
@@ -1848,25 +1848,25 @@ table {
   }
 
   /* Encabezados de cada reporte: título arriba y CSV abajo. */
-  #auditoria-contenido > div[style*="justify-content:space-between"] {
+  #auditoria-contenido > div[*="justify-content:space-between"] {
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center !important;
     gap: 0.65rem !important;
   }
 
-  #auditoria-contenido > div[style*="justify-content:space-between"] h3 {
+  #auditoria-contenido > div[*="justify-content:space-between"] h3 {
     flex: 1 1 100% !important;
   }
 
-  #auditoria-contenido > div[style*="justify-content:space-between"] .btn-sm {
+  #auditoria-contenido > div[*="justify-content:space-between"] .btn-sm {
     width: 100% !important;
     min-height: 44px !important;
   }
 
   /* Filtros de Accesos y Cambios de clave: dos columnas compactas. */
   #filtros-accesos,
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] {
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.7rem !important;
@@ -1876,7 +1876,7 @@ table {
 
   /* Cada campo se adapta a su celda. */
   #filtros-accesos > div,
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] > div {
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] > div {
     width: auto !important;
     min-width: 0 !important;
     flex: none !important;
@@ -1884,8 +1884,8 @@ table {
 
   #filtros-accesos input,
   #filtros-accesos select,
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] input,
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] select {
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] input,
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] select {
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
@@ -1893,13 +1893,13 @@ table {
 
   /* Usuario/IP ocupa una fila entera. */
   #filtros-accesos > div:nth-child(3),
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] > div:nth-child(3) {
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] > div:nth-child(3) {
     grid-column: 1 / -1 !important;
   }
 
   /* Evento/resultado ocupa media fila; acciones ocupan la otra media. */
   #filtros-accesos > div:nth-child(4),
-  #auditoria-contenido > div[style*="align-items:flex-end"][style*="background:#f8fafc"] > div:nth-child(4) {
+  #auditoria-contenido > div[*="align-items:flex-end"][*="background:#f8fafc"] > div:nth-child(4) {
     grid-column: 1 !important;
   }
 
@@ -1933,7 +1933,7 @@ table {
     min-width: 660px !important;
   }
 
-  #auditoria-contenido > div[style*="overflow:auto"] {
+  #auditoria-contenido > div[*="overflow:auto"] {
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -2252,8 +2252,8 @@ tr.orden-demorada {
 @media (min-width: 601px) {
   div:has(> .alerta-resumen-card) {
     display: flex !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
     gap: 10px !important;
     width: 100% !important;
     max-width: none !important;
@@ -2262,7 +2262,16 @@ tr.orden-demorada {
   }
 
   div:has(> .alerta-resumen-card) .alerta-resumen-card {
-    flex: 0 0 auto !important;
+    flex: 1 1 180px !important;
+    min-width: 0 !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  div:has(> .alerta-resumen-card) .alerta-resumen-card span,
+  div:has(> .alerta-resumen-card) .alerta-resumen-card small {
+    white-space: normal !important;
+    line-height: 1.2 !important;
   }
 
   /* El mensaje queda debajo, fuera de la fila flex. */
@@ -2424,7 +2433,7 @@ body {
 
 		
 		
-</style>		
+</>		
 
     <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
