@@ -2252,8 +2252,8 @@ tr.orden-demorada {
 @media (min-width: 601px) {
   div:has(> .alerta-resumen-card) {
     display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
     max-width: none !important;
@@ -2262,16 +2262,7 @@ tr.orden-demorada {
   }
 
   div:has(> .alerta-resumen-card) .alerta-resumen-card {
-    flex: 1 1 180px !important;
-    min-width: 0 !important;
-    padding: 8px 12px !important;
-    box-sizing: border-box !important;
-  }
-
-  div:has(> .alerta-resumen-card) .alerta-resumen-card span,
-  div:has(> .alerta-resumen-card) .alerta-resumen-card small {
-    white-space: normal !important;
-    line-height: 1.2 !important;
+    flex: 0 0 auto !important;
   }
 
   /* El mensaje queda debajo, fuera de la fila flex. */
@@ -2284,7 +2275,6 @@ tr.orden-demorada {
     white-space: normal !important;
   }
 }
-
 /* Botón para quitar el filtro de alertas */
 .alerta-resumen-limpiar {
   display: inline-flex;
