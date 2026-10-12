@@ -1317,94 +1317,53 @@ table {
 /* ===== TABLA DE ÓRDENES: VISTA CELULAR ===== */
 @media (max-width: 600px) {
   .table-wrap {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
 
   .table-wrap table {
-    width: 100%;
-    min-width: 0;
-    table-layout: fixed;
-    font-size: 0.78rem;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+    font-size: 0.82rem !important;
   }
 
   .table-wrap th,
   .table-wrap td {
-    padding: 0.55rem 0.35rem;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    vertical-align: middle;
+    padding: 0.6rem 0.4rem !important;
+    vertical-align: middle !important;
   }
 
-  /* Oculta: Equipo, Serie, Seña, Presupuesto, Saldo y Técnico */
-  .table-wrap th:nth-child(3),
-  .table-wrap td:nth-child(3),
-  .table-wrap th:nth-child(4),
-  .table-wrap td:nth-child(4),
-  .table-wrap th:nth-child(5),
-  .table-wrap td:nth-child(5),
-  .table-wrap th:nth-child(6),
-  .table-wrap td:nth-child(6),
-  .table-wrap th:nth-child(7),
-  .table-wrap td:nth-child(7),
-  .table-wrap th:nth-child(9),
-  .table-wrap td:nth-child(9) {
-    display: none;
-  }
-
-  /* Fecha */
-  .table-wrap th:nth-child(1),
-  .table-wrap td:nth-child(1) {
-    width: 22%;
-  }
-
-  /* Cliente */
-  .table-wrap th:nth-child(2),
-  .table-wrap td:nth-child(2) {
-    width: 38%;
-  }
-
-  /* Estado */
-  .table-wrap th:nth-child(8),
-  .table-wrap td:nth-child(8) {
-    width: 22%;
-  }
-
-  /* Acciones */
-  .table-wrap th:nth-child(10),
-  .table-wrap td:nth-child(10) {
-    width: 18%;
-    white-space: nowrap;
-  }
-}		
-
-/* ===== TABLA DE ÓRDENES: CELULAR SIN ACCIONES ===== */
-@media (max-width: 600px) {
-  /* Oculta la columna Acciones: es la columna número 10 */
-  .table-wrap th:nth-child(10),
-  .table-wrap td:nth-child(10) {
+  /* Oculta en celular: Equipo(3), Serie(4), Seña(5), Saldo(6) y Acciones(8 / última) */
+  .table-wrap th:nth-child(3), .table-wrap td:nth-child(3),
+  .table-wrap th:nth-child(4), .table-wrap td:nth-child(4),
+  .table-wrap th:nth-child(5), .table-wrap td:nth-child(5),
+  .table-wrap th:nth-child(6), .table-wrap td:nth-child(6),
+  .table-wrap th:last-child,   .table-wrap td:last-child {
     display: none !important;
   }
 
-   
-  /* Distribuye el ancho entre Fecha, Cliente y Estado */
+  /* Distribución óptima entre Fecha, Cliente y Estado */
   .table-wrap th:nth-child(1),
   .table-wrap td:nth-child(1) {
-    width: 25%;
+    width: 26% !important;
+    white-space: normal !important;
   }
 
   .table-wrap th:nth-child(2),
   .table-wrap td:nth-child(2) {
-    width: 47%;
+    width: 46% !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
   }
 
-  .table-wrap th:nth-child(8),
-  .table-wrap td:nth-child(8) {
-    width: 28%;
+  .table-wrap th:nth-child(7),
+  .table-wrap td:nth-child(7) {
+    width: 28% !important;
+    text-align: center !important;
   }
 }
-
 
 /* ===== MENÚ DE CONFIGURACIÓN ===== */
 .config-option-card {
