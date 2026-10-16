@@ -80,7 +80,8 @@ if (lic.vence_at) {
 
   const GRACIA_MS = 7 * 24 * 60 * 60 * 1000;
   const finGracia = new Date(fechaVence.getTime() + GRACIA_MS);
-  const enGracia = fechaVence < ahora && ahora < finGracia;
+  const aplicaGracia = estado === 'activa' || estado === 'regularizada';
+  const enGracia = aplicaGracia && fechaVence < ahora && ahora < finGracia;
 
   let tiempoRestante = null;
 
@@ -107,7 +108,11 @@ if (lic.vence_at) {
     }
   }
 
-  if (estado === 'vencida' || ahora >= finGracia) {
+  if (
+  estado === 'vencida' ||
+  (estado === 'prueba' && fechaVence < ahora) ||
+  (aplicaGracia && ahora >= finGracia)
+) {
     await supabase.from('login_audit').insert({
       identificador: usuarioInput,
       resultado: 'fallo',
