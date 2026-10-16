@@ -5536,7 +5536,8 @@ if (btnConsultarBalance) {
 
   var estado = String(licencia.estado || "").toLowerCase();
   var dias = Number(licencia.dias_restantes);
-  var tiempo = licencia.tiempo_restante;	  
+  var tiempo = licencia.tiempo_restante;
+  var enGracia = Boolean(licencia.en_gracia);	  
   var venceAt = licencia.vence_at || null;
 
   var textoFecha = "";
@@ -5559,7 +5560,13 @@ var clase = "aviso-licencia-info";
 var tiempo = licencia.tiempo_restante;
 
 if (estado === "prueba") {
-  if (dias <= 0) {
+  if (enGracia) {
+    mensaje =
+      "Urgente: tu licencia de prueba venció. Tenés " +
+      tiempo +
+      " para regularizarla.";
+    clase = "aviso-licencia-error";
+  } else if (dias <= 0) {
     mensaje =
       "Tu licencia de prueba está vencida. Contactá al administrador.";
     clase = "aviso-licencia-error";
