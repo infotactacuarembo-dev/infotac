@@ -5602,9 +5602,12 @@ if (estado === "prueba") {
 }
 
   if (textoFecha) {
-    mensaje += " Vence el " + textoFecha + ".";
+    if (enGracia || dias <= 0) {
+      mensaje += " Venció el " + textoFecha + ".";
+    } else {
+      mensaje += " Vence el " + textoFecha + ".";
+    }
   }
-
   aviso.className = clase;
   aviso.textContent = mensaje;
   aviso.hidden = false;
