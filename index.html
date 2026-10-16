@@ -5560,13 +5560,7 @@ var clase = "aviso-licencia-info";
 var tiempo = licencia.tiempo_restante;
 
 if (estado === "prueba") {
-  if (enGracia) {
-    mensaje =
-      "Urgente: tu licencia de prueba venció. Tenés " +
-      tiempo +
-      " para regularizarla.";
-    clase = "aviso-licencia-error";
-  } else if (dias <= 0) {
+  if (dias <= 0) {
     mensaje =
       "Tu licencia de prueba está vencida. Contactá al administrador.";
     clase = "aviso-licencia-error";
@@ -5589,8 +5583,23 @@ if (estado === "prueba") {
       ".";
   }
 } else if (estado === "activa" || estado === "regularizada") {
-  mensaje = "Licencia activa.";
+  if (enGracia) {
+    mensaje =
+      "Urgente: tu licencia venció. Tenés " +
+      tiempo +
+      " para regularizarla.";
+    clase = "aviso-licencia-error";
+  } else {
+    mensaje = "Licencia activa.";
+  }
 } else if (estado === "vencida" || estado === "expirada") {
+  mensaje =
+    "Tu licencia está vencida. Contactá al administrador.";
+  clase = "aviso-licencia-error";
+} else {
+  mensaje = "No se pudo determinar el estado de la licencia.";
+  clase = "aviso-licencia-warning";
+}
   mensaje =
     "Tu licencia está vencida. Contactá al administrador.";
   clase = "aviso-licencia-error";
