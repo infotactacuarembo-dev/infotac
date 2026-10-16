@@ -29,11 +29,12 @@ module.exports = async function handler(req, res) {
     const portalKey = process.env.PORTAL_SUPABASE_SERVICE_ROLE_KEY || process.env.PORTAL_SUPABASE_ANON_KEY;
 
     let licenciaInfo = {
-  estado: 'activa',
-  dias_restantes: null,
-  tiempo_restante: null,
-  vence_at: null
-};
+      estado: 'activa',
+      dias_restantes: null,
+      tiempo_restante: null,
+      en_gracia: false,
+      vence_at: null
+    };
 
     if (portalUrl && portalKey && empresaEncontrada.portal_empresa_id) {
       try {
@@ -77,6 +78,10 @@ if (lic.vence_at) {
   const fechaVence = new Date(lic.vence_at);
   const msRestantes = fechaVence - ahora;
 
+  const GRACIA_MS = 7 * 24 * 60 * 60 * 1000;
+  const finGracia = new Date(fechaVence.getTime() + GRACIA_MS);
+  const enGracia = fechaVence < ahora && ahora < finGracia;
+
   let tiempoRestante = null;
 
   if (msRestantes > 0) {
@@ -90,13 +95,23 @@ if (lic.vence_at) {
       const dias = Math.ceil(msRestantes / (1000 * 60 * 60 * 24));
       tiempoRestante = `${dias} día${dias === 1 ? '' : 's'}`;
     }
+  } else if (enGracia) {
+    const msGracia = finGracia - ahora;
+
+    if (msGracia < 24 * 60 * 60 * 1000) {
+      const horas = Math.ceil(msGracia / (1000 * 60 * 60));
+      tiempoRestante = `${horas} hora${horas === 1 ? '' : 's'} de gracia`;
+    } else {
+      const dias = Math.ceil(msGracia / (1000 * 60 * 60 * 24));
+      tiempoRestante = `${dias} día${dias === 1 ? '' : 's'} de gracia`;
+    }
   }
 
-  if (fechaVence < ahora || estado === 'vencida') {
+  if (estado === 'vencida' || ahora >= finGracia) {
     await supabase.from('login_audit').insert({
       identificador: usuarioInput,
       resultado: 'fallo',
-      detalle: 'Intento de acceso con licencia vencida',
+      detalle: 'Intento de acceso con licencia vencida fuera del período de gracia',
       empresa_id: empresaEncontrada.id
     });
 
@@ -110,15 +125,18 @@ if (lic.vence_at) {
     estado,
     dias_restantes: Math.ceil(msRestantes / (1000 * 60 * 60 * 24)),
     tiempo_restante: tiempoRestante,
+    en_gracia: enGracia,
     vence_at: lic.vence_at
   };
 }
+
           
 else {
   licenciaInfo = {
     estado,
     dias_restantes: null,
     tiempo_restante: null,
+    en_gracia: false,
     vence_at: null
   };
 }
