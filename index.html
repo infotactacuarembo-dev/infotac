@@ -2386,7 +2386,30 @@ body {
   box-sizing: border-box;
 }		
 
+/* Mostrar completo el aviso de licencia */
+#aviso-licencia {
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
 
+.app-header {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+@media (max-width: 600px) {
+  #aviso-licencia {
+    order: 3;
+    flex: 1 1 100%;
+    margin: 8px 0 0;
+  }
+}
 
 
 </style>		
