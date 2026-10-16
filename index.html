@@ -5536,6 +5536,7 @@ if (btnConsultarBalance) {
 
   var estado = String(licencia.estado || "").toLowerCase();
   var dias = Number(licencia.dias_restantes);
+  var tiempo = licencia.tiempo_restante;	  
   var venceAt = licencia.vence_at || null;
 
   var textoFecha = "";
@@ -5553,45 +5554,43 @@ if (btnConsultarBalance) {
     });
   }
 }
-  var mensaje = "";
-  var clase = "aviso-licencia-info";
+var mensaje = "";
+var clase = "aviso-licencia-info";
+var tiempo = licencia.tiempo_restante;
 
-  if (estado === "prueba") {
-    if (dias <= 0) {
-      mensaje =
-        "Tu licencia de prueba está vencida. Contactá al administrador.";
-      clase = "aviso-licencia-error";
-    } else if (dias <= 3) {
-      mensaje =
-        "Urgente: tu licencia de prueba vence en " +
-        dias +
-        (dias === 1 ? " día" : " días") +
-        ". Regularizá tu cuenta cuanto antes.";
-      clase = "aviso-licencia-error";
-    } else if (dias <= 7) {
-      mensaje =
-        "Atención: tu licencia de prueba vence en " +
-        dias +
-        (dias === 1 ? " día" : " días") +
-        ". Regularizá tu cuenta para evitar interrupciones.";
-      clase = "aviso-licencia-warning";
-    } else {
-      mensaje =
-        "Licencia de prueba: quedan " +
-        dias +
-        (dias === 1 ? " día" : " días") +
-        ".";
-    }
-  } else if (estado === "activa" || estado === "regularizada") {
-    mensaje = "Licencia activa.";
-  } else if (estado === "vencida" || estado === "expirada") {
+if (estado === "prueba") {
+  if (dias <= 0) {
     mensaje =
-      "Tu licencia está vencida. Contactá al administrador.";
+      "Tu licencia de prueba está vencida. Contactá al administrador.";
     clase = "aviso-licencia-error";
-  } else {
-    mensaje = "No se pudo determinar el estado de la licencia.";
+  } else if (dias <= 3) {
+    mensaje =
+      "Urgente: tu licencia de prueba vence en " +
+      tiempo +
+      ". Regularizá tu cuenta cuanto antes.";
+    clase = "aviso-licencia-error";
+  } else if (dias <= 7) {
+    mensaje =
+      "Atención: tu licencia de prueba vence en " +
+      tiempo +
+      ". Regularizá tu cuenta para evitar interrupciones.";
     clase = "aviso-licencia-warning";
+  } else {
+    mensaje =
+      "Licencia de prueba: quedan " +
+      tiempo +
+      ".";
   }
+} else if (estado === "activa" || estado === "regularizada") {
+  mensaje = "Licencia activa.";
+} else if (estado === "vencida" || estado === "expirada") {
+  mensaje =
+    "Tu licencia está vencida. Contactá al administrador.";
+  clase = "aviso-licencia-error";
+} else {
+  mensaje = "No se pudo determinar el estado de la licencia.";
+  clase = "aviso-licencia-warning";
+}
 
   if (textoFecha) {
     mensaje += " Vence el " + textoFecha + ".";
