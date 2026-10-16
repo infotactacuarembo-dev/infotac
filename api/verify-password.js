@@ -28,7 +28,12 @@ module.exports = async function handler(req, res) {
     const portalUrl = process.env.PORTAL_SUPABASE_URL;
     const portalKey = process.env.PORTAL_SUPABASE_SERVICE_ROLE_KEY || process.env.PORTAL_SUPABASE_ANON_KEY;
 
-    let licenciaInfo = { estado: 'activa', dias_restantes: null, vence_at: null };
+    let licenciaInfo = {
+  estado: 'activa',
+  dias_restantes: null,
+  tiempo_restante: null,
+  vence_at: null
+};
 
     if (portalUrl && portalKey && empresaEncontrada.portal_empresa_id) {
       try {
@@ -68,27 +73,55 @@ module.exports = async function handler(req, res) {
             });
           }
 
-          if (lic.vence_at) {
-            const fechaVence = new Date(lic.vence_at);
-            const diasRestantes = Math.ceil((fechaVence - ahora) / (1000 * 60 * 60 * 24));
+if (lic.vence_at) {
+  const fechaVence = new Date(lic.vence_at);
+  const msRestantes = fechaVence - ahora;
 
-            if (fechaVence < ahora || estado === 'vencida') {
-              await supabase.from('login_audit').insert({
-                identificador: usuarioInput,
-                resultado: 'fallo',
-                detalle: 'Intento de acceso con licencia vencida',
-                empresa_id: empresaEncontrada.id
-              });
-              return res.status(403).json({
-                ok: false,
-                error: 'La licencia de este taller ha expirado. Por favor, renueve su suscripción.'
-              });
-            }
+  let tiempoRestante = null;
 
-            licenciaInfo = { estado, dias_restantes: diasRestantes, vence_at: lic.vence_at };
-          } else {
-            licenciaInfo = { estado, dias_restantes: null, vence_at: null };
-          }
+  if (msRestantes > 0) {
+    if (msRestantes < 60 * 60 * 1000) {
+      const minutos = Math.max(1, Math.ceil(msRestantes / (1000 * 60)));
+      tiempoRestante = `${minutos} minuto${minutos === 1 ? '' : 's'}`;
+    } else if (msRestantes < 24 * 60 * 60 * 1000) {
+      const horas = Math.ceil(msRestantes / (1000 * 60 * 60));
+      tiempoRestante = `${horas} hora${horas === 1 ? '' : 's'}`;
+    } else {
+      const dias = Math.ceil(msRestantes / (1000 * 60 * 60 * 24));
+      tiempoRestante = `${dias} día${dias === 1 ? '' : 's'}`;
+    }
+  }
+
+  if (fechaVence < ahora || estado === 'vencida') {
+    await supabase.from('login_audit').insert({
+      identificador: usuarioInput,
+      resultado: 'fallo',
+      detalle: 'Intento de acceso con licencia vencida',
+      empresa_id: empresaEncontrada.id
+    });
+
+    return res.status(403).json({
+      ok: false,
+      error: 'La licencia de este taller ha expirado. Por favor, renueve su suscripción.'
+    });
+  }
+
+  licenciaInfo = {
+    estado,
+    dias_restantes: Math.ceil(msRestantes / (1000 * 60 * 60 * 24)),
+    tiempo_restante: tiempoRestante,
+    vence_at: lic.vence_at
+  };
+}
+          
+else {
+  licenciaInfo = {
+    estado,
+    dias_restantes: null,
+    tiempo_restante: null,
+    vence_at: null
+  };
+}
         }
       } catch (errLic) {
         console.error('Advertencia al consultar licencia en portal:', errLic);
