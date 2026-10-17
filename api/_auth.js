@@ -3,11 +3,14 @@ const { verificarSesionFirmada } = require('./_session-signed');
 function readSession(req) {
   const header = req.headers.cookie || '';
   if (typeof header !== 'string') return null;
-  const cookies = header.split(';').map(value => value.trim()).filter(value => value.startsWith('taller_session='));
-  if (cookies.length !== 1) return null;
+  const sessionCookies = header
+    .split(';')
+    .map(value => value.trim())
+    .filter(value => value.startsWith('taller_session='))
+    .map(value => value.slice('taller_session='.length));
+  if (!sessionCookies.length) return null;
   try {
-    const value = decodeURIComponent(cookies[0].slice('taller_session='.length));
-    return verificarSesionFirmada(value);
+    return verificarSesionFirmada(decodeURIComponent(sessionCookies[sessionCookies.length - 1]));
   } catch (_) {
     return null;
   }
