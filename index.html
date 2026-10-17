@@ -8208,15 +8208,41 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
   var rolActual = sessionStorage.getItem("rol") || "user";
   var esTecnicoActual = rolActual === "tecnico";
 
- if (
-  !esTecnicoActual &&
-  estadoPrevio !== "sinreparar" &&
-  (nuevoEstado === "reparando" ||
-    nuevoEstado === "terminado" ||
-    nuevoEstado === "entregado")
-) {
+  // Validar solo si se asigna una fecha prometida diferente.
+  if (!esTecnicoActual && fechaPrometidaEl) {
+    var fechaPrometidaNueva = fechaPrometidaEl.value;
+    var fechaPrometidaOriginal = String(
+      o.fechaPrometidaEntrega || ""
+    ).split("T")[0];
 
-	  
+    var ahoraValidacionModal = new Date();
+    var hoyValidacionModal =
+      ahoraValidacionModal.getFullYear() + "-" +
+      String(ahoraValidacionModal.getMonth() + 1).padStart(2, "0") + "-" +
+      String(ahoraValidacionModal.getDate()).padStart(2, "0");
+
+    if (
+      fechaPrometidaNueva &&
+      fechaPrometidaNueva !== fechaPrometidaOriginal &&
+      fechaPrometidaNueva < hoyValidacionModal
+    ) {
+      alert(
+        "La nueva fecha prometida de entrega no puede ser anterior a hoy."
+      );
+
+      fechaPrometidaEl.focus();
+      return;
+    }
+  }
+
+  // Validación existente de la seña.
+  if (
+    !esTecnicoActual &&
+    estadoPrevio !== "sinreparar" &&
+    (nuevoEstado === "reparando" ||
+      nuevoEstado === "terminado" ||
+      nuevoEstado === "entregado")
+  ) {
     var senaValidacion = senaEl
       ? Number(senaEl.value) || 0
       : 0;
@@ -8248,7 +8274,7 @@ if (montoNuevo > saldoDisponibleParaEdicion) {
     }
   }
 
-    // Tomar el saldo actual que muestra el resumen del modal.
+  // Tomar el saldo actual que muestra el resumen del modal.
   // Este valor ya contempla: ítems - seña - pagos visibles.
   var saldoResumenEl = document.getElementById("resumen-saldo");
 
