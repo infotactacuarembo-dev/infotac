@@ -6114,7 +6114,34 @@ function actualizarBadgeNuevas(ordenes) {
     badge.classList.add("hidden");
   }
 }
-		  
+
+
+// Fecha mínima del calendario de Registrar Ingreso.
+var campoFechaPrometidaIngreso = document.getElementById(
+  "f-fecha-prometida-entrega"
+);
+
+function actualizarMinimoFechaPrometidaIngreso() {
+  if (!campoFechaPrometidaIngreso) return;
+
+  var ahora = new Date();
+
+  var hoy =
+    ahora.getFullYear() + "-" +
+    String(ahora.getMonth() + 1).padStart(2, "0") + "-" +
+    String(ahora.getDate()).padStart(2, "0");
+
+  campoFechaPrometidaIngreso.min = hoy;
+}
+
+actualizarMinimoFechaPrometidaIngreso();
+
+if (campoFechaPrometidaIngreso) {
+  campoFechaPrometidaIngreso.addEventListener(
+    "focus",
+    actualizarMinimoFechaPrometidaIngreso
+  );
+}
 
         /* ===== FORM SUBMIT ===== */
         formIngreso.addEventListener("submit", function (e) {
