@@ -6916,7 +6916,15 @@ if (o.fechaPrometidaEntrega) {
 
   html += "<div class='form-group full'>";
   html += "<label for='modal-fecha-prometida-entrega'>Fecha prometida de entrega</label>";
-  html += "<input type='date' id='modal-fecha-prometida-entrega' value='" +
+  var ahoraFechaModal = new Date();
+  var hoyFechaModal =
+    ahoraFechaModal.getFullYear() + "-" +
+    String(ahoraFechaModal.getMonth() + 1).padStart(2, "0") + "-" +
+    String(ahoraFechaModal.getDate()).padStart(2, "0");
+
+  html += "<input type='date' id='modal-fecha-prometida-entrega' min='" +
+    hoyFechaModal +
+    "' value='" +
     esc(o.fechaPrometidaEntrega || "") +
     "'>";
   html += "</div>";
