@@ -5704,11 +5704,6 @@ restaurarSesion();
     });
 }
 
-// Bloquear fechas anteriores a hoy en el selector de Fecha Prometida (Registrar Ingreso)
-var fechaPrometidaIngresoEl = document.getElementById('f-fecha-prometida-entrega');
-if (fechaPrometidaIngresoEl) {
-  fechaPrometidaIngresoEl.min = new Date().toLocaleDateString('en-CA');
-}		  
 
 function mapearFila(row) {
   return {
