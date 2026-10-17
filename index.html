@@ -5704,6 +5704,12 @@ restaurarSesion();
     });
 }
 
+// Bloquear fechas anteriores a hoy en el selector de Fecha Prometida (Registrar Ingreso)
+var fechaPrometidaIngresoEl = document.getElementById('f-fecha-prometida-entrega');
+if (fechaPrometidaIngresoEl) {
+  fechaPrometidaIngresoEl.min = new Date().toLocaleDateString('en-CA');
+}		  
+
 function mapearFila(row) {
   return {
     id: row.id,
@@ -6867,13 +6873,13 @@ if (o.fechaPrometidaEntrega) {
   html += "<input type='number' id='modal-sena' min='0' step='0.01' value='" + (o.sena || "") + "'>";
   html += "</div>";
 
+  var hoyYMDStr = new Date().toLocaleDateString('en-CA'); // formato YYYY-MM-DD
   html += "<div class='form-group full'>";
   html += "<label for='modal-fecha-prometida-entrega'>Fecha prometida de entrega</label>";
-  html += "<input type='date' id='modal-fecha-prometida-entrega' value='" +
+  html += "<input type='date' id='modal-fecha-prometida-entrega' min='" + hoyYMDStr + "' value='" +
     esc(o.fechaPrometidaEntrega || "") +
     "'>";
   html += "</div>";
-}
 			
   html += "<div class='form-group full'>";
   html += "<label for='modal-falla'>Falla declarada</label>";
