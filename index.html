@@ -6120,6 +6120,26 @@ function actualizarBadgeNuevas(ordenes) {
         formIngreso.addEventListener("submit", function (e) {
           e.preventDefault();
 
+
+			// Validar Fecha Prometida antes de crear el cliente o la orden.
+  		var fechaPrometidaIngreso = val("f-fecha-prometida-entrega");
+
+  		var ahoraIngreso = new Date();
+  		var hoyIngreso =
+    	ahoraIngreso.getFullYear() + "-" +
+    	String(ahoraIngreso.getMonth() + 1).padStart(2, "0") + "-" +
+    	String(ahoraIngreso.getDate()).padStart(2, "0");
+
+  		if (
+    		fechaPrometidaIngreso &&
+    		fechaPrometidaIngreso < hoyIngreso
+  		) {
+    	alert("La fecha prometida de entrega no puede ser anterior a hoy.");
+
+    	document.getElementById("f-fecha-prometida-entrega").focus();
+    	return;
+  		}
+
 		  // Validar que el técnico sea obligatorio
   				var tecnicoId = val("f-tecnico");
   				if (!tecnicoId) {
