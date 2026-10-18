@@ -8527,7 +8527,7 @@ if (typeof btnImportarBackupConfig !== 'undefined' && btnImportarBackupConfig) {
   btnImportarBackupConfig.addEventListener("click", seleccionarArchivoBackup);
 }
 
-// 4. Procesar archivo seleccionado en la importación completa
+// 4. Procesar e importar con previsualización detallada
 if (typeof fileImportar !== 'undefined' && fileImportar) {
   fileImportar.addEventListener("change", function (e) {
     var file = e.target.files[0];
@@ -8538,24 +8538,32 @@ if (typeof fileImportar !== 'undefined' && fileImportar) {
       try {
         var parsed = JSON.parse(ev.target.result);
 
+        // Validación de estructura
         if (!parsed || parsed.app !== 'infotac' || !parsed.data) {
-          throw new Error("El archivo no corresponde a un formato de respaldo válido de Infotac.");
+          throw new Error("El archivo no es un respaldo compatible de Infotac.");
         }
 
-        var res = parsed.resumen || {
-          clientes: parsed.data.clientes ? parsed.data.clientes.length : 0,
-          ordenes: parsed.data.ordenes ? parsed.data.ordenes.length : 0,
-          pagos: parsed.data.pagos ? parsed.data.pagos.length : 0
-        };
+        var empresa = parsed.data.empresa?.nombre || "Taller";
+        var fechaGen = parsed.fecha_exportacion ? new Date(parsed.fecha_exportacion).toLocaleString('es-UY') : "No indicada";
+        var clientes = parsed.data.clientes ? parsed.data.clientes.length : 0;
+        var ordenes = parsed.data.ordenes ? parsed.data.ordenes.length : 0;
+        var items = parsed.data.orden_items ? parsed.data.orden_items.length : 0;
+        var pagos = parsed.data.pagos ? parsed.data.pagos.length : 0;
 
-        var mensajeConfirm = 
-          "Resumen del respaldo a restaurar:\n" +
-          "• Clientes: " + res.clientes + "\n" +
-          "• Órdenes: " + res.ordenes + "\n" +
-          "• Pagos: " + res.pagos + "\n\n" +
+        var cartelInfo = 
+          "=========================================\n" +
+          "        PREVISUALIZACIÓN DE RESPALDO     \n" +
+          "=========================================\n\n" +
+          "• Empresa: " + empresa + "\n" +
+          "• Fecha de creación: " + fechaGen + "\n\n" +
+          "CONTENIDO A RESTAURAR:\n" +
+          "• Clientes: " + clientes + "\n" +
+          "• Órdenes de trabajo: " + ordenes + "\n" +
+          "• Repuestos y servicios: " + items + "\n" +
+          "• Pagos registrados: " + pagos + "\n\n" +
           "¿Desea restaurar estos datos en el sistema?";
 
-        if (!confirm(mensajeConfirm)) {
+        if (!confirm(cartelInfo)) {
           return;
         }
 
@@ -8568,10 +8576,10 @@ if (typeof fileImportar !== 'undefined' && fileImportar) {
         var resultado = await response.json();
 
         if (!response.ok || !resultado.ok) {
-          throw new Error(resultado.error || 'No se pudo completar la importación.');
+          throw new Error(resultado.error || 'Fallo en la importación.');
         }
 
-        alert("¡Restauración completada con éxito!\nSe restauraron " + resultado.resumen.ordenes + " órdenes y " + resultado.resumen.clientes + " clientes.");
+        alert("¡Restauración completada con éxito!\nSe sincronizaron " + resultado.resumen.ordenes + " órdenes y " + resultado.resumen.clientes + " clientes.");
 
         if (typeof cargarOrdenes === 'function') {
           await cargarOrdenes();
