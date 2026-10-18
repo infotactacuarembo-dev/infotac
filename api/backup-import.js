@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -11,11 +12,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = req.body;
+    const { payload, admin_password, admin_user } = req.body;
 
     // 1. Validar que el archivo provenga de Infotac
     if (!payload || payload.app !== 'infotac' || !payload.data) {
       return res.status(400).json({ ok: false, error: 'Formato de archivo de respaldo no compatible.' });
+    }
+
+    if (!admin_password) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Se requiere la contraseña del administrador para autorizar la restauración.'
+      });
     }
 
     const { empresa, usuarios, clientes, ordenes, orden_items, pagos, configuracion } = payload.data;
@@ -25,12 +33,37 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'No se identificó el ID de empresa en el respaldo.' });
     }
 
-    // 2. Restaurar Empresa
+    // 2. Validar la contraseña del administrador de esta empresa
+    const { data: admin, error: adminError } = await supabase
+      .from('usuarios')
+      .select('id, password_hash, rol')
+      .eq('empresa_id', empresaId)
+      .eq('rol', 'Administrador')
+      .limit(1)
+      .maybeSingle();
+
+    if (adminError || !admin) {
+      return res.status(403).json({
+        ok: false,
+        error: 'No se encontró un usuario administrador válido para autorizar la restauración.'
+      });
+    }
+
+    const passwordValida = await bcrypt.compare(admin_password, admin.password_hash);
+
+    if (!passwordValida) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Contraseña de administrador incorrecta. La restauración fue cancelada.'
+      });
+    }
+
+    // 3. Restaurar Empresa
     if (empresa && empresa.id) {
       await supabase.from('empresas').upsert([empresa], { onConflict: 'id' });
     }
 
-    // 3. Restaurar Clientes
+    // 4. Restaurar Clientes
     if (Array.isArray(clientes) && clientes.length > 0) {
       const clientesFormateados = clientes.map(c => ({
         id: c.id,
@@ -42,7 +75,7 @@ export default async function handler(req, res) {
       await supabase.from('clientes').upsert(clientesFormateados, { onConflict: 'id' });
     }
 
-    // 4. Restaurar Usuarios
+    // 5. Restaurar Usuarios
     if (Array.isArray(usuarios) && usuarios.length > 0) {
       const usuariosFormateados = usuarios.map(u => ({
         id: u.id,
@@ -57,7 +90,7 @@ export default async function handler(req, res) {
       await supabase.from('usuarios').upsert(usuariosFormateados, { onConflict: 'id' });
     }
 
-    // 5. Restaurar Órdenes de Trabajo
+    // 6. Restaurar Órdenes de Trabajo
     if (Array.isArray(ordenes) && ordenes.length > 0) {
       const ordenesFormateadas = ordenes.map(o => ({
         id: o.id,
@@ -91,7 +124,7 @@ export default async function handler(req, res) {
       await supabase.from('ordenes').upsert(ordenesFormateadas, { onConflict: 'id' });
     }
 
-    // 6. Restaurar Ítems de Órdenes
+    // 7. Restaurar Ítems de Órdenes
     if (Array.isArray(orden_items) && orden_items.length > 0) {
       const itemsFormateados = orden_items.map(it => ({
         id: it.id,
@@ -106,7 +139,7 @@ export default async function handler(req, res) {
       await supabase.from('orden_items').upsert(itemsFormateados, { onConflict: 'id' });
     }
 
-    // 7. Restaurar Pagos
+    // 8. Restaurar Pagos
     if (Array.isArray(pagos) && pagos.length > 0) {
       const pagosFormateados = pagos.map(p => ({
         id: p.id,
@@ -120,9 +153,26 @@ export default async function handler(req, res) {
       await supabase.from('pagos').upsert(pagosFormateados, { onConflict: 'id' });
     }
 
+    // 9. Registrar en auditoría
+    await supabase.from('configuracion').insert([
+      {
+        empresa_id: empresaId,
+        clave: 'ultimo_backup_restaurado',
+        valor: JSON.stringify({
+          fecha: new Date().toISOString(),
+          archivo_fecha: payload.fecha_exportacion || null,
+          restaurado_por: admin_user || 'administrador',
+          clientes: clientes?.length || 0,
+          ordenes: ordenes?.length || 0,
+          items: orden_items?.length || 0,
+          pagos: pagos?.length || 0
+        })
+      }
+    ]);
+
     return res.status(200).json({
       ok: true,
-      mensaje: 'Restauración completada con éxito',
+      mensaje: 'Restauración autorizada y completada con éxito',
       resumen: {
         clientes: clientes?.length || 0,
         ordenes: ordenes?.length || 0,
