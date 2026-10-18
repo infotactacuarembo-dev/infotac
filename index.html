@@ -8484,15 +8484,7 @@ if (btnExportarCsv) {
 // 1. Exportación completa desde la base de datos
 async function exportarDatos() {
   try {
-var empresaId = (typeof sesionActual !== 'undefined' && sesionActual && sesionActual.empresa_id)
-  ? sesionActual.empresa_id
-  : localStorage.getItem('empresa_id');
-
-if (!empresaId) {
-  alert('No se pudo identificar el taller activo. Vuelva a iniciar sesión.');
-  return;
-}
-    var response = await fetch('/api/backup?empresa_id=' + encodeURIComponent(empresaId));
+    var response = await fetch('/api/backup');
     
     if (!response.ok) {
       throw new Error('No se pudo generar el archivo de backup en el servidor.');
@@ -8587,11 +8579,7 @@ var response = await fetch('/api/backup-import', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     payload: parsed,
-    admin_password: passwordAdmin.trim(),
-    admin_user: (typeof sesionActual !== 'undefined' && sesionActual?.usuario) || 'administrador',
-    empresa_actual_id: (typeof sesionActual !== 'undefined' && sesionActual?.empresa_id)
-      ? sesionActual.empresa_id
-      : localStorage.getItem('empresa_id')
+    admin_password: passwordAdmin.trim()
   })
 });
 
