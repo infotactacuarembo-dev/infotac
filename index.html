@@ -8479,149 +8479,135 @@ if (btnExportarCsv) {
 }
 
 		  
-        /* ===== EXPORT / IMPORT ===== */
-        function exportarDatos() {
-          var data = JSON.stringify({ exportado: new Date().toISOString(), ordenes: ordenes }, null, 2);
-          var blob = new Blob([data], { type: "application/json" });
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement("a");
-          a.href = url;
-          a.download = "backup_infotac.json";
-          a.click();
-          URL.revokeObjectURL(url);
-        }
+  /* ===== EXPORT / IMPORT INTEGRAL INFOTAC ===== */
 
+// 1. Exportación completa desde la base de datos
+async function exportarDatos() {
+  try {
+    var empresaId = (typeof sesionActual !== 'undefined' && sesionActual && sesionActual.empresa_id)
+      ? sesionActual.empresa_id
+      : (localStorage.getItem('empresa_id') || 'ce95321a-ea37-47d1-81bb-f25f0dd58eeb');
 
-		function exportarBackupActualizado() {
-  		cargarOrdenes()
-    	.then(function () {
-        exportarDatos();
-      })
-      .catch(function (err) {
-      console.error("Error al refrescar antes de exportar:", err);
-      exportarDatos();
-   	 });
-	}  
-
-        
-
-		if (btnExportarBackupConfig) {
-  			btnExportarBackupConfig.addEventListener(
-    		"click",
-    		exportarBackupActualizado
-  		);
-		}
-
-        function seleccionarArchivoBackup() {
-  			if (fileImportar) {
-    			fileImportar.click();
-  			}
-		}
-
-			
-
-		if (btnImportarBackupConfig) {
-  			btnImportarBackupConfig.addEventListener(
-    		"click",
-    		seleccionarArchivoBackup
-  			);
-		}
-
-        if (fileImportar) {
-  		  fileImportar.addEventListener("change", function (e) {
-          var file = e.target.files[0];
-          if (!file) return;
-          var reader = new FileReader();
-          reader.onload = function (ev) {
-            try {
-              var parsed = JSON.parse(ev.target.result);
-              var importadas = Array.isArray(parsed) ? parsed : parsed.ordenes;
-              if (!Array.isArray(importadas)) throw new Error("Formato inválido");
-              if (!confirm("Se importarán " + importadas.length + " órdenes reemplazando las actuales. ¿Continuar?")) return;
-
-// Mapea al esquema de la tabla "ordenes" y deja que la BD genere nuevos id.
-  var filas = importadas.map(function (o) {
-  return {
-    id: o.id,
-
-    fecha: o.fecha || new Date().toISOString(),
-    cliente: o.nombre || o.cliente || "",
-    tel: o.whatsapp || o.tel || "",
-    tipo: o.equipo || o.tipo || "",
-    serie: o.serie || "",
-    pass: o.pin || o.pass || "",
-    sena: Number(o.sena ?? 0) || 0,
-    falla: o.falla || "",
-    presupuesto: Number(o.presupuesto ?? 0) || 0,
-    presupuesta: Number(o.presupuesta ?? 0) || 0,
-    estetico: o.estetico || "",
-    estado: o.estado || "ingresado",
-
-    fecha_entrega:
-      o.fechaEntrega || o.fecha_entrega || "",
-
-    cliente_id:
-      o.clienteId || o.cliente_id || null,
-
-    diagnostico: o.diagnostico || "",
-
-    trabajo_realizar:
-      o.trabajoRealizar || o.trabajo_realizar || "",
-
-    aprobacion_presupuesto:
-      o.aprobacionPresupuesto ||
-      o.aprobacion_presupuesto ||
-      "pendiente"
-  };
-});
-
-// Envía la importación a la API protegida.
-pedirApi(
-  "/api/ordenes",
-  {
-    action: "import",
-    ordenes: filas
-  },
-  "POST"
-)
-  .then(function (resultado) {
-    if (!resultado.ok) {
-      throw new Error(
-        resultado.error || "No se pudo importar el backup"
-      );
+    var response = await fetch('/api/backup?empresa_id=' + encodeURIComponent(empresaId));
+    
+    if (!response.ok) {
+      throw new Error('No se pudo generar el archivo de backup en el servidor.');
     }
 
-	  // Mostrar mensaje de éxito con la cantidad importada
-    var cantidad = resultado.data && resultado.data.importadas
-      ? resultado.data.importadas
-      : filas.length;
+    var blob = await response.blob();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "backup_infotac_" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-    alert(
-      "Se importaron " + cantidad + " órdenes correctamente."
-    );
+    alert("Copia de seguridad completa descargada con éxito.");
+  } catch (err) {
+    console.error("Error al exportar backup:", err);
+    alert("Error al exportar: " + (err.message || "consulte los registros."));
+  }
+}
 
-    return cargarOrdenes();
-  })
-	
-  .then(renderizar)
-  .catch(function (err) {
-    console.error("Error al importar:", err);
-    alert(
-      "Error al importar: " +
-      (err.message || "no se pudo completar la operación.")
-    );
-  });
-				
-            } catch (err) {
-              alert("Error al importar: el archivo no tiene un formato válido.");
-            }
+// 2. Conectar botón de exportar
+if (typeof btnExportarBackupConfig !== 'undefined' && btnExportarBackupConfig) {
+  btnExportarBackupConfig.addEventListener("click", exportarDatos);
+}
+
+// 3. Abrir selector de archivo para importar
+function seleccionarArchivoBackup() {
+  if (typeof fileImportar !== 'undefined' && fileImportar) {
+    fileImportar.click();
+  }
+}
+
+if (typeof btnImportarBackupConfig !== 'undefined' && btnImportarBackupConfig) {
+  btnImportarBackupConfig.addEventListener("click", seleccionarArchivoBackup);
+}
+
+// 4. Procesar archivo seleccionado en la importación
+if (typeof fileImportar !== 'undefined' && fileImportar) {
+  fileImportar.addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      try {
+        var parsed = JSON.parse(ev.target.result);
+        
+        // Soporta tanto el formato nuevo (parsed.data.ordenes) como el formato anterior (parsed.ordenes o array)
+        var importadas = (parsed.data && Array.isArray(parsed.data.ordenes))
+          ? parsed.data.ordenes
+          : (Array.isArray(parsed) ? parsed : parsed.ordenes);
+
+        if (!Array.isArray(importadas)) {
+          throw new Error("El archivo no contiene un listado de órdenes válido.");
+        }
+
+        if (!confirm("Se importarán " + importadas.length + " órdenes. ¿Continuar con la restauración?")) {
+          return;
+        }
+
+        var filas = importadas.map(function (o) {
+          return {
+            id: o.id,
+            fecha: o.fecha || new Date().toISOString(),
+            cliente: o.nombre || o.cliente || "",
+            tel: o.whatsapp || o.tel || "",
+            tipo: o.equipo || o.tipo || "",
+            serie: o.serie || "",
+            pass: o.pin || o.pass || "",
+            sena: Number(o.sena ?? 0) || 0,
+            falla: o.falla || "",
+            presupuesto: Number(o.presupuesto ?? 0) || 0,
+            presupuesta: Number(o.presupuesta ?? 0) || 0,
+            estetico: o.estetico || "",
+            estado: o.estado || "ingresado",
+            fecha_entrega: o.fechaEntrega || o.fecha_entrega || null,
+            cliente_id: o.clienteId || o.cliente_id || null,
+            diagnostico: o.diagnostico || "",
+            trabajo_realizar: o.trabajoRealizar || o.trabajo_realizar || "",
+            aprobacion_presupuesto: o.aprobacionPresupuesto || o.aprobacion_presupuesto || "pendiente"
           };
-          reader.readAsText(file);
-          fileImportar.value = "";
         });
 
-	}		
+        pedirApi(
+          "/api/ordenes",
+          {
+            action: "import",
+            ordenes: filas
+          },
+          "POST"
+        )
+        .then(function (resultado) {
+          if (!resultado.ok) {
+            throw new Error(resultado.error || "No se pudo importar el backup.");
+          }
 
+          var cantidad = (resultado.data && resultado.data.importadas)
+            ? resultado.data.importadas
+            : filas.length;
+
+          alert("Se importaron " + cantidad + " órdenes correctamente.");
+          return cargarOrdenes();
+        })
+        .then(renderizar)
+        .catch(function (err) {
+          console.error("Error al importar:", err);
+          alert("Error al importar: " + (err.message || "no se pudo completar la operación."));
+        });
+
+      } catch (err) {
+        alert("Error al importar: el archivo no tiene un formato válido.");
+      }
+    };
+    reader.readAsText(file);
+    fileImportar.value = "";
+  });
+}
         /* ===== TICKET ====== */
         var ticketOverlay = document.getElementById("ticket-overlay");
         var ticketContenido = document.getElementById("ticket-contenido");
