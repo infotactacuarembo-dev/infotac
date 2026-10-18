@@ -8558,17 +8558,19 @@ if (typeof fileImportar !== 'undefined' && fileImportar) {
 
 // Advertencia crítica antes de continuar
 var advertencia =
-  "⚠️ ADVERTENCIA DE SEGURIDAD CRÍTICA ⚠️\n\n" +
-  "Está a punto de restaurar un respaldo de Infotac.\n\n" +
+  "⚠️ ADVERTENCIA DE RESTAURACIÓN ⚠️\n\n" +
+  "Se restaurarán los datos incluidos en el respaldo.\n\n" +
   "• Empresa: " + empresa + "\n" +
   "• Fecha del respaldo: " + fechaGen + "\n\n" +
-  "CONTENIDO:\n" +
+  "CONTENIDO DEL RESPALDO:\n" +
   "• Clientes: " + clientes + "\n" +
   "• Órdenes de trabajo: " + ordenes + "\n" +
   "• Repuestos y servicios: " + items + "\n" +
   "• Pagos registrados: " + pagos + "\n\n" +
-  "Los registros existentes pueden ser actualizados con los datos del archivo.\n\n" +
-  "¿Desea continuar a la verificación de administrador?";
+  "• Las órdenes, clientes, ítems y pagos incluidos en el archivo serán creados o actualizados.\n\n" +
+  "• Los registros creados después del respaldo NO serán eliminados.\n\n" +
+  "• Esta operación no restaura usuarios ni contraseñas.\n\n" +
+  "¿Desea continuar?";
 
 if (!confirm(advertencia)) {
   return;
