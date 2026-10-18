@@ -8490,15 +8490,23 @@ async function exportarDatos() {
       throw new Error('No se pudo generar el archivo de backup en el servidor.');
     }
 
-    var blob = await response.blob();
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "backup_infotac_" + new Date().toISOString().slice(0, 10) + ".json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+var blob = await response.blob();
+
+// Tomar el nombre sugerido por el servidor
+var disposition = response.headers.get('Content-Disposition') || '';
+var coincidencia = disposition.match(/filename="([^"]+)"/);
+var nombreArchivo = coincidencia
+  ? coincidencia[1]
+  : 'backup_infotac_' + new Date().toISOString().slice(0, 10) + '.json';
+
+var url = URL.createObjectURL(blob);
+var a = document.createElement("a");
+a.href = url;
+a.download = nombreArchivo;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
 
     alert("Copia de seguridad completa descargada con éxito.");
   } catch (err) {
