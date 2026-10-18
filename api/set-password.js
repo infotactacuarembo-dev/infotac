@@ -1,23 +1,14 @@
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
+const { readSession } = require('./_auth');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-function readSession(req) {
-  const raw = req.headers.cookie || '';
-  const found = raw.split(';').map(v => v.trim()).find(v => v.startsWith('taller_session='));
-  if (!found) return null;
-  try {
-    return JSON.parse(decodeURIComponent(found.split('=').slice(1).join('=')));
-  } catch {
-    return null;
-  }
-}
-
 module.exports = async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Método no permitido' });
 
   const session = readSession(req);
