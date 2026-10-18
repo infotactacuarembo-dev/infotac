@@ -26,6 +26,8 @@ module.exports = async function handler(req, res) {
 
   const empresaId = sessionUser.empresa_id;
   const esAdmin = sessionUser.rol === 'admin';
+  const esUser = sessionUser.rol === 'user';
+  const puedeVerTodo = esAdmin || esUser;
   const userId = sessionUser.user_id || sessionUser.id;
 
   if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
@@ -63,7 +65,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin && orden.tecnico_id !== userId) {
+      if (!puedeVerTodo && orden.tecnico_id !== userId) {
         return res.status(403).json({
           ok: false,
           error: 'No tienes permiso para ver los ítems de esta orden'
@@ -147,7 +149,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin && orden.tecnico_id !== userId) {
+      if (!puedeVerTodo && orden.tecnico_id !== userId) {
         return res.status(403).json({
           ok: false,
           error: 'No tienes permiso para agregar ítems a esta orden'
@@ -224,7 +226,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin) {
+      if (!puedeVerTodo) {
         const { data: orden, error: errOrden } = await supabase
           .from('ordenes')
           .select('id, tecnico_id')
@@ -335,7 +337,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin) {
+      if (!puedeVerTodo) {
         const { data: orden, error: errOrden } = await supabase
           .from('ordenes')
           .select('id, tecnico_id')

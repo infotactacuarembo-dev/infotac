@@ -39,6 +39,8 @@ module.exports = async function handler(req, res) {
 
   const empresaId = sessionUser.empresa_id;
   const esAdmin = sessionUser.rol === 'admin';
+  const esUser = sessionUser.rol === 'user';
+  const puedeVerTodo = esAdmin || esUser;
   const userId = sessionUser.user_id || sessionUser.id;
 
   const estadosEnProceso = [
@@ -91,7 +93,7 @@ module.exports = async function handler(req, res) {
           .eq('empresa_id', empresaId)
           .eq('id', id);
 
-        if (!esAdmin && userId) {
+        if (!puedeVerTodo && userId) {
           query = query.eq('tecnico_id', userId);
         }
 
@@ -131,7 +133,7 @@ module.exports = async function handler(req, res) {
             tecnicoIdFiltro = usuarioTecnico.id;
           }
         }
-      } else {
+      } else if (!esUser) {
         tecnicoIdFiltro = userId;
       }
 
@@ -324,7 +326,7 @@ module.exports = async function handler(req, res) {
 
       let finalTecnicoId = null;
 
-      if (esAdmin) {
+      if (esAdmin || esUser) {
         if (tecnico_id && validId(tecnico_id)) {
           finalTecnicoId = tecnico_id.trim();
         }
@@ -428,7 +430,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (!esAdmin && ordenActual.tecnico_id !== userId) {
+      if (!puedeVerTodo && ordenActual.tecnico_id !== userId) {
         return res.status(403).json({
           ok: false,
           error: 'No tienes permiso para modificar esta orden'
