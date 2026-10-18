@@ -8484,10 +8484,14 @@ if (btnExportarCsv) {
 // 1. Exportación completa desde la base de datos
 async function exportarDatos() {
   try {
-    var empresaId = (typeof sesionActual !== 'undefined' && sesionActual && sesionActual.empresa_id)
-      ? sesionActual.empresa_id
-      : (localStorage.getItem('empresa_id') || 'ce95321a-ea37-47d1-81bb-f25f0dd58eeb');
+var empresaId = (typeof sesionActual !== 'undefined' && sesionActual && sesionActual.empresa_id)
+  ? sesionActual.empresa_id
+  : localStorage.getItem('empresa_id');
 
+if (!empresaId) {
+  alert('No se pudo identificar el taller activo. Vuelva a iniciar sesión.');
+  return;
+}
     var response = await fetch('/api/backup?empresa_id=' + encodeURIComponent(empresaId));
     
     if (!response.ok) {
