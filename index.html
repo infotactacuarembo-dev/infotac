@@ -2830,6 +2830,88 @@ body {
 }		
 
 
+ /* ===== AYUDAS DEL BALANCE ===== */
+
+#configuracion-contable .balance-etiqueta-con-ayuda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+#configuracion-contable .balance-ayuda-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #dce6eb;
+  border-radius: 50%;
+  background: #f4f8fa;
+  color: #536d7a;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#configuracion-contable .balance-ayuda-boton:hover {
+  border-color: #91c8bf;
+  background: #e5f5f1;
+  color: #11766f;
+}
+
+#configuracion-contable .balance-ayuda-boton:focus-visible {
+  outline: 3px solid #5abbb0;
+  outline-offset: 3px;
+}
+
+/*
+  Las ayudas se agregan directamente al body.
+  Así no quedan recortadas por los bordes del panel.
+*/
+.balance-ayuda-flotante {
+  position: fixed;
+  z-index: 10000;
+  box-sizing: border-box;
+  width: 330px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid #31505e;
+  border-radius: 13px;
+  background: #173743;
+  color: #fff;
+  box-shadow: 0 10px 30px rgb(15 35 45 / 22%);
+  font-family: inherit;
+  text-align: left;
+}
+
+.balance-ayuda-flotante[hidden] {
+  display: none;
+}
+
+.balance-ayuda-flotante .balance-ayuda-titulo {
+  margin: 0 0 8px;
+  color: #a8e4d9;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.balance-ayuda-flotante .balance-ayuda-texto {
+  margin: 0;
+  color: #f0f5f7;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.65;
+}		
+
 </style>		
 		
 
@@ -3799,12 +3881,13 @@ body {
 
       <div class="balance-aclaracion">
         <span aria-hidden="true">ⓘ</span>
-        <p>
-          Este balance incluye solamente órdenes con estado “Entregado”
-          y fecha de entrega dentro del período seleccionado.
-          No representa la ganancia neta del taller ni necesariamente
-          todos los movimientos de caja del período.
-        </p>
+		<p>
+  			Este balance incluye únicamente órdenes con estado “Entregado”
+  			y fecha de entrega dentro del período seleccionado, según la
+  			zona horaria del taller. Los cobros corresponden a esas órdenes,
+  			independientemente de la fecha en que se registraron.
+  			No representa la ganancia neta ni un cierre histórico de caja.
+		</p>
       </div>
     </div>
   </div>
@@ -5967,7 +6050,305 @@ if (btnConsultarBalance) {
   );
 }		
 
+  /* ===== AYUDAS CONTEXTUALES DEL BALANCE ===== */
 
+(function () {
+  function iniciarAyudasBalance() {
+    var panel = document.getElementById('configuracion-contable');
+
+    if (!panel || panel.dataset.ayudasBalance === 'listas') {
+      return;
+    }
+
+    panel.dataset.ayudasBalance = 'listas';
+
+    var definiciones = [
+      {
+        id: 'balance-cantidad-ordenes',
+        titulo: 'Órdenes entregadas',
+        texto:
+          'Cuenta las órdenes del taller con estado “Entregado” ' +
+          'y fecha de entrega dentro del período seleccionado. ' +
+          'Se utiliza la zona horaria configurada para el taller.'
+      },
+      {
+        id: 'balance-total-facturado',
+        titulo: 'Total facturado',
+        texto:
+          'Suma de mano de obra, repuestos y servicios de las órdenes ' +
+          'seleccionadas. Cada ítem se calcula como cantidad × precio ' +
+          'unitario. No utiliza el presupuesto de la orden ni ' +
+          'representa la ganancia neta.'
+      },
+      {
+        id: 'balance-total-cobrado',
+        titulo: 'Total cobrado',
+        texto:
+          'Suma de las señas y los pagos registrados para las órdenes ' +
+          'seleccionadas, aunque se hayan cobrado fuera del período ' +
+          'consultado. No representa todos los ingresos de caja ' +
+          'del período.'
+      },
+      {
+        id: 'balance-saldo-pendiente',
+        titulo: 'Saldo pendiente',
+        texto:
+          'Suma de los importes que quedan por cobrar en las órdenes ' +
+          'seleccionadas. Para cada orden se descuenta del total ' +
+          'facturado la seña y los pagos registrados.'
+      }
+    ];
+
+    var activa = null;
+    var fijada = false;
+    var temporizador = null;
+
+    function cancelarCierre() {
+      clearTimeout(temporizador);
+    }
+
+    function cerrarAyuda() {
+      cancelarCierre();
+
+      if (activa) {
+        activa.ayuda.hidden = true;
+      }
+
+      activa = null;
+      fijada = false;
+    }
+
+    function posicionarAyuda() {
+      if (!activa) return;
+
+      var boton = activa.boton;
+      var ayuda = activa.ayuda;
+      var rect = boton.getBoundingClientRect();
+
+      if (
+        !boton.getClientRects().length ||
+        rect.bottom <= 0 ||
+        rect.top >= window.innerHeight
+      ) {
+        cerrarAyuda();
+        return;
+      }
+
+      var margen = 12;
+      var separacion = 8;
+      var ancho = ayuda.offsetWidth;
+      var alto = ayuda.offsetHeight;
+
+      var izquierda = rect.left + rect.width / 2 - ancho / 2;
+      izquierda = Math.max(
+        margen,
+        Math.min(
+          izquierda,
+          window.innerWidth - ancho - margen
+        )
+      );
+
+      var arriba = rect.bottom + separacion;
+
+      if (arriba + alto > window.innerHeight - margen) {
+        arriba = rect.top - alto - separacion;
+      }
+
+      arriba = Math.max(
+        margen,
+        Math.min(
+          arriba,
+          window.innerHeight - alto - margen
+        )
+      );
+
+      ayuda.style.left = izquierda + 'px';
+      ayuda.style.top = arriba + 'px';
+    }
+
+    function abrirAyuda(elemento) {
+      cancelarCierre();
+
+      if (activa !== elemento) {
+        cerrarAyuda();
+        activa = elemento;
+      }
+
+      elemento.ayuda.hidden = false;
+      posicionarAyuda();
+    }
+
+    function programarCierre(elemento) {
+      cancelarCierre();
+
+      temporizador = setTimeout(function () {
+        if (activa !== elemento || fijada) return;
+
+        var mantieneFoco =
+          document.activeElement === elemento.boton;
+
+        var mantieneCursor =
+          elemento.boton.matches(':hover') ||
+          elemento.ayuda.matches(':hover');
+
+        if (!mantieneFoco && !mantieneCursor) {
+          cerrarAyuda();
+        }
+      }, 200);
+    }
+
+    definiciones.forEach(function (definicion) {
+      var valor = document.getElementById(definicion.id);
+      var tarjeta = valor && valor.closest('.balance-tarjeta');
+      var etiqueta = tarjeta &&
+        tarjeta.querySelector('.balance-etiqueta');
+
+      if (!etiqueta) return;
+
+      var contenedor = document.createElement('span');
+      contenedor.className = 'balance-etiqueta-con-ayuda';
+
+      etiqueta.parentNode.insertBefore(contenedor, etiqueta);
+      contenedor.appendChild(etiqueta);
+
+      var boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'balance-ayuda-boton';
+      boton.textContent = 'ⓘ';
+      boton.setAttribute(
+        'aria-label',
+        'Información sobre ' + definicion.titulo.toLowerCase()
+      );
+
+      var ayuda = document.createElement('div');
+      ayuda.id = definicion.id + '-ayuda';
+      ayuda.className = 'balance-ayuda-flotante';
+      ayuda.setAttribute('role', 'tooltip');
+      ayuda.hidden = true;
+
+      var titulo = document.createElement('p');
+      titulo.className = 'balance-ayuda-titulo';
+      titulo.textContent = definicion.titulo;
+
+      var texto = document.createElement('p');
+      texto.className = 'balance-ayuda-texto';
+      texto.textContent = definicion.texto;
+
+      ayuda.appendChild(titulo);
+      ayuda.appendChild(texto);
+
+      boton.setAttribute('aria-describedby', ayuda.id);
+
+      contenedor.appendChild(boton);
+      document.body.appendChild(ayuda);
+
+      var elemento = {
+        boton: boton,
+        ayuda: ayuda
+      };
+
+      boton.addEventListener('pointerenter', function (evento) {
+        if (evento.pointerType === 'mouse') {
+          abrirAyuda(elemento);
+        }
+      });
+
+      boton.addEventListener('pointerleave', function () {
+        programarCierre(elemento);
+      });
+
+      boton.addEventListener('focus', function () {
+        abrirAyuda(elemento);
+      });
+
+      boton.addEventListener('blur', function () {
+        if (activa === elemento) {
+          fijada = false;
+        }
+
+        programarCierre(elemento);
+      });
+
+      boton.addEventListener('click', function () {
+        if (activa === elemento && fijada) {
+          cerrarAyuda();
+        } else {
+          abrirAyuda(elemento);
+          fijada = true;
+        }
+      });
+
+      ayuda.addEventListener('pointerenter', cancelarCierre);
+
+      ayuda.addEventListener('pointerleave', function () {
+        programarCierre(elemento);
+      });
+    });
+
+    document.addEventListener('keydown', function (evento) {
+      if (evento.key === 'Escape' && activa) {
+        cerrarAyuda();
+      }
+    });
+
+    document.addEventListener('pointerdown', function (evento) {
+      if (!activa) return;
+
+      if (
+        !activa.boton.contains(evento.target) &&
+        !activa.ayuda.contains(evento.target)
+      ) {
+        cerrarAyuda();
+      }
+    });
+
+    window.addEventListener('resize', posicionarAyuda);
+
+    window.addEventListener(
+      'scroll',
+      function (evento) {
+        if (
+          activa &&
+          evento.target !== activa.ayuda
+        ) {
+          cerrarAyuda();
+        }
+      },
+      true
+    );
+
+    panel.addEventListener('click', function (evento) {
+      if (
+        evento.target.closest(
+          '#btn-volver-menu-contable, #btn-consultar-balance'
+        )
+      ) {
+        cerrarAyuda();
+      }
+    });
+
+    new MutationObserver(function () {
+      if (activa && !activa.boton.getClientRects().length) {
+        cerrarAyuda();
+      }
+    }).observe(panel, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['style', 'class', 'hidden']
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener(
+      'DOMContentLoaded',
+      iniciarAyudasBalance,
+      { once: true }
+    );
+  } else {
+    iniciarAyudasBalance();
+  }
+})();
 
 
 
