@@ -1,18 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { requireSession } from './_auth.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Método no permitido. Utilizar POST.' });
-  }
-
-  try {
-import { requireSession } from './_auth.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -36,10 +29,22 @@ export default async function handler(req, res) {
       });
     }
 
-    const empresaId = payload.empresa_id || payload.data?.empresa?.id;
+    const {
+      empresa,
+      clientes,
+      ordenes,
+      orden_items,
+      pagos,
+      configuracion
+    } = payload.data;
+
+    const empresaId = payload.empresa_id || empresa?.id;
 
     if (!empresaId) {
-      return res.status(400).json({ ok: false, error: 'No se identificó el ID de empresa en el respaldo.' });
+      return res.status(400).json({
+        ok: false,
+        error: 'No se identificó el ID de empresa en el respaldo.'
+      });
     }
 
     const empresaActualId = session.empresa_id;
@@ -51,7 +56,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // El rol correcto en la base es "admin", no "Administrador"
     const { data: admin, error: adminError } = await supabase
       .from('usuarios')
       .select('id, password_hash, rol')
@@ -76,12 +80,11 @@ export default async function handler(req, res) {
         error: 'Contraseña de administrador incorrecta. La restauración fue cancelada.'
       });
     }
-    // 3. Restaurar Empresa
+
     if (empresa && empresa.id) {
       await supabase.from('empresas').upsert([empresa], { onConflict: 'id' });
     }
 
-    // 4. Restaurar Clientes
     if (Array.isArray(clientes) && clientes.length > 0) {
       const clientesFormateados = clientes.map(c => ({
         id: c.id,
@@ -90,12 +93,10 @@ export default async function handler(req, res) {
         created_at: c.created_at || new Date().toISOString(),
         empresa_id: empresaId
       }));
+
       await supabase.from('clientes').upsert(clientesFormateados, { onConflict: 'id' });
     }
 
-
-
-    // 6. Restaurar Órdenes de Trabajo
     if (Array.isArray(ordenes) && ordenes.length > 0) {
       const ordenesFormateadas = ordenes.map(o => ({
         id: o.id,
@@ -126,10 +127,10 @@ export default async function handler(req, res) {
         presupuesto_detalle: o.presupuesto_detalle || null,
         motivo_devolucion: o.motivo_devolucion || null
       }));
+
       await supabase.from('ordenes').upsert(ordenesFormateadas, { onConflict: 'id' });
     }
 
-    // 7. Restaurar Ítems de Órdenes
     if (Array.isArray(orden_items) && orden_items.length > 0) {
       const itemsFormateados = orden_items.map(it => ({
         id: it.id,
@@ -141,10 +142,10 @@ export default async function handler(req, res) {
         creado_en: it.creado_en || new Date().toISOString(),
         empresa_id: empresaId
       }));
+
       await supabase.from('orden_items').upsert(itemsFormateados, { onConflict: 'id' });
     }
 
-    // 8. Restaurar Pagos
     if (Array.isArray(pagos) && pagos.length > 0) {
       const pagosFormateados = pagos.map(p => ({
         id: p.id,
@@ -155,10 +156,10 @@ export default async function handler(req, res) {
         creado_en: p.creado_en || new Date().toISOString(),
         empresa_id: empresaId
       }));
+
       await supabase.from('pagos').upsert(pagosFormateados, { onConflict: 'id' });
     }
 
-    // 9. Registrar en auditoría
     await supabase.from('configuracion').insert([
       {
         empresa_id: empresaId,
@@ -166,7 +167,7 @@ export default async function handler(req, res) {
         valor: JSON.stringify({
           fecha: new Date().toISOString(),
           archivo_fecha: payload.fecha_exportacion || null,
-          restaurado_por: admin_user || 'administrador',
+          restaurado_por: session.identificador || 'administrador',
           clientes: clientes?.length || 0,
           ordenes: ordenes?.length || 0,
           items: orden_items?.length || 0,
@@ -188,6 +189,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error restaurando el backup:', error);
-    return res.status(500).json({ ok: false, error: error.message || 'Error interno al restaurar el respaldo.' });
+    return res.status(500).json({
+      ok: false,
+      error: error.message || 'Error interno al restaurar el respaldo.'
+    });
   }
 }
