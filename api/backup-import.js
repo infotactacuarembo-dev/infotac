@@ -12,9 +12,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { payload, admin_password, admin_user } = req.body;
+import { requireSession } from './_auth.js';
 
-    // 1. Validar que el archivo provenga de Infotac
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Método no permitido. Utilizar POST.' });
+  }
+
+  const session = requireSession(req, res);
+  if (!session) return;
+
+  try {
+    const { payload, admin_password } = req.body;
+
     if (!payload || payload.app !== 'infotac' || !payload.data) {
       return res.status(400).json({ ok: false, error: 'Formato de archivo de respaldo no compatible.' });
     }
@@ -26,46 +36,35 @@ export default async function handler(req, res) {
       });
     }
 
-    const { empresa, usuarios, clientes, ordenes, orden_items, pagos, configuracion } = payload.data;
-    const empresaId = payload.empresa_id || empresa?.id;
+    const empresaId = payload.empresa_id || payload.data?.empresa?.id;
 
     if (!empresaId) {
       return res.status(400).json({ ok: false, error: 'No se identificó el ID de empresa en el respaldo.' });
     }
 
+    const empresaActualId = session.empresa_id;
 
-    const empresaActualId =
-  (typeof req.body.empresa_actual_id !== 'undefined' && req.body.empresa_actual_id)
-    ? req.body.empresa_actual_id
-    : null;
+    if (empresaId !== empresaActualId) {
+      return res.status(403).json({
+        ok: false,
+        error: 'El respaldo pertenece a otro taller. No es posible restaurarlo en este taller.'
+      });
+    }
 
-if (!empresaActualId) {
-  return res.status(400).json({
-    ok: false,
-    error: 'No se identificó el taller desde el cual se realiza la importación.'
-  });
-}
-
-if (empresaId !== empresaActualId) {
-  return res.status(403).json({
-    ok: false,
-    error: 'El respaldo pertenece a otro taller. No es posible restaurarlo en este taller.'
-  });
-}
-
-    // 2. Validar la contraseña del administrador de esta empresa
+    // El rol correcto en la base es "admin", no "Administrador"
     const { data: admin, error: adminError } = await supabase
       .from('usuarios')
       .select('id, password_hash, rol')
-      .eq('empresa_id', empresaId)
-      .eq('rol', 'Administrador')
+      .eq('empresa_id', empresaActualId)
+      .eq('rol', 'admin')
+      .eq('activo', true)
       .limit(1)
       .maybeSingle();
 
     if (adminError || !admin) {
       return res.status(403).json({
         ok: false,
-        error: 'No se encontró un usuario administrador válido para autorizar la restauración.'
+        error: 'No se encontró un administrador activo para autorizar la restauración.'
       });
     }
 
@@ -77,7 +76,6 @@ if (empresaId !== empresaActualId) {
         error: 'Contraseña de administrador incorrecta. La restauración fue cancelada.'
       });
     }
-
     // 3. Restaurar Empresa
     if (empresa && empresa.id) {
       await supabase.from('empresas').upsert([empresa], { onConflict: 'id' });
@@ -95,20 +93,7 @@ if (empresaId !== empresaActualId) {
       await supabase.from('clientes').upsert(clientesFormateados, { onConflict: 'id' });
     }
 
-    // 5. Restaurar Usuarios
-    if (Array.isArray(usuarios) && usuarios.length > 0) {
-      const usuariosFormateados = usuarios.map(u => ({
-        id: u.id,
-        identificador: u.identificador,
-        password_hash: u.password_hash || '$2b$10$eE0m0a51uW4M7I4J7v/n.e7MhW9I4l0vJzG6w8X7K0qL2m9p2r.2e',
-        rol: u.rol || 'user',
-        creado_en: u.creado_en || new Date().toISOString(),
-        activo: u.activo !== false,
-        empresa_id: empresaId,
-        debe_cambiar_password: !!u.debe_cambiar_password
-      }));
-      await supabase.from('usuarios').upsert(usuariosFormateados, { onConflict: 'id' });
-    }
+
 
     // 6. Restaurar Órdenes de Trabajo
     if (Array.isArray(ordenes) && ordenes.length > 0) {
