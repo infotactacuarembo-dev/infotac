@@ -6142,7 +6142,8 @@ function consultarBalanceTaller() {
       }
 
       balanceMostrarResumen(resultado.data);
-	  cargarProduccionTecnicos(desde, hasta);	
+	  cargarProduccionTecnicos(desde, hasta);
+	  cargarEvolucionTaller(desde, hasta);	
 
       if (balanceMensaje) {
         balanceMensaje.textContent =
@@ -12006,6 +12007,186 @@ function editarUsuario(usuario) {
   usuarioRol.focus();
 }
 
+
+       // ===== Evolución mensual del taller =====
+
+  async function cargarEvolucionTaller(desde, hasta) {
+    var contenedor = document.getElementById('balance-evolucion');
+    var canvas = document.getElementById('grafico-evolucion-facturacion');
+    var mensaje = document.getElementById('balance-evolucion-mensaje');
+
+    if (!contenedor || !canvas || !mensaje) return;
+
+    // Identifica la consulta para no mostrar respuestas antiguas.
+    var consulta = String(Date.now()) + Math.random();
+    contenedor.dataset.consulta = consulta;
+
+    contenedor.hidden = false;
+    canvas.hidden = true;
+    mensaje.textContent = 'Cargando evolución mensual...';
+
+    var anterior = window.Chart
+      ? Chart.getChart(canvas)
+      : null;
+
+    if (anterior) anterior.destroy();
+
+    try {
+      if (!window.Chart) {
+        throw new Error('No se pudo cargar la biblioteca del gráfico.');
+      }
+
+      var resultado = await pedirApi(
+        '/api/evolucion-taller?desde=' +
+          encodeURIComponent(desde) +
+          '&hasta=' +
+          encodeURIComponent(hasta)
+      );
+
+      if (contenedor.dataset.consulta !== consulta) return;
+
+      if (
+        !resultado ||
+        resultado.ok !== true ||
+        !resultado.data ||
+        !Array.isArray(resultado.data.meses)
+      ) {
+        throw new Error(
+          (resultado && resultado.error) ||
+          'Respuesta inválida de la evolución.'
+        );
+      }
+
+      var meses = resultado.data.meses;
+
+      if (!meses.length) {
+        mensaje.textContent = 'No hay meses para mostrar.';
+        return;
+      }
+
+      var etiquetas = meses.map(function (fila) {
+        var partes = fila.mes.split('-');
+
+        return partes[1] + '/' + partes[0];
+      });
+
+      var series = [
+        {
+          label: 'Mano de obra',
+          data: meses.map(function (fila) {
+            return Number(fila.manoObra || 0);
+          }),
+          borderColor: '#2563eb',
+          backgroundColor: '#2563eb',
+          borderWidth: 2,
+          pointRadius: 4,
+          tension: 0,
+          fill: false
+        },
+        {
+          label: 'Repuestos',
+          data: meses.map(function (fila) {
+            return Number(fila.repuestos || 0);
+          }),
+          borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b',
+          borderWidth: 2,
+          pointRadius: 4,
+          tension: 0,
+          fill: false
+        },
+        {
+          label: 'Servicio',
+          data: meses.map(function (fila) {
+            return Number(fila.servicios || 0);
+          }),
+          borderColor: '#94a3b8',
+          backgroundColor: '#94a3b8',
+          borderWidth: 2,
+          pointRadius: 4,
+          tension: 0,
+          fill: false,
+          hidden: true
+        }
+      ];
+
+      canvas.hidden = false;
+
+      new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: etiquetas,
+          datasets: series
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function (contexto) {
+                  return contexto.dataset.label +
+                    ': ' +
+                    formatearMoneda(contexto.parsed.y);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Mes de entrega'
+              },
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Importe facturado ($)'
+              },
+              ticks: {
+                callback: function (valor) {
+                  return formatearMoneda(valor);
+                }
+              }
+            }
+          }
+        }
+      });
+
+      mensaje.textContent =
+        'Cada punto corresponde al importe de ese mes dentro del ' +
+        'período seleccionado. Los meses sin facturación se muestran ' +
+        'en cero. Podés pulsar una categoría en la leyenda para ' +
+        'mostrarla u ocultarla.';
+
+      if (meses.length === 1) {
+        mensaje.textContent +=
+          ' Para observar una tendencia, seleccioná un período ' +
+          'que abarque varios meses.';
+      }
+    } catch (error) {
+      if (contenedor.dataset.consulta !== consulta) return;
+
+      console.error('Error al cargar evolución:', error);
+
+      canvas.hidden = true;
+      mensaje.textContent =
+        'No se pudo mostrar el gráfico: ' +
+        (error.message || 'intentá nuevamente.');
+    }
+  }		  
 
     // ===== Producción por técnico =====
 
