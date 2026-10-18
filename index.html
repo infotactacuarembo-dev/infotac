@@ -3941,6 +3941,46 @@ body {
 </p>
       </div>
 
+
+		<!-- Evolución de la facturación -->
+      <div
+        id="balance-evolucion"
+        style="margin-top:24px; margin-bottom:24px;"
+        hidden
+      >
+        <h3 style="margin-bottom:8px;">
+          Evolución de la facturación
+        </h3>
+
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:16px;">
+          Mano de obra y repuestos por mes, según las órdenes
+          entregadas del período seleccionado.
+        </p>
+
+        <div
+          style="
+            position:relative;
+            height:300px;
+            width:100%;
+          "
+        >
+          <canvas
+            id="grafico-evolucion-facturacion"
+            role="img"
+            aria-label="Evolución mensual de la facturación de mano de obra y repuestos"
+          >
+            Evolución mensual de mano de obra y repuestos.
+          </canvas>
+        </div>
+
+        <p
+          id="balance-evolucion-mensaje"
+          role="status"
+          aria-live="polite"
+          style="color:var(--text-muted); font-size:0.82rem; margin-top:12px;"
+        ></p>
+      </div>
+		
       <!-- Producción por técnico -->
       <div id="produccion-tecnicos" class="produccion-tecnicos" hidden>
         <h3>Producción por técnico</h3>
