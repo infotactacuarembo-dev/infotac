@@ -8479,7 +8479,7 @@ if (btnExportarCsv) {
 }
 
 		  
-  /* ===== EXPORT / IMPORT INTEGRAL INFOTAC ===== */
+/* ===== EXPORT / IMPORT INTEGRAL INFOTAC ===== */
 
 // 1. Exportación completa desde la base de datos
 async function exportarDatos() {
@@ -8527,81 +8527,62 @@ if (typeof btnImportarBackupConfig !== 'undefined' && btnImportarBackupConfig) {
   btnImportarBackupConfig.addEventListener("click", seleccionarArchivoBackup);
 }
 
-// 4. Procesar archivo seleccionado en la importación
+// 4. Procesar archivo seleccionado en la importación completa
 if (typeof fileImportar !== 'undefined' && fileImportar) {
   fileImportar.addEventListener("change", function (e) {
     var file = e.target.files[0];
     if (!file) return;
-    
+
     var reader = new FileReader();
-    reader.onload = function (ev) {
+    reader.onload = async function (ev) {
       try {
         var parsed = JSON.parse(ev.target.result);
-        
-        // Soporta tanto el formato nuevo (parsed.data.ordenes) como el formato anterior (parsed.ordenes o array)
-        var importadas = (parsed.data && Array.isArray(parsed.data.ordenes))
-          ? parsed.data.ordenes
-          : (Array.isArray(parsed) ? parsed : parsed.ordenes);
 
-        if (!Array.isArray(importadas)) {
-          throw new Error("El archivo no contiene un listado de órdenes válido.");
+        if (!parsed || parsed.app !== 'infotac' || !parsed.data) {
+          throw new Error("El archivo no corresponde a un formato de respaldo válido de Infotac.");
         }
 
-        if (!confirm("Se importarán " + importadas.length + " órdenes. ¿Continuar con la restauración?")) {
+        var res = parsed.resumen || {
+          clientes: parsed.data.clientes ? parsed.data.clientes.length : 0,
+          ordenes: parsed.data.ordenes ? parsed.data.ordenes.length : 0,
+          pagos: parsed.data.pagos ? parsed.data.pagos.length : 0
+        };
+
+        var mensajeConfirm = 
+          "Resumen del respaldo a restaurar:\n" +
+          "• Clientes: " + res.clientes + "\n" +
+          "• Órdenes: " + res.ordenes + "\n" +
+          "• Pagos: " + res.pagos + "\n\n" +
+          "¿Desea restaurar estos datos en el sistema?";
+
+        if (!confirm(mensajeConfirm)) {
           return;
         }
 
-        var filas = importadas.map(function (o) {
-          return {
-            id: o.id,
-            fecha: o.fecha || new Date().toISOString(),
-            cliente: o.nombre || o.cliente || "",
-            tel: o.whatsapp || o.tel || "",
-            tipo: o.equipo || o.tipo || "",
-            serie: o.serie || "",
-            pass: o.pin || o.pass || "",
-            sena: Number(o.sena ?? 0) || 0,
-            falla: o.falla || "",
-            presupuesto: Number(o.presupuesto ?? 0) || 0,
-            presupuesta: Number(o.presupuesta ?? 0) || 0,
-            estetico: o.estetico || "",
-            estado: o.estado || "ingresado",
-            fecha_entrega: o.fechaEntrega || o.fecha_entrega || null,
-            cliente_id: o.clienteId || o.cliente_id || null,
-            diagnostico: o.diagnostico || "",
-            trabajo_realizar: o.trabajoRealizar || o.trabajo_realizar || "",
-            aprobacion_presupuesto: o.aprobacionPresupuesto || o.aprobacion_presupuesto || "pendiente"
-          };
+        var response = await fetch('/api/backup-import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed)
         });
 
-        pedirApi(
-          "/api/ordenes",
-          {
-            action: "import",
-            ordenes: filas
-          },
-          "POST"
-        )
-        .then(function (resultado) {
-          if (!resultado.ok) {
-            throw new Error(resultado.error || "No se pudo importar el backup.");
-          }
+        var resultado = await response.json();
 
-          var cantidad = (resultado.data && resultado.data.importadas)
-            ? resultado.data.importadas
-            : filas.length;
+        if (!response.ok || !resultado.ok) {
+          throw new Error(resultado.error || 'No se pudo completar la importación.');
+        }
 
-          alert("Se importaron " + cantidad + " órdenes correctamente.");
-          return cargarOrdenes();
-        })
-        .then(renderizar)
-        .catch(function (err) {
-          console.error("Error al importar:", err);
-          alert("Error al importar: " + (err.message || "no se pudo completar la operación."));
-        });
+        alert("¡Restauración completada con éxito!\nSe restauraron " + resultado.resumen.ordenes + " órdenes y " + resultado.resumen.clientes + " clientes.");
+
+        if (typeof cargarOrdenes === 'function') {
+          await cargarOrdenes();
+        }
+        if (typeof renderizar === 'function') {
+          renderizar();
+        }
 
       } catch (err) {
-        alert("Error al importar: el archivo no tiene un formato válido.");
+        console.error("Error al importar backup:", err);
+        alert("Error al importar: " + (err.message || "archivo no válido."));
       }
     };
     reader.readAsText(file);
