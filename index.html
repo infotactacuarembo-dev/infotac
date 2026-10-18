@@ -2912,6 +2912,57 @@ body {
   line-height: 1.65;
 }		
 
+
+.produccion-tecnicos {
+  margin-top: 24px;
+}
+
+.destacados-produccion {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tarjeta-destacado {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.tarjeta-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.tarjeta-tecnico {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tarjeta-importe {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.tarjeta-detalle {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ayuda-produccion {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+		
 </style>		
 		
 
@@ -3881,14 +3932,49 @@ body {
 
       <div class="balance-aclaracion">
         <span aria-hidden="true">ⓘ</span>
-		<p>
-  			Este balance incluye únicamente órdenes con estado “Entregado”
-  			y fecha de entrega dentro del período seleccionado, según la
-  			zona horaria del taller. Los cobros corresponden a esas órdenes,
-  			independientemente de la fecha en que se registraron.
-  			No representa la ganancia neta ni un cierre histórico de caja.
-		</p>
+<p>
+  Este balance incluye únicamente órdenes con estado “Entregado”
+  y fecha de entrega dentro del período seleccionado, según la
+  zona horaria del taller. Los cobros corresponden a esas órdenes,
+  independientemente de la fecha en que se registraron.
+  No representa la ganancia neta ni un cierre histórico de caja.
+</p>
       </div>
+
+      <!-- Producción por técnico -->
+      <div id="produccion-tecnicos" class="produccion-tecnicos" hidden>
+        <h3>Producción por técnico</h3>
+
+        <div
+          id="destacados-produccion"
+          class="destacados-produccion"
+        ></div>
+
+        <div class="table-wrap">
+          <table class="tabla-produccion">
+            <thead>
+              <tr>
+                <th>Técnico</th>
+                <th>Órdenes entregadas</th>
+                <th>Mano de obra</th>
+                <th>Repuestos</th>
+                <th>Servicio</th>
+                <th>Total asociado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-produccion-tecnicos"></tbody>
+          </table>
+        </div>
+
+        <p class="ayuda-produccion">
+          Los importes corresponden a las órdenes entregadas del período y se
+          atribuyen al técnico actualmente asignado. Los reconocimientos de
+          <strong>mano de obra</strong> y <strong>venta de repuestos</strong>
+          son independientes. El ítem <strong>Servicio</strong> se muestra como
+          referencia, pero no participa en los reconocimientos.
+        </p>
+      </div>
+      <!-- Fin: Producción por técnico -->
     </div>
   </div>
 </section>
@@ -6014,6 +6100,7 @@ function consultarBalanceTaller() {
       }
 
       balanceMostrarResumen(resultado.data);
+	  cargarProduccionTecnicos(desde, hasta);	
 
       if (balanceMensaje) {
         balanceMensaje.textContent =
@@ -11876,7 +11963,142 @@ function editarUsuario(usuario) {
   modalUsuario.classList.add('visible');
   usuarioRol.focus();
 }
-		  
+
+
+    // ===== Producción por técnico =====
+
+  async function cargarProduccionTecnicos(fechaDesde, fechaHasta) {
+    const contenedor = document.getElementById('produccion-tecnicos');
+    const tbody = document.getElementById('tbody-produccion-tecnicos');
+    const destacados = document.getElementById('destacados-produccion');
+
+    if (!contenedor || !tbody || !destacados) return;
+
+    contenedor.hidden = true;
+    tbody.innerHTML = '';
+    destacados.innerHTML = '';
+
+    try {
+      const params = new URLSearchParams({
+        fecha_desde: fechaDesde,
+        fecha_hasta: fechaHasta
+      });
+
+      const respuesta = await fetch(
+        `/api/produccion-tecnicos?${params.toString()}`,
+        {
+          method: 'GET',
+          credentials: 'include'
+        }
+      );
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok || !resultado.ok) {
+        throw new Error(
+          resultado.error || 'No se pudo cargar la producción por técnico'
+        );
+      }
+
+      const datos = resultado.data;
+
+      renderizarDestacados(datos.destacados);
+      renderizarTablaProduccion(datos);
+
+      contenedor.hidden = false;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function renderizarDestacados(destacados) {
+    const contenedor = document.getElementById('destacados-produccion');
+
+    if (!contenedor || !destacados) return;
+
+    contenedor.innerHTML = '';
+
+    const tarjetas = [
+      {
+        titulo: '🛠️ Mayor mano de obra',
+        datos: destacados.mayor_mano_obra,
+        detalle: 'Mayor facturación de mano de obra'
+      },
+      {
+        titulo: '📦 Mayor venta de repuestos',
+        datos: destacados.mayor_repuestos,
+        detalle: 'Mayor facturación de repuestos'
+      }
+    ];
+
+    tarjetas.forEach(function (tarjeta) {
+      const tecnicos = tarjeta.datos?.tecnicos || [];
+
+      if (!tecnicos.length) return;
+
+      const nombres = tecnicos
+        .map(function (tecnico) {
+          return tecnico.tecnico;
+        })
+        .join(', ');
+
+      const elemento = document.createElement('div');
+      elemento.className = 'tarjeta-destacado';
+
+      elemento.innerHTML = `
+        <div class="tarjeta-titulo">${tarjeta.titulo}</div>
+        <div class="tarjeta-tecnico">${nombres}</div>
+        <div class="tarjeta-importe">
+          ${formatearMoneda(tarjeta.datos.importe)}
+        </div>
+        <div class="tarjeta-detalle">${tarjeta.detalle}</div>
+      `;
+
+      contenedor.appendChild(elemento);
+    });
+  }
+
+  function renderizarTablaProduccion(datos) {
+    const tbody = document.getElementById('tbody-produccion-tecnicos');
+
+    if (!tbody || !datos) return;
+
+    tbody.innerHTML = '';
+
+    const filas = [...(datos.tecnicos || [])];
+
+    if (datos.sin_tecnico) {
+      filas.push(datos.sin_tecnico);
+    }
+
+    if (!filas.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6">
+            No hay órdenes entregadas con producción registrada en el período seleccionado.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    filas.forEach(function (fila) {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${fila.tecnico}</td>
+        <td>${Number(fila.ordenes_entregadas || 0)}</td>
+        <td>${formatearMoneda(fila.mano_obra)}</td>
+        <td>${formatearMoneda(fila.repuestos)}</td>
+        <td>${formatearMoneda(fila.servicios)}</td>
+        <td>${formatearMoneda(fila.total_asociado)}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }
+
 		  
       })();
 </script>
