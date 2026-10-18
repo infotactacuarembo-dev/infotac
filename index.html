@@ -8578,14 +8578,16 @@ if (!passwordAdmin || passwordAdmin.trim() === "") {
   return;
 }
 
-// Envío al backend con la contraseña para validación
 var response = await fetch('/api/backup-import', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     payload: parsed,
     admin_password: passwordAdmin.trim(),
-    admin_user: (typeof sesionActual !== 'undefined' && sesionActual?.usuario) || 'administrador'
+    admin_user: (typeof sesionActual !== 'undefined' && sesionActual?.usuario) || 'administrador',
+    empresa_actual_id: (typeof sesionActual !== 'undefined' && sesionActual?.empresa_id)
+      ? sesionActual.empresa_id
+      : localStorage.getItem('empresa_id')
   })
 });
 
