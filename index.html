@@ -8550,28 +8550,44 @@ if (typeof fileImportar !== 'undefined' && fileImportar) {
         var items = parsed.data.orden_items ? parsed.data.orden_items.length : 0;
         var pagos = parsed.data.pagos ? parsed.data.pagos.length : 0;
 
-        var cartelInfo = 
-          "=========================================\n" +
-          "        PREVISUALIZACIÓN DE RESPALDO     \n" +
-          "=========================================\n\n" +
-          "• Empresa: " + empresa + "\n" +
-          "• Fecha de creación: " + fechaGen + "\n\n" +
-          "CONTENIDO A RESTAURAR:\n" +
-          "• Clientes: " + clientes + "\n" +
-          "• Órdenes de trabajo: " + ordenes + "\n" +
-          "• Repuestos y servicios: " + items + "\n" +
-          "• Pagos registrados: " + pagos + "\n\n" +
-          "¿Desea restaurar estos datos en el sistema?";
+        
 
-        if (!confirm(cartelInfo)) {
-          return;
-        }
+// Advertencia crítica antes de continuar
+var advertencia =
+  "⚠️ ADVERTENCIA DE SEGURIDAD CRÍTICA ⚠️\n\n" +
+  "Está a punto de restaurar un respaldo de Infotac.\n\n" +
+  "• Empresa: " + empresa + "\n" +
+  "• Fecha del respaldo: " + fechaGen + "\n\n" +
+  "CONTENIDO:\n" +
+  "• Clientes: " + clientes + "\n" +
+  "• Órdenes de trabajo: " + ordenes + "\n" +
+  "• Repuestos y servicios: " + items + "\n" +
+  "• Pagos registrados: " + pagos + "\n\n" +
+  "Los registros existentes pueden ser actualizados con los datos del archivo.\n\n" +
+  "¿Desea continuar a la verificación de administrador?";
 
-        var response = await fetch('/api/backup-import', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(parsed)
-        });
+if (!confirm(advertencia)) {
+  return;
+}
+
+// Solicitud de contraseña del administrador
+var passwordAdmin = prompt("🔒 Ingrese la contraseña del Administrador para autorizar la restauración:");
+
+if (!passwordAdmin || passwordAdmin.trim() === "") {
+  alert("Operación cancelada: no se ingresó la contraseña de administrador.");
+  return;
+}
+
+// Envío al backend con la contraseña para validación
+var response = await fetch('/api/backup-import', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    payload: parsed,
+    admin_password: passwordAdmin.trim(),
+    admin_user: (typeof sesionActual !== 'undefined' && sesionActual?.usuario) || 'administrador'
+  })
+});
 
         var resultado = await response.json();
 
