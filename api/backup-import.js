@@ -33,6 +33,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'No se identificó el ID de empresa en el respaldo.' });
     }
 
+
+    const empresaActualId =
+  (typeof req.body.empresa_actual_id !== 'undefined' && req.body.empresa_actual_id)
+    ? req.body.empresa_actual_id
+    : null;
+
+if (!empresaActualId) {
+  return res.status(400).json({
+    ok: false,
+    error: 'No se identificó el taller desde el cual se realiza la importación.'
+  });
+}
+
+if (empresaId !== empresaActualId) {
+  return res.status(403).json({
+    ok: false,
+    error: 'El respaldo pertenece a otro taller. No es posible restaurarlo en este taller.'
+  });
+}
+
     // 2. Validar la contraseña del administrador de esta empresa
     const { data: admin, error: adminError } = await supabase
       .from('usuarios')
