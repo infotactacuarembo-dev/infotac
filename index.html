@@ -5341,7 +5341,8 @@ function entrarModoAdminDirecto() {
 
   var identificador = document
     .getElementById('input-identificador')
-    .value
+  
+  .value
     .trim()
     .toLowerCase();
 
@@ -5399,6 +5400,31 @@ function entrarModoAdminDirecto() {
 
       mostrarAplicacion();
       mostrarUsuarioLogueado();
+
+      // Obtener la licencia de la sesión recién iniciada.
+      fetch("/api/session", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store"
+      })
+        .then(function (respuesta) {
+          if (!respuesta.ok) {
+            throw new Error("No se pudo consultar la licencia.");
+          }
+
+          return respuesta.json();
+        })
+        .then(function (datos) {
+          if (!datos || !datos.session) {
+            throw new Error("La respuesta no contiene una sesión.");
+          }
+
+          mostrarAvisoLicencia(datos.session.licencia || null);
+        })
+        .catch(function (error) {
+          console.error("Error al mostrar la licencia:", error);
+        });
+
       if (resultado.debe_cambiar_password) {
         mostrarModalCambioClaveObligatorio();
       }
