@@ -3161,6 +3161,104 @@ body {
         margin-left: auto;
       }
     }
+
+
+    /* Cabezal compacto para celulares */
+@media (max-width: 600px) {
+  .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "marca usuario"
+      "licencia acciones"
+      "titulo titulo";
+    align-items: center;
+    gap: 0.65rem 0.5rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .app-header .header-brand {
+    grid-area: marca;
+    min-width: 0;
+  }
+
+  .app-header .header-brand .logo {
+    gap: 0.35rem;
+    font-size: 1.2rem;
+  }
+
+  .app-header .logo-empresa-header {
+    max-width: 42px;
+    max-height: 42px;
+    object-fit: contain;
+  }
+
+  .app-header #user-info {
+    grid-area: usuario;
+    justify-self: end;
+    margin: 0;
+    gap: 0.4rem;
+  }
+
+  .app-header #user-avatar {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+
+  .app-header #user-name {
+    font-size: 0.8rem;
+  }
+
+  .app-header #user-rol {
+    font-size: 0.65rem;
+  }
+
+  .app-header #aviso-licencia {
+    grid-area: licencia;
+    min-width: 0;
+  }
+
+  .app-header .header-actions {
+    grid-area: acciones;
+    justify-self: end;
+    margin: 0;
+    gap: 0.4rem;
+  }
+
+  .app-header #btn-configuracion {
+    width: auto;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0.4rem 0.6rem;
+    font-size: 1.1rem;
+  }
+
+  /* Mostrar solo el engranaje en celular */
+  .app-header #btn-configuracion > span:last-child {
+    display: none;
+  }
+
+  .app-header #btn-menu-secundario {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .app-header .header-title {
+    grid-area: titulo;
+    position: static;
+    transform: none;
+    order: 0;
+    margin: 0;
+    padding: 0.5rem 0 0;
+    border-top: 1px solid var(--border, #e2e8f0);
+    font-size: 1.15rem;
+    text-align: center;
+    white-space: normal;
+  }
+}
+	  
   </style>
 
   <div class="header-brand">
