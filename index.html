@@ -6698,6 +6698,7 @@ function restaurarSesion() {
       sessionStorage.setItem("usuario_id", sesion.user_id || "");
 
       mostrarAplicacion();
+      mostrarUsuarioLogueado();
       return cargarDatosIniciales();
     })
     .catch(function (error) {
