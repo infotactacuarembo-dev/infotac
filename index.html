@@ -3115,6 +3115,43 @@ body {
       white-space: nowrap;
     }
 
+
+    /* Título principal del cabezal */
+.app-header {
+  position: relative;
+}
+
+.app-header .header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--primary, #147d76);
+  white-space: nowrap;
+}
+
+/* En pantallas más angostas, darle una fila propia */
+@media (max-width: 1100px) {
+  .app-header .header-title {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    order: 10;
+    flex: 0 0 100%;
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 0.25rem 0;
+    white-space: normal;
+  }
+}
+	  
+
     @media (max-width: 600px) {
       .app-header {
         gap: 0.75rem;
@@ -3138,10 +3175,11 @@ body {
       <span id="nombre-empresa-header">Infotac</span>
     </div>
 
-    <span class="header-subtitle">Gestión de taller</span>
   </div>
 
   <span id="aviso-licencia" hidden></span>
+
+  <div class="header-title">Gestión de taller</div>
 
   <div id="user-info">
     <span id="user-avatar" aria-hidden="true">A</span>
