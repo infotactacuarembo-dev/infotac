@@ -2971,6 +2971,74 @@ body {
     padding-right: 0.4rem;
   }
 }		
+
+
+/* Cabezal con borde y profundidad suave */
+.app-header {
+  background: linear-gradient(
+    180deg,
+    #fbfefd 0%,
+    #edf7f4 55%,
+    #e1efeb 100%
+  );
+
+  border: 1px solid #c8ddd7;
+  border-bottom: 3px solid #238b80;
+  border-radius: 0 0 14px 14px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.55),
+    0 2px 4px rgba(20, 70, 62, 0.08),
+    0 8px 18px -8px rgba(20, 70, 62, 0.25);
+}
+
+/* Inicial del usuario con un pequeño relieve */
+.app-header #user-avatar {
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #d8eee8 100%
+  );
+
+  border: 1px solid #c6e0d8;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 2px 4px rgba(20, 70, 62, 0.08);
+}
+
+/* Botones claros, con borde y sombra discreta */
+.app-header #btn-configuracion,
+.app-header #btn-menu-secundario {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f2f7f5 100%
+  );
+
+  border: 1px solid #c9dcd6;
+  border-radius: 10px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 3px rgba(20, 70, 62, 0.07);
+}
+
+/* Respuesta visual al usar los botones */
+@media (hover: hover) {
+  .app-header #btn-configuracion:hover,
+  .app-header #btn-menu-secundario:hover {
+    background: #e5f2ed;
+    border-color: #91bfb2;
+  }
+}
+
+.app-header #btn-configuracion:active,
+.app-header #btn-menu-secundario:active {
+  box-shadow: inset 0 2px 4px rgba(20, 70, 62, 0.12);
+}
+		
 		
 </style>		
 		
