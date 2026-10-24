@@ -6984,9 +6984,63 @@ window.mostrarAvisoLicencia = function (licencia) {
   punto.style.fontSize = "0.7rem";
   punto.style.flexShrink = "0";
 
-  var texto = document.createElement("span");
-  texto.textContent = mensaje;
+  // Conservar el mensaje completo para consultarlo.
+  var mensajeCompleto = mensaje;
 
+  var textoCorto;
+
+  if (licenciaActiva) {
+    textoCorto = "Licencia activa";
+  } else if (enGracia) {
+    textoCorto = "Licencia en gracia";
+  } else if (estado === "prueba") {
+    if (dias <= 0) {
+      textoCorto = "Prueba vencida";
+    } else {
+      textoCorto = "Prueba: vence en " + (tiempo || dias + " días");
+    }
+  } else if (estado === "vencida" || estado === "expirada") {
+    textoCorto = "Licencia vencida";
+  } else {
+    textoCorto = "Revisar licencia";
+  }
+
+  var texto = document.createElement("button");
+  texto.type = "button";
+
+  texto.textContent = licenciaActiva
+    ? textoCorto
+    : textoCorto + " ⓘ";
+
+  texto.title = "Ver detalle de la licencia";
+  texto.setAttribute(
+    "aria-label",
+    textoCorto + ". Ver detalle de la licencia"
+  );
+
+  texto.style.background = "transparent";
+  texto.style.border = "none";
+  texto.style.boxShadow = "none";
+  texto.style.padding = "0";
+  texto.style.margin = "0";
+  texto.style.font = "inherit";
+  texto.style.color = "inherit";
+  texto.style.textAlign = "left";
+  texto.style.lineHeight = "inherit";
+  texto.style.cursor = "pointer";
+  texto.style.minWidth = "0";
+  texto.style.whiteSpace = "normal";
+
+  texto.addEventListener("click", function () {
+    var detalle = mensajeCompleto;
+
+    // En licencias activas, la fecha no está en el mensaje.
+    if (licenciaActiva && detalleFecha) {
+      detalle += "\n\n" + detalleFecha;
+    }
+
+    window.alert(detalle);
+  });
   aviso.appendChild(punto);
   aviso.appendChild(texto);
 
